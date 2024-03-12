@@ -163,3 +163,6 @@ class State:
                 yield from node._visit(visited)
         for node in self.epsilon_transitions:
             yield from node._visit(visited)
+
+
+multiline_formatter = lambda x: "{%s}" % ", ".join(map(str, x))

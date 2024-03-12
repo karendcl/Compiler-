@@ -1,11 +1,17 @@
 from typing import List
 from src.cmp.pycompiler import Item, EOF
-from src.cmp.automata import State
+from src.cmp.automata import State, multiline_formatter
 from src.cmp.utils import Token, ContainerSet
-from src.parser.utils import upd_table, compute_firsts, expand, compress
+from src.parser.utils import compute_firsts, expand, compress
 
 
 class ShiftReduceParser:
+    '''
+    Base Class for Shift-Reduce Parsers
+
+    :param G: Grammar
+    :param verbose: boolean, if True prints the stack and the input at each step
+    '''
     SHIFT = "SHIFT"
     REDUCE = "REDUCE"
     OK = "OK"
@@ -62,15 +68,13 @@ class ShiftReduceParser:
 
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
-        self.ok = True
-        G = self.Augmented = self.G.AugmentedGrammar(True)
+        G = self.G.AugmentedGrammar(True)
 
-        automaton = self.automaton = build_LR1_automaton(G)
+        automaton = build_LR1_automaton(G)
         for i, node in enumerate(automaton):
             if self.verbose:
-                print(i, "\t", "\n\t ".join(str(x) for x in node.state), "\n")
+                print(i, '\t', '\n\t '.join(str(x) for x in node.state), '\n')
             node.idx = i
-            node.tag = f"I{i}"
 
         for node in automaton:
             idx = node.idx
@@ -78,30 +82,22 @@ class LR1Parser(ShiftReduceParser):
                 if item.IsReduceItem:
                     prod = item.production
                     if prod.Left == G.startSymbol:
-                        self.ok &= upd_table(
-                            self.action, idx, G.EOF, (ShiftReduceParser.OK, "")
-                        )
+                        self._register(self.action, (idx, G.EOF), (ShiftReduceParser.OK, None))
                     else:
                         for lookahead in item.lookaheads:
-                            self.ok &= upd_table(
-                                self.action,
-                                idx,
-                                lookahead,
-                                (ShiftReduceParser.REDUCE, prod),
-                            )
+                            self._register(self.action, (idx, lookahead), (ShiftReduceParser.REDUCE, prod))
                 else:
                     next_symbol = item.NextSymbol
                     if next_symbol.IsTerminal:
-                        self.ok &= upd_table(
-                            self.action,
-                            idx,
-                            next_symbol,
-                            (ShiftReduceParser.SHIFT, node[next_symbol.Name][0].idx),
-                        )
+                        self._register(self.action, (idx, next_symbol),
+                                       (ShiftReduceParser.SHIFT, node[next_symbol.Name][0].idx))
                     else:
-                        self.ok &= upd_table(
-                            self.goto, idx, next_symbol, node[next_symbol.Name][0].idx
-                        )
+                        self._register(self.goto, (idx, next_symbol), node[next_symbol.Name][0].idx)
+
+    @staticmethod
+    def _register(table, key, value):
+        assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
+        table[key] = value
 
 
 def build_LR1_automaton(G):
@@ -138,7 +134,7 @@ def build_LR1_automaton(G):
 
             current_state.add_transition(symbol.Name, next_state)
 
-    automaton.set_formatter(lambda x: "")
+    automaton.set_formatter(multiline_formatter)
     return automaton
 
 

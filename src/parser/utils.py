@@ -1,18 +1,13 @@
 from src.cmp.pycompiler import Item
 from src.cmp.utils import ContainerSet
 
-
-def upd_table(table, head, symbol, production):
-    if not head in table:
-        table[head] = {}
-    if not symbol in table[head]:
-        table[head][symbol] = []
-    if production not in table[head][symbol]:
-        table[head][symbol].append(production)
-    return len(table[head][symbol]) <= 1
-
-
 def compute_firsts(G):
+    '''
+    Computes the firsts sets for the given grammar
+
+    :param G: Grammar
+    :return: set, computed firsts
+    '''
     firsts = {}
     change = True
 
@@ -45,6 +40,13 @@ def compute_firsts(G):
 
 
 def expand(item, firsts):
+    '''
+    Expands the given item
+
+    :param item:
+    :param firsts:
+    :return:
+    '''
     next_symbol = item.NextSymbol
     if next_symbol is None or not next_symbol.IsNonTerminal:
         return []
@@ -58,6 +60,11 @@ def expand(item, firsts):
 
 
 def compress(items):
+    '''
+    Compresses the given items
+    :param items:
+    :return:
+    '''
     centers = {}
 
     for item in items:
@@ -74,6 +81,13 @@ def compress(items):
 
 
 def compute_local_first(firsts, alpha):
+    '''
+    Computes the local firsts for the given alpha
+
+    :param firsts:
+    :param alpha:
+    :return:
+    '''
     first_alpha = ContainerSet()
 
     try:
