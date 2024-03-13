@@ -1,30 +1,41 @@
-from src.parser.parser import LR1Parser
+from src.parser.parser import LR1Parser, evaluate_reverse_parse
 from src.cmp.grammar import Grammar
 from src.lexer.lexer import Lexer
-
-import pandas
+from src.cmp.utils import Token
+from src.cmp.ast import PlusNode, MinusNode, StarNode, DivNode, ConstantNumNode
 
 def main():
-    lexer = Lexer()
-    tokens = lexer.__call__('4 + 3')
-
     G = Grammar()
     E = G.NonTerminal('E', True)
-    T, F = G.NonTerminals('T F')
-    plus, mult, lpar, rpar, num = G.Terminals('+ * ( ) num')
+    T, F, X, Y = G.NonTerminals('T F X Y')
+    plus, minus, star, div, opar, cpar, num = G.Terminals('+ - * / ( ) num')
 
-    E %= E + plus + T, lambda h, s: s[1] + s[2] + s[3]
-    E %= T, lambda h, s: s[1]
-    T %= T + mult + F, lambda h, s: s[1] + s[2] + s[3]
-    T %= F, lambda h, s: s[1]
-    F %= lpar + E + rpar, lambda h, s: s[2]
-    F %= num, lambda h, s: s[1]
+    E %= T + X, lambda h, s: s[2], None, lambda h, s: s[1]  #
+    X %= plus + T + X, lambda h, s: s[3], None, None, lambda h, s: PlusNode(s[2], h[0])
+    X %= minus + T + X, lambda h, s: s[3], None, None, lambda h, s: MinusNode(h[0], s[2])
+    X %= G.Epsilon, lambda h, s: h[0]
+    T %= F + Y, lambda h, s: s[2], None, lambda h, s: s[1]
+    Y %= star + F + Y, lambda h, s: s[3], None, None, lambda h, s: StarNode(h[0], s[2])
+    Y %= div + F + Y, lambda h, s: s[3], None, None, lambda h, s: DivNode(h[0], s[2])
+    Y %= G.Epsilon, lambda h, s: h[0]
+    F %= num, lambda h, s: ConstantNumNode(s[1]), None
+    F %= opar + E + cpar, lambda h, s: s[2], None, None, None
 
-    parser = LR1Parser(G, True)
-    parser.__call__(tokens, True)
 
-    print(parser.action)
-    print(parser.goto)
+    t1 = Token('4',num)
+    t2 = Token('+', plus)
+    t3 = Token('3',num)
+    t4 = Token('$', G.EOF)
+    Tokens=[t1,t2,t3, t4]
+
+    pars = LR1Parser(G)
+
+    output,operations = pars(Tokens)
+
+    print(f'output: {output} \noperations: {operations}')
+
+
+
 
 
 

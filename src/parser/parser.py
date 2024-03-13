@@ -16,17 +16,27 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=False):
+    def __init__(self, G, verbose=True):
         self.G = G
         self.verbose = verbose
         self.action = {}
         self.goto = {}
         self._build_parsing_table()
+        self.pseudo_actions ={}
+        self.get_actions_str()
 
     def _build_parsing_table(self):
         raise NotImplementedError()
 
-    def __call__(self, w: List[Token], get_shift_reduce=False):
+    def get_actions_str(self):
+        for i in self.action:
+            state = i[0]
+            lookahead = str(i[1])
+            self.pseudo_actions[(state,lookahead)] = self.action[i]
+
+
+
+    def __call__(self, w: List[Token], get_shift_reduce=True):
         stack = [0]
         cursor = 0
         output = []
@@ -34,42 +44,61 @@ class ShiftReduceParser:
 
         while True:
             state = stack[-1]
+            print(cursor)
             lookahead = w[cursor].token_type
-            if self.verbose:
-                print(stack, w[cursor:])
+            if self.verbose: print(stack, '<---||--->', w[cursor:])
 
-            try:
-                if state not in self.action or lookahead not in self.action[state]:
-                    error = f"{w[cursor].pos} - SyntacticError: ERROR at or near {w[cursor].lex}"
-                    return None, error
-            except:
-                print(state)
-                print(self.action)
-                print(lookahead)
-                error = f"{w[cursor].pos} - SyntacticError: ERROR at or near {w[cursor].lex}"
-                return None, error
 
-            action, tag = list(self.action[state][lookahead])[0]
-            if action is self.SHIFT:
-                operations.append(self.SHIFT)
-                stack.append(tag)
-                cursor += 1
-            elif action is self.REDUCE:
-                operations.append(self.REDUCE)
-                if len(tag.Right):
-                    stack = stack[: -len(tag.Right)]
-                stack.append(list(self.goto[stack[-1]][tag.Left])[0])
-                output.append(tag)
-            elif action is ShiftReduceParser.OK:
-                return (output if not get_shift_reduce else (output, operations)), None
+            if (state, lookahead) not in self.action:
+                print((state, lookahead))
+                x = self.action.get((state,lookahead))
+                print(type(state))
+                print(type(lookahead))
+
+                print("Error. Aborting...")
+                return None
+
+            print('state, lookahead', state, lookahead)
+            print(self.action)
+            if self.action[state, lookahead] == self.OK:
+                action = self.OK
             else:
-                raise ValueError
+                action, tag = self.action[state, lookahead]
+            print('action, tsg', action)
+            if action == self.SHIFT:
+                operations.append(self.SHIFT)
+                stack += [lookahead, tag]
+                cursor += 1
+            elif action == self.REDUCE:
+                operations.append(self.REDUCE)
+                output.append(tag)
+                print('tag', tag)
+                head, body = tag
+                for symbol in reversed(body):
+                    print('stack', stack)
+                    x1 = stack.pop()
+                    x2 = stack.pop()
+
+                    print(f'{x2} = {symbol}')
+
+                    assert x2 == symbol
+                    state = stack[-1]
+                    print(self.goto, 'goto')
+                    print('output', output)
+                goto = self.goto[state, head]
+                stack += [head, goto]
+            elif action == self.OK:
+                stack.pop()
+                assert stack.pop() == self.G.startSymbol
+                assert len(stack) == 1
+                return output if not get_shift_reduce else (output, operations)
+            else:
+                raise Exception('Invalid action!!!')
 
 
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
         G = self.G.AugmentedGrammar(True)
-
         automaton = build_LR1_automaton(G)
         for i, node in enumerate(automaton):
             if self.verbose:
@@ -140,15 +169,12 @@ def build_LR1_automaton(G):
 
 def closure_lr1(items, firsts):
     closure = ContainerSet(*items)
-
     changed = True
     while changed:
         changed = False
-
         new_items = ContainerSet()
         for item in closure:
             new_items.extend(expand(item, firsts))
-
         changed = closure.update(new_items)
 
     return compress(closure)

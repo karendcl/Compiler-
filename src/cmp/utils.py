@@ -116,13 +116,13 @@ class Token:
         Token's starting position (row, column)
     """
 
-    def __init__(self, lex, token_type, pos):
+    def __init__(self, lex, token_type, pos = (0, 0)):
         self.lex = lex
         self.token_type = token_type
         self.pos = pos
 
     def __str__(self):
-        return f"{self.token_type}: {self.lex}"
+        return f"{self.token_type}"
 
     def __repr__(self):
         return str(self)
