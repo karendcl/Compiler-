@@ -7,6 +7,9 @@ class Node:
     def __init__(self, token: Token):
         self.token = token
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.token.lex})"
+
 
 class DeclarationNode(Node):
     pass
@@ -70,6 +73,9 @@ class ProgramNode(Node):
     def __init__(self, declarations: List[ClassDeclarationNode]):
         super().__init__(emptyToken)
         self.declarations = declarations
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({len(self.declarations)} classes)"
 
 
 class AssignNode(ExpressionNode):

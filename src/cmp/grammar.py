@@ -15,39 +15,54 @@ param_list, param = G.NonTerminals("<param-list> <param>")
 arg_declaration = G.NonTerminal("<arg-declaration>")
 let_exp, assign_var, assign_list = G.NonTerminals("<let-exp> <assign-var> <assign-list>")
 conditional, condition = G.NonTerminals("<conditional> <condition>")
-then_exp =  G.NonTerminal("<then-exp>")
+then_exp = G.NonTerminal("<then-exp>")
 elif_block = G.NonTerminal("<elif-block>")
 while_block = G.NonTerminal("<while-block>")
+for_exp = G.NonTerminal("<for-exp>")
+boolean = G.NonTerminal("<boolean>")
+term, factor, atom,  = G.NonTerminals("<term> <factor> <atom>")
 
 
+# region TERMINALS
 curly_o , curly_c = G.Terminals("{ }")
+square_o, square_c = G.Terminals("[ ]")
 semi_colon , colon = G.Terminals("; :")
 opar, cpar = G.Terminals("( )")
-rarrow = G.Terminal("=>")
-func_id, func_type = G.Terminals("func_id func_type")
-comma = G.Terminal(",")
+rarrow, given = G.Terminal("=> ||")
+comma, dot = G.Terminal(", .")
 let, inx = G.Terminals("let in")
-var_id = G.Terminal("var_id")
-equal = G.Terminal("=")
-ifx, elsex, elifx, whilex = G.Terminals("if else elif while")
+equal, mut = G.Terminal("= :=")
+ifx, elsex, elifx, whilex, forx = G.Terminals("if else elif while for")
+leq, less, equals, geq, greater, neq = G.Terminals("<= < == >= > !=")
+plus, minus, star, div, mod, pow, num, notx, andx, orx = G.Terminals("+ - * / % ^ num ! & |")
+typex, new, inherits, isx, asx = G.Terminals("type new inherits is as")
+protocol, extends = G.Terminals("protocol extends")
+true, false = G.Terminals("true false")
+concat, concat_space = G.Terminals("@ @@")
+strx, idx, boolx = G.Terminals("str id bool")
+
+
+#productions
+
+program %= exp, lambda h, s: ProgramNode(s[1])
 
 exp_block %= curly_o + exp_list + curly_c + end_extended, lambda h, s: s[2]
 
-end_extended %= semi_colon, lambda h, s: [s[1]]
-end_extended %= G.Epsilon, lambda h, s: []
+end_extended %= semi_colon, None
+end_extended %= G.Epsilon, None
 
 
 exp_list %= exp + semi_colon + exp_list, lambda h, s: [s[1]] + s[3]
-exp_list %= G.Epsilon, lambda h, s: []
+exp_list %= exp, lambda h, s: [s[1]]
 
-def_func %= func_id + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6], s[5])
-def_func %= func_id + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[1], s[3], s[5], s[4])
+def_func %= idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6], s[5])
+def_func %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[1], s[3], s[5], s[4])
 
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= func_id + colon + func_type, lambda h, s: (s[1], s[3])
-arg_declaration %= func_id, lambda h, s: (s[1], None)
+arg_declaration %= idx + colon + idx, lambda h, s: (s[1], s[3])
+arg_declaration %= idx, lambda h, s: (s[1], None)
 
 param %= arg_declaration, lambda h, s: s[1]
 
@@ -56,26 +71,59 @@ let_exp %= let + assign_list + inx + exp, lambda h, s: LetNode(s[2], s[4], s[1])
 assign_list %= assign_var, lambda h, s: [s[1]]
 assign_list %= assign_var + comma + assign_list, lambda h, s: [s[1]] + s[3]
 
-assign_var %= var_id + equal + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
+assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
 
 elif_block %= elifx + condition + then_exp, lambda h, s: (s[2], s[3])
 elif_block %= elifx + condition + then_exp + elif_block, lambda h, s: (s[2], s[3]) + s[4]
-elif_block %= G.Epsilon, lambda h, s: []
+elif_block %= elsex + then_exp, lambda h, s: (None, s[2])
 
-condition %= exp, lambda h, s: s[1]
+condition %= boolean, lambda h, s: s[1]
+
+boolean %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
+boolean %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
+boolean %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
+boolean %= exp + greater + exp, lambda h, s: LessNode(s[3], s[1], s[2])
+boolean %= exp + geq + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
+boolean %= exp, lambda h, s: s[1]
+boolean %= notx + exp, lambda h, s: NotNode(s[2], s[1])
+boolean %= opar + boolean + cpar, lambda h, s: s[2]
+boolean %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
 
 then_exp %= exp, lambda h, s: s[1]
 then_exp %= exp_block, lambda h, s: s[1]
 
-conditional %= ifx + condition + then_exp + elif_block + elsex + then_exp, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[6], s[1])
+conditional %= ifx + condition + then_exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
 
 while_block %= whilex + condition + then_exp, lambda h, s: LoopNode(s[2], s[3], s[1])
 
-
+for_exp %= forx + opar + idx + inx + iterable + cpar + then_exp, lambda h, s: ForNode(s[3], s[5], s[7], s[1])
 
 exp %= let_exp, lambda h, s: s[1]
 exp %= conditional, lambda h, s: s[1]
 exp %= def_func, lambda h, s: s[1]
+exp %= while_block, lambda h, s: s[1]
+exp %= exp_block, lambda h, s: s[1]
+exp %= assign_var, lambda h, s: s[1]
+
+term %= factor, lambda h, s: s[1]
+term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
+term %= term + minus + factor, lambda h, s: MinusNode(s[1], s[3], s[2])
+
+factor %= atom, lambda h, s: s[1]
+factor %= factor + star + atom, lambda h, s: StarNode(s[1], s[3], s[2])
+factor %= factor + div + atom, lambda h, s: DivNode(s[1], s[3], s[2])
+
+atom %= idx, lambda h, s: VariableNode(s[1])
+atom %= num, lambda h, s: ConstantNumNode(s[1])
+atom %= opar + exp + cpar, lambda h, s: s[2]
+atom %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
+
+
+
+
+
+
+
 
 
 

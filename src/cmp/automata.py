@@ -165,4 +165,5 @@ class State:
             yield from node._visit(visited)
 
 
-multiline_formatter = lambda x: "{%s}" % ", ".join(map(str, x))
+def multiline_formatter(state):
+    return '\n'.join(str(item) for item in state)

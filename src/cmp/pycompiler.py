@@ -1,6 +1,5 @@
 import json
 
-
 class Symbol(object):
     def __init__(self, name, grammar):
         self.Name = name
@@ -269,8 +268,7 @@ class AttributeProduction(Production):
     def IsEpsilon(self):
         return self.Right.IsEpsilon
 
-    # sintetizar en ingles??????, pending aggrement
-    def syntetice(self):
+    def synthecise (self):
         pass
 
 

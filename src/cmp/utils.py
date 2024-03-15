@@ -101,6 +101,21 @@ def inspect(item, grammar_name="G", mapper=None):
         else:
             raise ValueError(f"Invalid: {item}")
 
+def pprint(item, header=""):
+    if header:
+        print(header)
+
+    if isinstance(item, dict):
+        for key, value in item.items():
+            print(f'{key}  --->  {value}')
+    elif isinstance(item, list):
+        print('[')
+        for x in item:
+            print(f'   {repr(x)}')
+        print(']')
+    else:
+        print(item)
+
 
 class Token:
     """
@@ -112,14 +127,11 @@ class Token:
         Token's lexeme.
     token_type : Enum
         Token's type.
-    pos : (int, int)
-        Token's starting position (row, column)
     """
 
-    def __init__(self, lex, token_type, pos = (0, 0)):
+    def __init__(self, lex, token_type):
         self.lex = lex
         self.token_type = token_type
-        self.pos = pos
 
     def __str__(self):
         return f"{self.token_type}"
@@ -134,10 +146,10 @@ class Token:
 
 class UnknownToken(Token):
     def __init__(self, lex, pos):
-        Token.__init__(self, lex, None, pos)
+        Token.__init__(self, lex, None)
 
     def transform_to(self, token_type):
-        return Token(self.lex, token_type, self.pos)
+        return Token(self.lex, token_type)
 
     @property
     def is_valid(self):
@@ -202,5 +214,5 @@ class DisjointNode:
         return str(self)
 
 
-emptyToken = Token("", "", (0, 0))
-selfToken = Token("self", "", (0, 0))
+emptyToken = Token("", "")
+selfToken = Token("self", "")

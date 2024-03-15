@@ -48,12 +48,11 @@ class Method:
 
 
 class Type:
-    def __init__(self, name: str, pos: Tuple[int, int] = (0, 0)):
+    def __init__(self, name: str):
         self.name: str = name
         self.attributes: List[Attribute] = []
         self.methods: List[Method] = []
         self.parent: Optional[Type] = None
-        self.pos: Tuple[int, int] = pos
 
     def set_parent(self, parent):
         if self.parent is not None:
