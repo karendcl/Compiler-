@@ -20,6 +20,7 @@ elif_block = G.NonTerminal("<elif-block>")
 while_block = G.NonTerminal("<while-block>")
 for_exp = G.NonTerminal("<for-exp>")
 boolean = G.NonTerminal("<boolean>")
+type_dec = G.NonTerminal("<type-dec>")
 term, factor, atom,  = G.NonTerminals("<term> <factor> <atom>")
 
 
@@ -32,7 +33,7 @@ rarrow, given = G.Terminal("=> ||")
 comma, dot = G.Terminal(", .")
 let, inx = G.Terminals("let in")
 equal, mut = G.Terminal("= :=")
-ifx, elsex, elifx, whilex, forx = G.Terminals("if else elif while for")
+ifx, elsex, elifx, whilex, forx, function = G.Terminals("if else elif while for function")
 leq, less, equals, geq, greater, neq = G.Terminals("<= < == >= > !=")
 plus, minus, star, div, mod, pow, num, notx, andx, orx = G.Terminals("+ - * / % ^ num ! & |")
 typex, new, inherits, isx, asx = G.Terminals("type new inherits is as")
@@ -46,22 +47,20 @@ strx, idx, boolx = G.Terminals("str id bool")
 
 program %= exp, lambda h, s: ProgramNode(s[1])
 
-exp_block %= curly_o + exp_list + curly_c + end_extended, lambda h, s: s[2]
-
-end_extended %= semi_colon, None
-end_extended %= G.Epsilon, None
+exp_block %= curly_o + exp_list + curly_c + semi_colon, lambda h, s: s[2]
+exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
 
 
 exp_list %= exp + semi_colon + exp_list, lambda h, s: [s[1]] + s[3]
 exp_list %= exp, lambda h, s: [s[1]]
 
-def_func %= idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6], s[5])
-def_func %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[1], s[3], s[5], s[4])
+def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
+def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= idx + colon + idx, lambda h, s: (s[1], s[3])
+arg_declaration %= idx + colon + type_dec, lambda h, s: (s[1], s[3])
 arg_declaration %= idx, lambda h, s: (s[1], None)
 
 param %= arg_declaration, lambda h, s: s[1]
@@ -87,7 +86,7 @@ boolean %= exp + geq + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
 boolean %= exp, lambda h, s: s[1]
 boolean %= notx + exp, lambda h, s: NotNode(s[2], s[1])
 boolean %= opar + boolean + cpar, lambda h, s: s[2]
-boolean %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
+boolean %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[1], s[3])
 
 then_exp %= exp, lambda h, s: s[1]
 then_exp %= exp_block, lambda h, s: s[1]
@@ -135,25 +134,7 @@ atom %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
 
 
 
-# type_list, def_type = G.NonTerminals("<type-list> <def-type>")
-#
-# feature_list, def_attr, def_func = G.NonTerminals(
-#     "<feature-list> <def-attr> <def-func>"
-# )
-# param_list, param, expr_list = G.NonTerminals("<param-list> <param> <expr-list>")
-# expr, comp, arith, term, factor, atom = G.NonTerminals(
-#     "<expr> <comp> <arith> <term> <factor> <atom>"
-# )
-# s_comp, s_arith, s_term, s_factor = G.NonTerminals(
-#     "<special_comp> <special_arith> <special_term> <special_factor>"
-# )
-# func_call, arg_list, args = G.NonTerminals("<func-call> <arg-list> <args>")
-# case_def, block_def, loop_def, cond_def, let_def, assign_def = G.NonTerminals(
-#     "<case_def> <block_def> <loop_def> <cond_def> <let_def> <assign_def>"
-# )
-# branch_list, branch = G.NonTerminals("<branch_list> <branch>")
-# iden_list, iden = G.NonTerminals("<iden_list> <iden>")
-#
+
 
 # terminals
 # typex, inherits = G.Terminals("type inherits")

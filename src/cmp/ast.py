@@ -1,6 +1,7 @@
 from src.cmp.semantic import Type
 from src.cmp.utils import Token, emptyToken
 from typing import List, Optional, Tuple, Union
+from abc import ABC, abstractmethod
 
 
 class Node:
@@ -26,14 +27,11 @@ class FuncDeclarationNode(DeclarationNode):
         self,
         token: Token,
         params: List[Tuple[Token, Token]],
-        return_type: Token,
         body: ExpressionNode,
     ):
         self.id = token.lex
         # `param` is (nameToken, typeToken)
         self.params = params
-        self.type = return_type.lex
-        self.typeToken = return_type
         self.body = body
         self.token = token
 
