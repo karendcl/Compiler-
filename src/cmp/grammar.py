@@ -15,20 +15,25 @@ param_list, param = G.NonTerminals("<param-list> <param>")
 arg_declaration = G.NonTerminal("<arg-declaration>")
 let_exp, assign_var, assign_list = G.NonTerminals("<let-exp> <assign-var> <assign-list>")
 conditional, condition = G.NonTerminals("<conditional> <condition>")
-then_exp = G.NonTerminal("<then-exp>")
 elif_block = G.NonTerminal("<elif-block>")
 while_block = G.NonTerminal("<while-block>")
 for_exp = G.NonTerminal("<for-exp>")
 boolean = G.NonTerminal("<boolean>")
 type_dec = G.NonTerminal("<type-dec>")
-term, factor, atom,  = G.NonTerminals("<term> <factor> <atom>")
+term, factor, atom, k = G.NonTerminals("<term> <factor> <atom> <k>")
 statement = G.NonTerminal("<statement>")
 def_protocol = G.NonTerminal("<def-protocol>")
 method_declarations = G.NonTerminal("<method-declarations>")
 def_method = G.NonTerminal("<def-method>")
-
-type_body = G.NonTerminal("<type-body>")
+instance = G.NonTerminal("<instance>")
+exp_or_block = G.NonTerminal("<exp-or-block>")
+list_ = G.NonTerminal("<list>")
+type_body, type_args = G.NonTerminals("<type-body> <type-args>")
 attribute = G.NonTerminal("<attribute>")
+vector, iterable = G.NonTerminals("<vector> <iterable>")
+func_call = G.NonTerminal("<func-call>")
+print_exp = G.NonTerminal("<print-exp>")
+string_exp = G.NonTerminal("<string-exp>")
 
 
 # region TERMINALS
@@ -48,11 +53,14 @@ protocol, extends = G.Terminals("protocol extends")
 true, false = G.Terminals("true false")
 concat, concat_space = G.Terminals("@ @@")
 strx, idx, boolx, self = G.Terminals("str id bool self")
+rangex = G.Terminal("range")
+printx = G.Terminal("print")
 
 
 #productions
 
 
+#------esto no me queda muy claro
 
 program %= statement, lambda h, s: ProgramNode(s[1])
 
@@ -61,21 +69,31 @@ statement %= exp_block, lambda h, s: s[1]
 statement %= def_func, lambda h, s: s[1]
 statement %= let_exp, lambda h, s: s[1]
 statement %= def_protocol, lambda h, s: s[1]
+statement %= while_block, lambda h, s: s[1]
+statement %= for_exp, lambda h, s: s[1]
+statement %= conditional, lambda h, s: s[1]
+statement %= print_exp, lambda h, s: s[1]
 
-# statement %= conditional, lambda h, s: s[1]
-# statement %= while_block, lambda h, s: s[1]
+exp %= instance, lambda h, s: s[1]
+exp %= func_call, lambda h, s: s[1]
+exp %= string_exp, lambda h, s: s[1]
+#-------------------------------------------
+
+exp_or_block %= exp, lambda h, s: s[1]
+exp_or_block %= exp_block, lambda h, s: s[1]
 
 def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
 def_protocol %= protocol + idx + extends + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], s[3])
-#
 def_method %= idx + opar + param_list + cpar + colon + idx + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6])
 
 method_declarations %= def_method, lambda h, s: [s[1]]
 method_declarations %= def_method + method_declarations, lambda h, s: [s[1]] + s[2]
 
-type_dec %= typex + idx + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
+type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
+type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[5], s[1], s[4])
 
-
+type_args %= opar + param_list + cpar, lambda h, s: s[2]
+type_args %= G.Epsilon, lambda h, s: []
 
 type_body %= def_func + semi_colon, lambda h, s: [s[1]]
 type_body %= def_func + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
@@ -85,8 +103,7 @@ type_body %= attribute + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
 attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
 attribute %= idx + colon + idx, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
 
-
-
+instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4])
 
 exp_block %= curly_o + exp_list + curly_c + semi_colon, lambda h, s: s[2]
 exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
@@ -94,9 +111,11 @@ exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
 exp_list %= exp + semi_colon + exp_list, lambda h, s: [s[1]] + s[3]
 exp_list %= exp, lambda h, s: [s[1]]
 
-
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
+
+func_call %= idx + dot + func_call, lambda h, s: CallNode(s[1], s[3])
+func_call %= idx + opar + param_list + cpar, lambda h, s: CallNode(VariableNode(selfToken), s[1], s[3])
 
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
@@ -113,31 +132,64 @@ assign_list %= assign_var + comma + assign_list, lambda h, s: [s[1]] + s[3]
 
 assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
 
-conditional %= ifx + exp + then_exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
+conditional %= ifx + opar + condition + cpar + exp_or_block + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
 
-then_exp %= exp, lambda h, s: s[1]
-then_exp %= exp_block, lambda h, s: s[1]
+elif_block %= elsex + exp_or_block, lambda h, s: ConditionalNode(None, None, s[2], s[1])
+elif_block %= elifx + opar + condition + cpar + exp_or_block + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
 
-elif_block %= elifx + exp + then_exp, lambda h, s: (s[2], s[3])
-elif_block %= elifx + exp + then_exp + elif_block, lambda h, s: (s[2], s[3]) + s[4]
-elif_block %= elsex + then_exp, lambda h, s: (None, s[2])
+while_block %= whilex + opar + condition + cpar + exp_or_block, lambda h, s: LoopNode(s[2], s[3], s[1])
 
-while_block %= whilex + exp + then_exp, lambda h, s: LoopNode(s[2], s[3], s[1])
+iterable %= vector, lambda h, s: s[1]
+iterable %= rangex + opar + num + comma + num + cpar, lambda h, s: RangeNode(s[3], s[5], s[1])
+
+vector %= square_o + list_ + square_c, lambda h, s: s[2]
+vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: s[2]
+
+list_ %= exp, lambda h, s: [s[1]]
+list_ %= exp + comma + list_, lambda h, s: [s[1]] + s[3]
 
 exp %= term, lambda h, s: s[1]
+
+# todo add mod
 
 term %= factor, lambda h, s: s[1]
 term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
 term %= term + minus + factor, lambda h, s: MinusNode(s[1], s[3], s[2])
 
 factor %= atom, lambda h, s: s[1]
+factor %= factor + pow + atom, lambda h, s: PowNode(s[1], s[3], s[2])
 factor %= factor + star + atom, lambda h, s: StarNode(s[1], s[3], s[2])
 factor %= factor + div + atom, lambda h, s: DivNode(s[1], s[3], s[2])
 
 atom %= idx, lambda h, s: VariableNode(s[1])
 atom %= num, lambda h, s: ConstantNumNode(s[1])
 atom %= opar + exp + cpar, lambda h, s: s[2]
-atom %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
+
+#comparisons
+condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
+condition %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
+condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
+condition %= exp + geq + exp, lambda h, s: LessNode(s[3], s[1], s[2])
+condition %= exp + greater + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
+condition %= exp + neq + exp, lambda h, s: NotNode(EqualNode(s[1], s[3], s[2]), s[2])
+condition %= true, lambda h, s: ConstantBoolNode(s[1])
+condition %= false, lambda h, s: ConstantBoolNode(s[1])
+condition %= exp + andx + exp, lambda h, s: AndNode(s[1], s[3], s[2])
+condition %= exp + orx + exp, lambda h, s: OrNode(s[1], s[3], s[2])
+condition %= opar + condition + cpar, lambda h, s: s[2]
+condition %= notx + condition, lambda h, s: NotNode(s[2], s[1])
+
+for_exp %= forx + opar + idx + inx + iterable + cpar + exp_or_block, lambda h, s: ForNode(s[3], s[5], s[7], s[1])
+
+print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3])
+
+string_exp %= strx, lambda h, s: ConstantStringNode(s[1])
+string_exp %= strx + concat + string_exp, lambda h, s: ConstantStringNode(s[1] + s[3])
+string_exp %= strx + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1] + " " + s[3])
+
+
+
+
 
 
 #
