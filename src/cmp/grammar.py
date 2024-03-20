@@ -22,6 +22,13 @@ for_exp = G.NonTerminal("<for-exp>")
 boolean = G.NonTerminal("<boolean>")
 type_dec = G.NonTerminal("<type-dec>")
 term, factor, atom,  = G.NonTerminals("<term> <factor> <atom>")
+statement = G.NonTerminal("<statement>")
+def_protocol = G.NonTerminal("<def-protocol>")
+method_declarations = G.NonTerminal("<method-declarations>")
+def_method = G.NonTerminal("<def-method>")
+
+type_body = G.NonTerminal("<type-body>")
+attribute = G.NonTerminal("<attribute>")
 
 
 # region TERMINALS
@@ -29,10 +36,10 @@ curly_o , curly_c = G.Terminals("{ }")
 square_o, square_c = G.Terminals("[ ]")
 semi_colon , colon = G.Terminals("; :")
 opar, cpar = G.Terminals("( )")
-rarrow, given = G.Terminal("=> ||")
-comma, dot = G.Terminal(", .")
+rarrow, given = G.Terminals("=> ||")
+comma, dot = G.Terminals(", .")
 let, inx = G.Terminals("let in")
-equal, mut = G.Terminal("= :=")
+equal, mut = G.Terminals("= :=")
 ifx, elsex, elifx, whilex, forx, function = G.Terminals("if else elif while for function")
 leq, less, equals, geq, greater, neq = G.Terminals("<= < == >= > !=")
 plus, minus, star, div, mod, pow, num, notx, andx, orx = G.Terminals("+ - * / % ^ num ! & |")
@@ -40,19 +47,53 @@ typex, new, inherits, isx, asx = G.Terminals("type new inherits is as")
 protocol, extends = G.Terminals("protocol extends")
 true, false = G.Terminals("true false")
 concat, concat_space = G.Terminals("@ @@")
-strx, idx, boolx = G.Terminals("str id bool")
+strx, idx, boolx, self = G.Terminals("str id bool self")
 
 
 #productions
 
-program %= exp, lambda h, s: ProgramNode(s[1])
+
+
+program %= statement, lambda h, s: ProgramNode(s[1])
+
+statement %= exp + semi_colon, lambda h, s: s[1]
+statement %= exp_block, lambda h, s: s[1]
+statement %= def_func, lambda h, s: s[1]
+statement %= let_exp, lambda h, s: s[1]
+statement %= def_protocol, lambda h, s: s[1]
+
+# statement %= conditional, lambda h, s: s[1]
+# statement %= while_block, lambda h, s: s[1]
+
+def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
+def_protocol %= protocol + idx + extends + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], s[3])
+#
+def_method %= idx + opar + param_list + cpar + colon + idx + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6])
+
+method_declarations %= def_method, lambda h, s: [s[1]]
+method_declarations %= def_method + method_declarations, lambda h, s: [s[1]] + s[2]
+
+type_dec %= typex + idx + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
+
+
+
+type_body %= def_func + semi_colon, lambda h, s: [s[1]]
+type_body %= def_func + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
+type_body %= attribute + semi_colon, lambda h, s: [s[1]]
+type_body %= attribute + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
+
+attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
+attribute %= idx + colon + idx, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
+
+
+
 
 exp_block %= curly_o + exp_list + curly_c + semi_colon, lambda h, s: s[2]
 exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
 
-
 exp_list %= exp + semi_colon + exp_list, lambda h, s: [s[1]] + s[3]
 exp_list %= exp, lambda h, s: [s[1]]
+
 
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
@@ -60,7 +101,7 @@ def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: 
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= idx + colon + type_dec, lambda h, s: (s[1], s[3])
+arg_declaration %= idx + colon + idx, lambda h, s: (s[1], s[3])
 arg_declaration %= idx, lambda h, s: (s[1], None)
 
 param %= arg_declaration, lambda h, s: s[1]
@@ -72,37 +113,18 @@ assign_list %= assign_var + comma + assign_list, lambda h, s: [s[1]] + s[3]
 
 assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
 
-elif_block %= elifx + condition + then_exp, lambda h, s: (s[2], s[3])
-elif_block %= elifx + condition + then_exp + elif_block, lambda h, s: (s[2], s[3]) + s[4]
-elif_block %= elsex + then_exp, lambda h, s: (None, s[2])
-
-condition %= boolean, lambda h, s: s[1]
-
-boolean %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
-boolean %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
-boolean %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
-boolean %= exp + greater + exp, lambda h, s: LessNode(s[3], s[1], s[2])
-boolean %= exp + geq + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
-boolean %= exp, lambda h, s: s[1]
-boolean %= notx + exp, lambda h, s: NotNode(s[2], s[1])
-boolean %= opar + boolean + cpar, lambda h, s: s[2]
-boolean %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[1], s[3])
+conditional %= ifx + exp + then_exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
 
 then_exp %= exp, lambda h, s: s[1]
 then_exp %= exp_block, lambda h, s: s[1]
 
-conditional %= ifx + condition + then_exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
+elif_block %= elifx + exp + then_exp, lambda h, s: (s[2], s[3])
+elif_block %= elifx + exp + then_exp + elif_block, lambda h, s: (s[2], s[3]) + s[4]
+elif_block %= elsex + then_exp, lambda h, s: (None, s[2])
 
-while_block %= whilex + condition + then_exp, lambda h, s: LoopNode(s[2], s[3], s[1])
+while_block %= whilex + exp + then_exp, lambda h, s: LoopNode(s[2], s[3], s[1])
 
-for_exp %= forx + opar + idx + inx + iterable + cpar + then_exp, lambda h, s: ForNode(s[3], s[5], s[7], s[1])
-
-exp %= let_exp, lambda h, s: s[1]
-exp %= conditional, lambda h, s: s[1]
-exp %= def_func, lambda h, s: s[1]
-exp %= while_block, lambda h, s: s[1]
-exp %= exp_block, lambda h, s: s[1]
-exp %= assign_var, lambda h, s: s[1]
+exp %= term, lambda h, s: s[1]
 
 term %= factor, lambda h, s: s[1]
 term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
@@ -118,41 +140,6 @@ atom %= opar + exp + cpar, lambda h, s: s[2]
 atom %= idx + opar + exp_list + cpar, lambda h, s: CallNode(s[1], s[3])
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# terminals
-# typex, inherits = G.Terminals("type inherits")
-# let, inx = G.Terminals("let in")
-# case, of, esac = G.Terminals("case of esac")
-# whilex, loop, pool = G.Terminals("while loop pool")
-# ifx, then, elsex, fi = G.Terminals("if then else fi")
-# isvoid, notx = G.Terminals("isvoid not")
-# semi, colon, comma, dot, opar, cpar, ocur, ccur, larrow, rarrow, at = G.Terminals(
-#     "; : , . ( ) { } <- => @"
-# )
-# equal, plus, minus, star, div, less, leq, neg, powx = G.Terminals("= + - * / < <= ~ ^")
-# typeid, objectid, num, stringx, boolx, new = G.Terminals(
-#     "typeid objectid int string bool new"
-# )
-#
-#
-# # productions
 #
 # program %= type_list, lambda h, s: ProgramNode(s[1])
 #
