@@ -111,8 +111,8 @@ attribute %= idx + colon + idx, lambda h, s: AttrDeclarationNode(s[1], s[3], Non
 
 instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4], s[1])
 
-end_extended %= semi_colon, lambda h, s: s[1]
-# end_extended %= G.Epsilon, lambda h, s: None
+# end_extended %= semi_colon, lambda h, s: s[1]
+end_extended %= G.Epsilon, lambda h, s: None
 
 exp_block %= curly_o + exp_list + curly_c + end_extended, lambda h, s: s[2]
 
@@ -134,7 +134,7 @@ arg_declaration %= G.Epsilon, lambda h, s: None
 
 param %= arg_declaration, lambda h, s: s[1]
 
-let_exp %= let + assign_list + inx + exp + semi_colon, lambda h, s: LetNode(s[2], s[4], s[1])
+let_exp %= let + assign_list + inx + exp , lambda h, s: LetNode(s[2], s[4], s[1])
 let_exp %= let + assign_list + inx + exp_block, lambda h, s: LetNode(s[2], s[4], s[1])
 
 assign_list %= assign_var, lambda h, s: [s[1]]
