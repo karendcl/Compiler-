@@ -61,10 +61,7 @@ class ShiftReduceParser:
                 stack += [head, goto]
             elif action == self.OK:
                 stack.pop()
-                x=stack.pop()
-                print(x)
-                print(self.G.startSymbol)
-                # assert x == self.G.startSymbol
+                assert stack.pop() == self.G.startSymbol
                 assert len(stack) == 1
                 return output if not get_shift_reduce else (output, operations)
             else:
@@ -73,7 +70,7 @@ class ShiftReduceParser:
 
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
-        G = self.G = self.G.AugmentedGrammar(True)
+        G = self.G.AugmentedGrammar(True)
 
         if self.goto == {} or self.action == {}:
             pass
