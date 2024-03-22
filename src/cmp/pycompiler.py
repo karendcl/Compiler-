@@ -338,6 +338,14 @@ class Grammar:
 
         return ans
 
+    def Whitespace(self):
+        T = Terminal(' ', self)
+
+        self.terminals.append(T)
+        self.symbDict[' '] = T
+        
+        return T
+
     def __str__(self):
 
         mul = "%s, "
