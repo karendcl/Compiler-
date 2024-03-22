@@ -154,8 +154,79 @@ testcase9 = [
     Token('$', G.EOF)
 ]
 
+testcase10 =[
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('1', grammar.num),
+    Token('@', grammar.concat),
+    Token('Yes', grammar.strx),
+    Token('@', grammar.concat),
+    Token('No', grammar.strx),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
 
+#testing sin,cos, pi and log
+testcase11 = [
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('sin', grammar.sin),
+    Token('(', grammar.opar),
+    Token('pi', grammar.PI),
+    Token(')', grammar.cpar),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
 
+#testing function declaration
+testcase12 = [
+    Token('function', grammar.function),
+    Token('f', grammar.idx),
+    Token('(', grammar.opar),
+    Token('x', grammar.idx),
+    Token(',', grammar.comma),
+    Token('y', grammar.idx),
+    Token(')', grammar.cpar),
+    Token('=>', grammar.rarrow),
+    Token('sin', grammar.sin),
+    Token('(', grammar.opar),
+    Token('x', grammar.idx),
+    Token('+', grammar.plus),
+    Token('y', grammar.idx),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('4', grammar.num),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
+
+#testing full form functions
+testcase13 = [
+    Token('function', grammar.function),
+    Token('f', grammar.idx),
+    Token('(', grammar.opar),
+    Token('x', grammar.idx),
+    Token(',', grammar.comma),
+    Token('y', grammar.idx),
+    Token(')', grammar.cpar),
+    Token('{', grammar.curly_o),
+    Token('sin', grammar.sin),
+    Token('(', grammar.opar),
+    Token('x', grammar.idx),
+    Token('+', grammar.plus),
+    Token('y', grammar.idx),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('4', grammar.num),
+    Token(';', grammar.semi_colon),
+    Token('}', grammar.curly_c),
+    Token('4', grammar.num),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+
+]
 
 def testing(testcase, should_assert = True):
     try:

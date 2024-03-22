@@ -73,7 +73,6 @@ statement %= type_dec + statement, lambda h, s: s[1]
 statement %= def_func + statement, lambda h, s: s[1]
 statement %= exp + semi_colon, lambda h, s: s[1]
 statement %= exp, lambda h, s: s[1]
-
 statement %= exp_block, lambda h, s: s[1]
 
 exp %= let_exp, lambda h, s: s[1]
