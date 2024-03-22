@@ -2,7 +2,7 @@ from src.Lexer.Utils.regexs import Regexs
 from src.Lexer.lexer import Lexer
 
 lexer = Lexer(Regexs())
-Text = "def \n \n \n plus (a, b) \n 50 + 12.3  \"long string def : let print\" let x = 10 \"Hello World\" 0"
+Text = "let a = 60 \"Long string : def fnction\" print(sqrt(144)) \"Hello World\""
 tokens = lexer(Text)
 
 for token in tokens:

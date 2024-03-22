@@ -16,7 +16,7 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=True, action = {}, goto = {}):
+    def __init__(self, G, verbose=False, action = {}, goto = {}):
         self.G = G
         self.verbose = verbose
         self.action = action
