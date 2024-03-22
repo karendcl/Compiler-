@@ -180,7 +180,7 @@ class LetNode(ExpressionNode):
 
 
 class AtomicNode(ExpressionNode):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, value: Optional[str] = None):
         super().__init__(token)
         self.lex = token.lex
 

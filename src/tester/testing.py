@@ -15,7 +15,7 @@ testcase0 = [
     Token('$', G.EOF)
 ]
 
-
+#testing simple expressions with multiplication
 testcase1 = [
     Token('1', grammar.num),
     Token('+', grammar.plus),
@@ -26,7 +26,7 @@ testcase1 = [
     Token('$', G.EOF)
 ]
 
-
+#testing simple function
 testcase2 = [
     Token('function', grammar.function),
     Token('main', grammar.idx),
@@ -40,16 +40,12 @@ testcase2 = [
     Token('2', grammar.num),
     Token(')', grammar.cpar),
     Token(';', grammar.semi_colon),
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('+', grammar.plus),
-    Token('2', grammar.num),
-    Token(')', grammar.cpar),
+    Token('4', grammar.num),
     Token(';', grammar.semi_colon),
     Token('$', G.EOF)
 ]
 
+#testing simple let expression
 testcase3 = [
     Token('{', grammar.curly_o),
     Token('let', grammar.let),
@@ -62,6 +58,7 @@ testcase3 = [
     Token('}', grammar.curly_c),
     Token('$', G.EOF)]
 
+#testing multiple let expressions
 testcase4 = [
     Token('{', grammar.curly_o),
     Token('let', grammar.let),
@@ -80,6 +77,85 @@ testcase4 = [
     Token(';', grammar.semi_colon),
     Token('}', grammar.curly_c),
     Token('$', G.EOF)]
+
+#testing simple if statement
+testcase5 = [
+    Token('if', grammar.ifx),
+    Token('(', grammar.opar),
+    Token('1', grammar.num),
+    Token('==', grammar.equals),
+    Token('1', grammar.num),
+    Token(')', grammar.cpar),
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('1', grammar.num),
+    Token(')', grammar.cpar),
+    Token('else', grammar.elsex),
+    Token('{', grammar.curly_o),
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('2', grammar.num),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('}', grammar.curly_c),
+    Token('$', G.EOF)]
+
+testcase6 = [
+    Token('42', grammar.num),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
+
+#testing parenthesis
+testcase7 = [
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('(', grammar.opar),
+    Token('(', grammar.opar),
+    Token('(', grammar.opar),
+    Token('1', grammar.num),
+    Token('+', grammar.plus),
+    Token('2', grammar.num),
+    Token(')', grammar.cpar),
+    Token('^', grammar.pow),
+    Token('3', grammar.num),
+    Token(')', grammar.cpar),
+    Token('*', grammar.star),
+    Token('4', grammar.num),
+    Token(')', grammar.cpar),
+    Token('/', grammar.div),
+    Token('5', grammar.num),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
+
+
+#testing concats
+testcase8 = [
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('The message is ', grammar.strx),
+    Token('@', grammar.concat),
+    Token('1', grammar.num),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
+
+testcase9 = [
+    Token('print', grammar.printx),
+    Token('(', grammar.opar),
+    Token('1', grammar.num),
+    Token('@', grammar.concat),
+    Token('Yes', grammar.strx),
+    Token(')', grammar.cpar),
+    Token(';', grammar.semi_colon),
+    Token('$', G.EOF)
+]
+
+
+
 
 def testing(testcase, should_assert = True):
     try:
