@@ -16,25 +16,15 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=True):
+    def __init__(self, G, verbose=True, action = {}, goto = {}):
         self.G = G
         self.verbose = verbose
-        self.action = {}
-        self.goto = {}
+        self.action = action
+        self.goto = goto
         self._build_parsing_table()
-        self.pseudo_actions ={}
-        self.get_actions_str()
 
     def _build_parsing_table(self):
         raise NotImplementedError()
-
-    def get_actions_str(self):
-        for i in self.action:
-            state = i[0]
-            lookahead = str(i[1])
-            self.pseudo_actions[(state,lookahead)] = self.action[i]
-
-
 
     def __call__(self, w: List[Token], get_shift_reduce=True):
         stack = [0]
@@ -81,6 +71,12 @@ class ShiftReduceParser:
 class LR1Parser(ShiftReduceParser):
     def _build_parsing_table(self):
         G = self.G.AugmentedGrammar(True)
+
+        if self.goto == {} or self.action == {}:
+            pass
+        else:
+            return
+
         automaton = build_LR1_automaton(G)
         for i, node in enumerate(automaton):
             if self.verbose:
@@ -107,7 +103,7 @@ class LR1Parser(ShiftReduceParser):
 
     @staticmethod
     def _register(table, key, value):
-        assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
+        assert key not in table or table[key] == value, f'Shift-Reduce or Reduce-Reduce conflict!!! {key} {table[key]} {value} '
         table[key] = value
 
 

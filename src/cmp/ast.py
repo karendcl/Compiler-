@@ -4,12 +4,22 @@ from typing import List, Optional, Tuple, Union
 from abc import ABC, abstractmethod
 
 
+
+
+
 class Node:
     def __init__(self, token: Token):
         self.token = token
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.token.lex})"
+
+class StatementNode(Node):
+    pass
+
+class ClassDeclarationNode(StatementNode):
+    pass
+
 
 
 class DeclarationNode(Node):
@@ -145,7 +155,7 @@ class ConditionalNode(ExpressionNode):
         self.then_body = then_body
         self.else_body = else_body
 
-
+ElseBlockNode = BlockNode
 class LetVarNode(Node):
     def __init__(
         self,
@@ -170,7 +180,7 @@ class LetNode(ExpressionNode):
 
 
 class AtomicNode(ExpressionNode):
-    def __init__(self, token: Token):
+    def __init__(self, token: Token, value: Optional[str] = None):
         super().__init__(token)
         self.lex = token.lex
 
@@ -186,6 +196,12 @@ class BinaryNode(ExpressionNode):
         super().__init__(symbol)
         self.left = left
         self.right = right
+
+
+class PrintNode(ExpressionNode):
+    def __init__(self, expr: ExpressionNode, token: Token):
+        super().__init__(token)
+        self.expr = expr
 
 
 class ArithmeticNode(BinaryNode):
@@ -212,8 +228,11 @@ class VariableNode(AtomicNode):
     pass
 
 
-class InstantiateNode(AtomicNode):
-    pass
+class InstantiateNode(ExpressionNode):
+    def __init__(self, type_idx, params: Optional[List[ExpressionNode]], token: Token):
+        super().__init__(token)
+        self.type_idx = type_idx
+        self.params = params
 
 
 class PlusNode(ArithmeticNode):
@@ -231,6 +250,8 @@ class StarNode(ArithmeticNode):
 class DivNode(ArithmeticNode):
     pass
 
+class PowNode(ArithmeticNode):
+    pass
 
 class LeqNode(ComparisonNode):
     pass
@@ -240,9 +261,14 @@ class LessNode(ComparisonNode):
     pass
 
 
-class EqualNode(BinaryNode):
+class EqualNode(ComparisonNode):
     pass
 
+class AndNode(ComparisonNode):
+    pass
+
+class OrNode(ComparisonNode):
+    pass
 
 class VoidNode(UnaryNode):
     pass
@@ -254,3 +280,31 @@ class NotNode(UnaryNode):
 
 class NegNode(UnaryNode):
     pass
+
+class SqrtNode(UnaryNode):
+    pass
+
+class CosNode(UnaryNode):
+    pass
+
+class SinNode(UnaryNode):
+    pass
+
+class ExponEulerNode(UnaryNode):
+    pass
+
+class LogNode(BinaryNode):
+    pass
+
+class RandNode(AtomicNode):
+    pass
+
+class RangeNode(BinaryNode):
+    pass
+
+class ForNode(ExpressionNode):
+    def __init__(self, iterable: ExpressionNode, body: ExpressionNode, token: Token, varidx):
+        super().__init__(token)
+        self.iterable = iterable
+        self.body = body
+        self.varidx = varidx

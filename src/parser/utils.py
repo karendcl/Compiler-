@@ -1,5 +1,7 @@
 from src.cmp.pycompiler import Item
 from src.cmp.utils import ContainerSet
+import json
+
 
 def compute_firsts(G):
     '''
@@ -107,3 +109,39 @@ def compute_local_first(firsts, alpha):
             first_alpha.set_epsilon()
 
     return first_alpha
+
+def parser_to_json(parser):
+    '''
+    Converts the given parser to a json
+
+    :param parser:
+    :return:
+    '''
+    action = parser.action
+    goto = parser.goto
+    grammar = parser.G.to_json
+
+    with open('grammar.json', 'w') as f:
+        json.dump(grammar, f)
+
+    print(action)
+
+def json_to_parser():
+    '''
+    Converts the given json to a parser
+
+    :param json:
+    :return:
+    '''
+    from src.cmp.pycompiler import Grammar
+    from src.parser.parser import LR1Parser
+
+    with open('grammar.json', 'r') as f:
+        grammar = json.load(f)
+        G = Grammar.from_json(grammar)
+
+    #
+
+    return LR1Parser(G, action=action, goto=goto)
+
+    return par
