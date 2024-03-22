@@ -1,77 +1,92 @@
-from utils.token import Token
-from utils.automata import State
-from utils.Builder_ATM import BuilderATM
+from src.Lexer.Utils.regex_builder import RegexBuilder
+from src.Lexer.Utils.toy_hulk_grammar import G
+from src.Lexer.Utils.custom_state import State
+from src.cmp.utils import Token
 
 
 class Lexer:
-    def __init__(self):
-        self.eof = "$"
-        self.regexs = self._build_regex()
+    def __init__(self, table):
+
+        self.regexs = self._build_regexs(table)
         self.automaton = self._build_automaton()
 
+    def _build_regexs(self, table):
+        regexs = []
+        regex_builder = RegexBuilder()
+        for n, (token_type, regex) in enumerate(table):
 
-    def _build_regex(self):
-        builderATM = BuilderATM()
+            RegexAtm = regex_builder.BuildAtm(regex)
+            Atm, AtmStates = State.from_nfa(RegexAtm, get_states=True)
 
-        whitespaceATM = builderATM.WhitespaceATM()
-        keywordATM = builderATM.KeywordATM()
-        numberATM= builderATM.NumberATM()
-        varnameATM = builderATM.VarNameATM()
-        operatorATM = builderATM.OperatorATM()
-        punctuationATM = builderATM.PunctuationATM()
-        literalATM = builderATM.LiteralATM()
+            for state in AtmStates:
+                if state.final:
+                    state.tag = token_type
+                else:
+                    state.tag = None
 
-        regexs = [
-            whitespaceATM,
-            keywordATM,
-            numberATM,
-            varnameATM,
-            operatorATM,
-            punctuationATM,
-            literalATM,
-        ]
+            regexs.append(Atm)
 
         return regexs
 
-
     def _build_automaton(self):
-        start = State("start")
+        start = State('start')
 
-        for state in self.regexs:
-            start.add_epsilon_transition(state)
+        for Atm in self.regexs:
+            start.add_epsilon_transition(Atm)
+
         return start.to_deterministic()
 
     def _walk(self, string):
         state = self.automaton
         final = state if state.final else None
-        lex = ""
+        Final_lex = ""
 
         for symbol in string:
             if state.has_transition(symbol):
-                lex += symbol
+                Final_lex += symbol
                 state = state[symbol][0]
 
                 if state.final:
                     final = state
-                    final.lex = lex
+                    final.lex = Final_lex
+
             else:
                 break
 
         if final:
             return final, final.lex
 
-        return None, lex
-    
+    def IgnoreSpaceChars(self, lex, text):
+        Index = len(lex)
+        for i, symbol in enumerate(text):
+            if i < Index:
+                continue
+
+            if symbol == "\n" or symbol == " ":
+                Index += 1
+
+            else:
+                break
+
+        return text[Index:]
+
 
     def _tokenize(self, text):
-        while text:
-            final, lex = self._walk(text)
-            text = text[len(lex) :]
-            if final:
-                yield Token(lex, final.tag)
+        text = self.IgnoreSpaceChars("", text)
 
-        yield Token("$", self.eof)
-        
+        while text:
+
+            try:
+                final, TokenLex = self._walk(text)
+            except TypeError:
+                raise Exception(f"Lexer Exception: Token '{text[0]}' is not valid")
+
+            text = self.IgnoreSpaceChars(TokenLex, text)
+            if final:
+                yield Token(TokenLex, final.tag)
+
+        yield Token("$", G.EOF)
+
 
     def __call__(self, text):
         return [token for token in self._tokenize(text)]

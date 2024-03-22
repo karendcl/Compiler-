@@ -1,5 +1,6 @@
-import pydot
-from .Keywords import HULK_keywords
+from src.cmp.pycompiler import Terminal
+from src.Lexer.Utils.toy_hulk_grammar import idx
+from src.Lexer.Utils.grammar_keywords import grammar_keywords
 
 
 class State:
@@ -50,20 +51,23 @@ class State:
         return any(s.final for s in states)
 
     def to_deterministic(self, formatter=lambda x: str(x)):
-        keyword_tags = set(HULK_keywords.values())
+        Grammar_Keywords = grammar_keywords()
+        Tags = set(Grammar_Keywords)
+
         closure = self.epsilon_closure
         start = State(tuple(closure), any(s.final for s in closure), formatter)
 
-        keyword_tag = next(
-            (s.tag for s in closure if s.final and s.tag in keyword_tags), None
-        )
+        Tag = next((Ste.tag for Ste in closure if Ste.tag in Tags and Ste.final), None)
+
         if start.final:
-            if keyword_tag:
-                start.tag = keyword_tag
+            if Tag:
+                start.tag = Tag
+
             else:
-                start.tag = "/".join(
-                    set(s.tag for s in closure if s.final and s.tag is not None)
-                )
+                if isinstance(start.tag, Terminal):
+                    start.tag = start.tag.Name
+
+                start.tag = next((Ste.tag for Ste in closure if Ste.tag is not None and Ste.final), None)
 
         closures = [closure]
         states = [start]
@@ -81,21 +85,22 @@ class State:
                     new_state = State(
                         tuple(closure), any(s.final for s in closure), formatter
                     )
-                    keyword_tag = next(
-                        (s.tag for s in closure if s.final and s.tag in keyword_tags),
-                        None,
-                    )
+
+                    Tag = next((Ste.tag for Ste in closure if Ste.tag in Tags and Ste.final),None,)
+
                     if new_state.final:
-                        if keyword_tag:
-                            new_state.tag = keyword_tag
+                        if Tag:
+                            new_state.tag = Tag
                         else:
-                            new_state.tag = "/".join(
-                                set(
-                                    s.tag
-                                    for s in closure
-                                    if s.final and s.tag is not None
-                                )
-                            )
+                            ClousureTags = set(Ste.tag for Ste in closure if Ste.tag is not None and Ste.final)
+                            if ClousureTags:
+                                if len(ClousureTags) > 1:
+                                    for Tag in ClousureTags:
+                                        if Tag != idx:
+                                            new_state.tag = Tag
+
+                                else:
+                                    new_state.tag = ClousureTags.pop()
 
                     closures.append(closure)
                     states.append(new_state)
@@ -195,56 +200,3 @@ class State:
                 yield from node._visit(visited)
         for node in self.epsilon_transitions:
             yield from node._visit(visited)
-
-    def graph(self):
-        G = pydot.Dot(rankdir="LR", margin=0.1)
-        G.add_node(pydot.Node("start", shape="plaintext", label="", width=0, height=0))
-
-        visited = set()
-
-        def visit(start):
-            ids = id(start)
-            if ids not in visited:
-                visited.add(ids)
-                G.add_node(
-                    pydot.Node(
-                        ids,
-                        label=start.name,
-                        shape=self.shape,
-                        style="bold" if start.final else "",
-                    )
-                )
-                for tran, destinations in start.transitions.items():
-                    for end in destinations:
-                        visit(end)
-                        G.add_edge(
-                            pydot.Edge(ids, id(end), label=tran, labeldistance=2)
-                        )
-                for end in start.epsilon_transitions:
-                    visit(end)
-                    G.add_edge(pydot.Edge(ids, id(end), label="ε", labeldistance=2))
-
-        visit(self)
-        G.add_edge(pydot.Edge("start", id(self), label="", style="dashed"))
-
-        return G
-
-    def _repr_svg_(self):
-        try:
-            return self.graph().create_svg().decode("utf8")
-        except:
-            pass
-
-    def write_to(self, fname):
-        return self.graph().write_svg(fname)
-
-
-def multiline_formatter(state):
-    return "\n".join(str(item) for item in state)
-
-
-def lr0_formatter(state):
-    try:
-        return "\n".join(str(item)[:-4] for item in state)
-    except TypeError:
-        return str(state)[:-4]
