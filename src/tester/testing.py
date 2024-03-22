@@ -1,232 +1,56 @@
+import src.cmp.grammar
 from src.cmp.grammar import G
 import src.cmp.grammar as grammar
 from src.parser import parser, utils
-from src.lexer.utils.token import Token
+from src.cmp.utils import Token
+from src.lexer.utils.regexs import Regexs
+from src.lexer import Usage_Example
 import json
 
-pars = parser.LR1Parser(G, True)
+#building lexer
+lexer = Usage_Example.lexer
 
-#testing simple expressions
-testcase0 = [
-    Token('1', grammar.num),
-    Token('+', grammar.plus),
-    Token('2', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
+#building parser
+pars = parser.LR1Parser(G, verbose=True)
 
-#testing simple expressions with multiplication
-testcase1 = [
-    Token('1', grammar.num),
-    Token('+', grammar.plus),
-    Token('2', grammar.num),
-    Token('*', grammar.star),
-    Token('3', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
+#testcases
+testcase0 = '1+2;'
+testcase1 = '1+2*3;'
+testcase2 = 'function main() => print(1+2); 4;'
+testcase3 = '{let x = 1 in x;}'
+testcase4 = '{let x = 1 in let y = 2 in x+y;}'
+testcase5 = 'if(1==1) print(1) else {print(2);}'
+testcase6 = '42;'
+testcase7 = 'print((((1+2)^3)*4)/5);'
+testcase8 = 'print("The message is " @ 1);'
+testcase9 = 'print(1@"Yes");'
+testcase10 = 'print(1@"Yes"@"No");'
+testcase11 = 'print(sin(pi));'
+testcase12 = 'function f(x,y) => sin(x+y); 4;'
+testcase13 = 'function f(x,y){sin(x+y);print(5);} 4;'
+testcase14 = 'let msg = "Hello" in print(msg);'
+testcase15 = ' let number = 42, test = "The meaning of life is" in print(test@number);'
+testcase16 = 'let number = 42 in (let text = "The meaning of life is" in ( print(test@number)));'
+testcase17 = 'let a = 6, b = a*7 in print(b);'
+testcase18 = 'let a=7, b=10,c=20 in {print(a);print(b);print(c);}'
+testcase19 = 'let a = (let b =6 in b*7) in print(a);'
+testcase20 = 'print(let b =6 in b*7);'
+testcase21 = 'let a =20 in {let a =42 in print (a); print(a);}'
+testcase22 = 'let a=0 in {print(a); a := 1; print(a);}'
+testcase23 = 'let a =0 in let b = a := 1 in {print(a); print(b);};'
+testcase24 = 'let a = 42 in if (a == 2) print(1) else print(2);'
+# testcase25 = 'let a = 42 in print(if (a == 2) "1" else "2");'
+testcase25 = 'let a = 2 in if (a ==2) {print(1);} else print(2);'
+# testcase26 = 'let a =42, let b = a + 1 in print(if (a == 2) "1" elif (a==3) "2" else "3";'
+testcase26 = 'let a = 10 in while (a > 0) {print(a); a := a - 1;}'
+testcase27 = 'for (x in range(1,10)) print(x);'
+# testcase28 = 'type Point { x = 0; y=0; getX()=> self.x;} print(a);'
+# testcase28 = 'let pt = new Point() in print("x: " @ pt.getX() @ " y: " @ pt.getY());'
+testcase28 = 'protocol Hashable { hash(): Number; } 4;'
+testcase29 = 'protocol Equatable extends Hashable { equals(other: Object): Boolean; } 4;'
+testcase30 = 'let numbers = [1,2,3,4,5,6,7,8] in for (x in numbers) print(x);'
+testcase31 = 'let numbers = [x^2 || x in range(1,10)] in print(x);'
 
-#testing simple function
-testcase2 = [
-    Token('function', grammar.function),
-    Token('main', grammar.idx),
-    Token('(', grammar.opar),
-    Token(')', grammar.cpar),
-    Token('=>', grammar.rarrow),
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('+', grammar.plus),
-    Token('2', grammar.num),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('4', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-#testing simple let expression
-testcase3 = [
-    Token('{', grammar.curly_o),
-    Token('let', grammar.let),
-    Token('x', grammar.idx),
-    Token('=', grammar.equal),
-    Token('1', grammar.num),
-    Token('in', grammar.inx),
-    Token('x', grammar.idx),
-    Token(';', grammar.semi_colon),
-    Token('}', grammar.curly_c),
-    Token('$', G.EOF)]
-
-#testing multiple let expressions
-testcase4 = [
-    Token('{', grammar.curly_o),
-    Token('let', grammar.let),
-    Token('x', grammar.idx),
-    Token('=', grammar.equal),
-    Token('1', grammar.num),
-    Token('in', grammar.inx),
-    Token('let', grammar.let),
-    Token('y', grammar.idx),
-    Token('=', grammar.equal),
-    Token('2', grammar.num),
-    Token('in', grammar.inx),
-    Token('x', grammar.idx),
-    Token('+', grammar.plus),
-    Token('y', grammar.idx),
-    Token(';', grammar.semi_colon),
-    Token('}', grammar.curly_c),
-    Token('$', G.EOF)]
-
-#testing simple if statement
-testcase5 = [
-    Token('if', grammar.ifx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('==', grammar.equals),
-    Token('1', grammar.num),
-    Token(')', grammar.cpar),
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token(')', grammar.cpar),
-    Token('else', grammar.elsex),
-    Token('{', grammar.curly_o),
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('2', grammar.num),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('}', grammar.curly_c),
-    Token('$', G.EOF)]
-
-testcase6 = [
-    Token('42', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-#testing parenthesis
-testcase7 = [
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('(', grammar.opar),
-    Token('(', grammar.opar),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('+', grammar.plus),
-    Token('2', grammar.num),
-    Token(')', grammar.cpar),
-    Token('^', grammar.pow),
-    Token('3', grammar.num),
-    Token(')', grammar.cpar),
-    Token('*', grammar.star),
-    Token('4', grammar.num),
-    Token(')', grammar.cpar),
-    Token('/', grammar.div),
-    Token('5', grammar.num),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-
-#testing concats
-testcase8 = [
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('The message is ', grammar.strx),
-    Token('@', grammar.concat),
-    Token('1', grammar.num),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-testcase9 = [
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('@', grammar.concat),
-    Token('Yes', grammar.strx),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-testcase10 =[
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('1', grammar.num),
-    Token('@', grammar.concat),
-    Token('Yes', grammar.strx),
-    Token('@', grammar.concat),
-    Token('No', grammar.strx),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-#testing sin,cos, pi and log
-testcase11 = [
-    Token('print', grammar.printx),
-    Token('(', grammar.opar),
-    Token('sin', grammar.sin),
-    Token('(', grammar.opar),
-    Token('pi', grammar.PI),
-    Token(')', grammar.cpar),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-#testing function declaration
-testcase12 = [
-    Token('function', grammar.function),
-    Token('f', grammar.idx),
-    Token('(', grammar.opar),
-    Token('x', grammar.idx),
-    Token(',', grammar.comma),
-    Token('y', grammar.idx),
-    Token(')', grammar.cpar),
-    Token('=>', grammar.rarrow),
-    Token('sin', grammar.sin),
-    Token('(', grammar.opar),
-    Token('x', grammar.idx),
-    Token('+', grammar.plus),
-    Token('y', grammar.idx),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('4', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-]
-
-#testing full form functions
-testcase13 = [
-    Token('function', grammar.function),
-    Token('f', grammar.idx),
-    Token('(', grammar.opar),
-    Token('x', grammar.idx),
-    Token(',', grammar.comma),
-    Token('y', grammar.idx),
-    Token(')', grammar.cpar),
-    Token('{', grammar.curly_o),
-    Token('sin', grammar.sin),
-    Token('(', grammar.opar),
-    Token('x', grammar.idx),
-    Token('+', grammar.plus),
-    Token('y', grammar.idx),
-    Token(')', grammar.cpar),
-    Token(';', grammar.semi_colon),
-    Token('4', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('}', grammar.curly_c),
-    Token('4', grammar.num),
-    Token(';', grammar.semi_colon),
-    Token('$', G.EOF)
-
-]
 
 def testing(testcase, should_assert = True):
     try:
@@ -248,21 +72,9 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    print(f'Testcase {i}:')
+    print(f'Testcase {i}: {testcase}')
+    testcase = lexer(testcase)
     testing(testcase)
-
-
-
-
-
-# utils.parser_to_json(pars)
-#
-# pars2 = utils.json_to_parser()
-#
-# assert pars.action == pars2.action
-# assert pars.goto == pars2.goto
-# assert pars.G == pars2.G
-
 
 
 

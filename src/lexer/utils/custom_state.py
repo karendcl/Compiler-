@@ -1,6 +1,6 @@
 from src.cmp.pycompiler import Terminal
-from src.Lexer.Utils.toy_hulk_grammar import idx
-from src.Lexer.Utils.grammar_keywords import grammar_keywords
+from src.lexer.utils.toy_hulk_grammar import idx
+from src.lexer.utils.grammar_keywords import grammar_keywords
 
 
 class State:

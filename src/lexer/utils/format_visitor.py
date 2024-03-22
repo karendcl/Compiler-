@@ -1,5 +1,5 @@
-from src.Lexer.Utils.regex_ast import *
-from src.Lexer.Utils.regex_grammar import StringChars, RegexChars
+from src.lexer.utils.regex_ast import *
+from src.lexer.utils.regex_grammar import StringChars, RegexChars
 from src.cmp import visitor
 from src.cmp.automaton_operations import *
 from src.cmp.automaton import nfa_to_dfa

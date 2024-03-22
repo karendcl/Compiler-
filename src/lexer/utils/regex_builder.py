@@ -1,9 +1,10 @@
 from src.cmp.automaton import nfa_to_dfa
 from src.cmp.automaton_operations import automata_minimization
 from src.cmp.utils import Token
-from src.Lexer.Utils.format_visitor import FormatVisitor
-from src.Lexer.Utils.regex_grammar import G
-from src.parser.parser import LR1Parser, evaluate_reverse_parse
+from src.lexer.utils.format_visitor import FormatVisitor
+from src.lexer.utils.regex_grammar import G
+# from src.parser.parser import LR1Parser, evaluate_reverse_parse
+from src.lexer.utils.parser import LR1Parser, evaluate_reverse_parse
 
 
 class RegexBuilder:

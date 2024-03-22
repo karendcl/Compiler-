@@ -37,6 +37,9 @@ func_call = G.NonTerminal("<func-call>")
 print_exp = G.NonTerminal("<print-exp>")
 string_exp = G.NonTerminal("<string-exp>")
 concatenable = G.NonTerminal("<concatenable>")
+functions_in_type = G.NonTerminal("<functions-in-type>")
+attr_call = G.NonTerminal("<attr-call>")
+
 
 # region TERMINALS
 curly_o , curly_c = G.Terminals("{ }")
@@ -76,15 +79,17 @@ statement %= exp, lambda h, s: s[1]
 statement %= exp_block, lambda h, s: s[1]
 
 exp %= let_exp, lambda h, s: s[1]
-exp %= conditional, lambda h, s: s[1]
+# exp %= conditional, lambda h, s: s[1]
 exp %= while_block, lambda h, s: s[1]
 exp %= for_exp, lambda h, s: s[1]
 exp %= print_exp, lambda h, s: s[1]
-exp %= func_call, lambda h, s: s[1]
+# exp %= func_call, lambda h, s: s[1]
+# exp %= attr_call, lambda h, s: s[1]
 exp %= instance, lambda h, s: s[1]
 # exp %= term, lambda h, s: s[1]
 exp %= mutate_var, lambda h, s: s[1]
 exp %= string_exp, lambda h, s: s[1]
+exp %= iterable, lambda h, s: s[1]
 
 
 
@@ -107,10 +112,13 @@ type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda
 type_args %= opar + param_list + cpar, lambda h, s: s[2]
 type_args %= G.Epsilon, lambda h, s: []
 
-type_body %= def_func, lambda h, s: [s[1]]
-type_body %= def_func + type_body, lambda h, s: [s[1]] + s[3]
+type_body %= functions_in_type, lambda h, s: [s[1]]
+type_body %= functions_in_type + type_body, lambda h, s: [s[1]] + s[3]
 type_body %= attribute + semi_colon, lambda h, s: [s[1]]
 type_body %= attribute + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
+
+functions_in_type %= idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
+functions_in_type %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
 attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
 attribute %= idx + colon + idx, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
@@ -128,8 +136,10 @@ exp_list %= exp + semi_colon, lambda h, s: [s[1]]
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
+#todo fix ast here
 func_call %= idx + dot + func_call, lambda h, s: CallNode(s[1], s[3])
 func_call %= idx + opar + param_list + cpar, lambda h, s: CallNode(VariableNode(selfToken), s[1], s[3])
+func_call %= idx + dot + idx, lambda h, s: CallNode(s[1], s[3])
 
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
@@ -161,8 +171,8 @@ elif_block %= elifx + opar + condition + cpar + exp_block + elif_block, lambda h
 while_block %= whilex + opar + condition + cpar + exp + semi_colon, lambda h, s: LoopNode(s[2], s[3], s[1])
 while_block %= whilex + opar + condition + cpar + exp_block, lambda h, s: LoopNode(s[2], s[3], s[1])
 
-for_exp %= forx + opar + idx + inx + iterable + cpar + exp + semi_colon, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
-for_exp %= forx + opar + idx + inx + iterable + cpar + exp_block, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp + semi_colon, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp_block, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
 
 iterable %= vector, lambda h, s: s[1]
 iterable %= rangex + opar + num + comma + num + cpar, lambda h, s: RangeNode(s[3], s[5], s[1])
@@ -177,6 +187,8 @@ list_ %= exp + comma + list_, lambda h, s: [s[1]] + s[3]
 
 # todo add mod
 # todo fix power
+#todo as is
+#todo indexing
 
 term %= factor, lambda h, s: s[1]
 term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
@@ -219,10 +231,21 @@ print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3], s[1])
 
 string_exp %= term, lambda h, s: s[1]
 string_exp %= strx, lambda h, s: ConstantStringNode(s[1], s[1].lex[1:-1])
+string_exp %= func_call, lambda h, s: s[1]
+string_exp %= attr_call, lambda h, s: s[1]
+string_exp %= conditional, lambda h, s: s[1]
+
 string_exp %= strx + concat + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1].lex[1:-1]}{s[3]}')
 string_exp %= strx + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1].lex[1:-1]} {s[3]}')
 string_exp %= term + concat + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1].lex[1:-1]}{s[3]}')
 string_exp %= term + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1].lex[1:-1]} {s[3]}')
+string_exp %= func_call + concat + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]}{s[3]}')
+string_exp %= func_call + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]} {s[3]}')
+string_exp %= attr_call + concat + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]}{s[3]}')
+string_exp %= attr_call + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]} {s[3]}')
+string_exp %= conditional + concat + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]}{s[3]}')
+string_exp %= conditional + concat_space + string_exp, lambda h, s: ConstantStringNode(s[1], f'{s[1]} {s[3]}')
+
 
 
 

@@ -5,7 +5,7 @@ from src.cmp.utils import Token, ContainerSet
 from src.parser.utils import compute_firsts, expand, compress
 
 
-class ShiftReduceParser:
+class ShiftReduceParser(object):
     '''
     Base Class for Shift-Reduce Parsers
 
@@ -16,12 +16,15 @@ class ShiftReduceParser:
     REDUCE = "REDUCE"
     OK = "OK"
 
-    def __init__(self, G, verbose=False, action = {}, goto = {}):
+    def __init__(self, G, verbose=False, action ={}, goto ={}):
         self.G = G
         self.verbose = verbose
         self.action = action
         self.goto = goto
         self._build_parsing_table()
+
+        print(f'Building parsing table...\n\n '
+              f'G: {self.G},\n')
 
     def _build_parsing_table(self):
         raise NotImplementedError()
@@ -39,6 +42,8 @@ class ShiftReduceParser:
 
             if (state, lookahead) not in self.action:
                 print("Error. Aborting...")
+                print(state)
+                print(lookahead)
                 return None
 
             if self.action[state, lookahead] == self.OK:
@@ -69,6 +74,8 @@ class ShiftReduceParser:
 
 
 class LR1Parser(ShiftReduceParser):
+    def __init__(self, G, verbose=False):
+        super().__init__(G, verbose)
     def _build_parsing_table(self):
         G = self.G.AugmentedGrammar(True)
 
@@ -198,3 +205,5 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
     assert len(stack) == 1
     assert isinstance(next(tokens).token_type, EOF)
     return stack[0]
+
+

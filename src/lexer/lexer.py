@@ -1,6 +1,6 @@
-from src.Lexer.Utils.regex_builder import RegexBuilder
-from src.Lexer.Utils.toy_hulk_grammar import G
-from src.Lexer.Utils.custom_state import State
+from src.lexer.utils.regex_builder import RegexBuilder
+from src.cmp.grammar import G
+from src.lexer.utils.custom_state import State
 from src.cmp.utils import Token
 
 
@@ -85,7 +85,7 @@ class Lexer:
             if final:
                 yield Token(TokenLex, final.tag)
 
-        yield Token("$", G.EOF)
+        yield Token('$', G.EOF)
 
 
     def __call__(self, text):
