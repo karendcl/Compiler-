@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 
 
 class Node:
-    def __init__(self, token: Token):
+    def __init__(self, token: Token = emptyToken):
         self.token = token
 
     def __repr__(self):
@@ -27,7 +27,7 @@ class DeclarationNode(Node):
 
 
 class ExpressionNode(Node):
-    def __init__(self, token: Token, computed_type: Optional[Type] = None):
+    def __init__(self, token: Token = emptyToken, computed_type: Optional[Type] = None):
         super().__init__(token)
         self.computed_type = computed_type
 
@@ -50,13 +50,12 @@ class AttrDeclarationNode(DeclarationNode):
     def __init__(
         self,
         idx: Token,
-        typex: Token,
+        typex: Optional[Token] = None,
         expr: Optional[ExpressionNode] = None,
         token: Token = emptyToken,
     ):
         self.id = idx.lex
         self.idToken = idx
-        self.type = typex.lex
         self.typeToken = typex
         self.expr = expr
         self.token = token
@@ -97,17 +96,12 @@ class AssignNode(ExpressionNode):
 class CallNode(ExpressionNode):
     def __init__(
         self,
-        obj: ExpressionNode,
-        idx: Token,
-        args: List[ExpressionNode],
-        cast_type: Token = emptyToken,
+        obj_called,
+            params
     ):
-        super().__init__(idx)
-        self.obj = obj
-        self.id = idx.lex
-        self.args = args
-        self.type = cast_type.lex
-        self.typeToken = cast_type
+        super().__init__()
+        self.obj_called = obj_called
+        self.params = params
 
 
 class CaseBranchNode(Node):
@@ -308,3 +302,12 @@ class ForNode(ExpressionNode):
         self.iterable = iterable
         self.body = body
         self.varidx = varidx
+
+class IndexationNode(ExpressionNode):
+    def __init__(self, obj: ExpressionNode, index: ExpressionNode):
+        super().__init__()
+        self.obj = obj
+        self.index = index
+
+class ModNode(BinaryNode):
+    pass
