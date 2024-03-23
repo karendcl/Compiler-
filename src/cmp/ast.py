@@ -14,12 +14,6 @@ class Node:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.token.lex})"
 
-class StatementNode(Node):
-    pass
-
-class ClassDeclarationNode(StatementNode):
-    pass
-
 
 
 class DeclarationNode(Node):

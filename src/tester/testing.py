@@ -6,12 +6,16 @@ from src.cmp.utils import Token
 from src.lexer.utils.regexs import Regexs
 from src.lexer import Usage_Example
 import json
+from src.cmp.ast import *
+import src.cmp.visitor as visitor
 
 #building lexer
 lexer = Usage_Example.lexer
 
 #building parser
 pars = parser.LR1Parser(G, verbose=True)
+
+number = 0
 
 #testcases
 testcase0 = '1+2;'
@@ -60,18 +64,25 @@ testcase35 = 'let vector = [1,2,3,4] in print(vector[0]);'
 testcase36 = 'print(5*2^3*4);'
 #testing modulo operator
 testcase37 = 'print(3^5%2^5);'
+testcase38 = 'if (a is b) print(1) else print(2);'
+testcase39 = 'print(sin(3^4));'
+testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i;'
+             'fact(4);')
+testcase41 = ('function fib(n) => if (n==0|n==1) 1 else (fib(n-1) + fib(n-2));'
+              'fib(3);')
+
+testcase42 = '4*-8;'
 
 
-def testing(testcase, should_assert = True):
+def testing(testcase, id):
+    global number
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
-        if should_assert:
-            assert True
+        print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
-        if should_assert:
-            print(e)
-            assert False
+        number +=1
+        print('\x1b[6;30;41m' + f'Test {id} failed!' + '\x1b[0m')
 
 
 testcases = []
@@ -82,9 +93,9 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    print(f'Testcase {i}: {testcase}')
     testcase = lexer(testcase)
-    testing(testcase)
+    testing(testcase, i)
 
 
 
+print(f'{number} tests failed')
