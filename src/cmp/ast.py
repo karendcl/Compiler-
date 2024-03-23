@@ -303,11 +303,15 @@ class ForNode(ExpressionNode):
         self.body = body
         self.varidx = varidx
 
+class ModNode(BinaryNode):
+    pass
+
 class IndexationNode(ExpressionNode):
     def __init__(self, obj: ExpressionNode, index: ExpressionNode):
         super().__init__()
         self.obj = obj
         self.index = index
 
-class ModNode(BinaryNode):
+
+class IsNode(ComparisonNode):
     pass

@@ -193,10 +193,6 @@ indexation %= idx + square_o + exp + square_c, lambda h, s: IndexationNode(s[1],
 indexation %= iterable + square_o + exp + square_c, lambda h, s: IndexationNode(s[1], s[3])
 
 
-# todo add mod
-
-
-
 #todo as is
 
 
@@ -243,6 +239,7 @@ condition %= exp + andx + exp, lambda h, s: AndNode(s[1], s[3], s[2])
 condition %= exp + orx + exp, lambda h, s: OrNode(s[1], s[3], s[2])
 condition %= opar + condition + cpar, lambda h, s: s[2]
 condition %= notx + condition, lambda h, s: NotNode(s[2], s[1])
+condition %= exp + isx + exp, lambda h, s: IsNode(s[1], s[3], s[2])
 
 print_exp %= printx + opar + string_exp + cpar, lambda h, s: PrintNode(s[3], s[1])
 
