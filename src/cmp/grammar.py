@@ -237,7 +237,7 @@ condition %= exp + orx + exp, lambda h, s: OrNode(s[1], s[3], s[2])
 condition %= opar + exp + cpar, lambda h, s: s[2]
 condition %= notx + exp, lambda h, s: NotNode(s[2], s[1])
 
-condition %= exp + isx + exp, lambda h, s: IsNode(s[1], s[3], s[2])
+condition %= exp + isx + possible_types, lambda h, s: IsNode(s[1], s[3], s[2])
 
 boolean_exp %= condition, lambda h,s: s[1]
 boolean_exp %= func_call, lambda h,s: s[1]

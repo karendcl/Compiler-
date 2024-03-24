@@ -110,6 +110,9 @@ testcase42 = '4*-8;'
 
 testcase43 = '(let a = 4 in a) @ "hola;"'
 
+testcase44 = 'let a = b as c in a;'
+
+testcase45 = 'let a = if (a is string) 4 else 5 in a;'
 
 def testing(testcase, id):
     global number

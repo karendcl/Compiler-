@@ -22,7 +22,7 @@ def Regexs():
         (new, "new"),
         (inherits, "inherits"),
         (isx, "is"),
-        (asx, "asx"),
+        (asx, "as"),
         (protocol, "protocol"),
         (extends, "extends"),
         (true, "true"),
