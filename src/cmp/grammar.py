@@ -89,7 +89,7 @@ exp %= instance, lambda h, s: s[1]
 exp %= mutate_var, lambda h, s: s[1]
 exp %= string_exp, lambda h, s: s[1]
 exp %= iterable, lambda h, s: s[1]
-exp %= conforms, lambda h, s:s[1]
+string_exp %= conforms, lambda h, s:s[1]
 
 string_exp %= indexation + concatenable, lambda h, s: s[1]
 string_exp %= let_exp, lambda h, s: s[1]
@@ -192,8 +192,6 @@ indexation %= idx + square_o + exp + square_c, lambda h, s: IndexationNode(s[1],
 indexation %= iterable + square_o + exp + square_c, lambda h, s: IndexationNode(s[1], s[3])
 
 
-#todo as
-
 term %= factor, lambda h, s: s[1]
 term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
 term %= term + minus + factor, lambda h, s: MinusNode(s[1], s[3], s[2])
@@ -221,8 +219,10 @@ atom %= rand + opar + cpar, lambda h, s: RandNode(s[2])
 atom %= PI, lambda h, s: ConstantNumNode(s[1])
 atom %= E, lambda h, s: ConstantNumNode(s[1])
 atom %= func_call, lambda h,s : s[1]
+# atom %= concatenable_cond, lambda h,s: None
 
 #boolean expressions as described in hulk
+#todo (condition)
 condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
 condition %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
 condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
@@ -244,10 +244,10 @@ concatenable_cond %= condition, lambda h,s: None
 
 boolean_exp %= concatenable_cond, lambda h,s: s[1]
 
-print_exp %= printx + opar + string_exp + cpar, lambda h, s: PrintNode(s[3], s[1])
+print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3], s[1])
 
-conforms %= idx + asx + possible_types, lambda h,s: s[1]
-conforms %= func_call + asx + possible_types, lambda h,s: s[1]
+conforms %= term + asx + possible_types, lambda h,s: s[1]
+# conforms %= func_call + asx + possible_types, lambda h,s: s[1]
 
 possible_types %= idx, lambda h,s: s[1]
 possible_types %= string, lambda h,s : s[1]

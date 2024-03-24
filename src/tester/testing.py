@@ -116,11 +116,13 @@ testcase45 = 'let a = if (a is string) 4 else 5 in a;'
 
 testcase46 = 'let a = b.c() as int in print(a);'
 
+testcase47 = 'print(4+5+6 as int);'
+
 def testing(testcase, id):
     global number
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
-        # ast = parser.evaluate_reverse_parse(parse, operations, testcase)
+        ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
         number +=1
