@@ -7,7 +7,7 @@ from src.cmp.utils import selfToken
 # grammar
 G = Grammar()
 
-# non-terminals
+# # non-terminals
 program = G.NonTerminal("<program>", startSymbol=True)
 exp, exp_block, exp_list = G.NonTerminals("<exp> <exp-block> <exp-list>")
 def_func = G.NonTerminal("<def-func>")
@@ -42,8 +42,9 @@ indexation = G.NonTerminal("<indexation>")
 boolean_exp = G.NonTerminal("<boolean>")
 conforms = G.NonTerminal("<conforms>")
 possible_types = G.NonTerminal("<poss-types>")
-
-
+concatenable_cond = G.NonTerminal("<bool-ext>")
+#
+#
 # region TERMINALS
 curly_o , curly_c = G.Terminals("{ }")
 square_o, square_c = G.Terminals("[ ]")
@@ -66,18 +67,18 @@ strx, idx, boolx, string, intx = G.Terminals("str id bool string int")
 rangex = G.Terminal("range")
 printx = G.Terminal("print")
 PI, E = G.Terminals("PI E")
-
-
-#productions
-
-# ------esto no me queda muy claro
+#
+#
+# #productions
+#
+# # ------esto no me queda muy claro
 program %= statement, lambda h, s: ProgramNode(s[1])
 
 statement %= def_protocol + statement, lambda h, s: s[1]
 statement %= type_dec + statement, lambda h, s: s[1]
 statement %= def_func + statement, lambda h, s: s[1]
 statement %= exp + semi_colon, lambda h, s: s[1]
-statement %= exp, lambda h, s: s[1]
+# statement %= exp, lambda h, s: s[1]
 statement %= exp_block, lambda h, s: s[1]
 statement %= exp_block + semi_colon, lambda h, s: s[1]
 
@@ -133,9 +134,7 @@ attribute %= idx + colon + possible_types, lambda h, s: AttrDeclarationNode(s[1]
 
 instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4], s[1])
 
-end_extended %= G.Epsilon, lambda h, s: None
-
-exp_block %= curly_o + exp_list + curly_c + end_extended, lambda h, s: s[2]
+exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
 
 exp_list %= exp + semi_colon + exp_list, lambda h, s: [s[1]] + s[3]
 exp_list %= exp + semi_colon, lambda h, s: [s[1]]
@@ -230,24 +229,30 @@ condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
 condition %= exp + geq + exp, lambda h, s: LessNode(s[3], s[1], s[2])
 condition %= exp + greater + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
 condition %= exp + neq + exp, lambda h, s: NotNode(EqualNode(s[1], s[3], s[2]), s[2])
+
 condition %= true, lambda h, s: ConstantBoolNode(s[1])
 condition %= false, lambda h, s: ConstantBoolNode(s[1])
-condition %= exp + andx + exp, lambda h, s: AndNode(s[1], s[3], s[2])
-condition %= exp + orx + exp, lambda h, s: OrNode(s[1], s[3], s[2])
 condition %= opar + exp + cpar, lambda h, s: s[2]
 condition %= notx + exp, lambda h, s: NotNode(s[2], s[1])
-
 condition %= exp + isx + possible_types, lambda h, s: IsNode(s[1], s[3], s[2])
+condition %= func_call, lambda h,s:None
+condition %= idx, lambda h,s: None
 
-boolean_exp %= condition, lambda h,s: s[1]
-boolean_exp %= func_call, lambda h,s: s[1]
+concatenable_cond %= condition + andx + concatenable_cond, lambda h,s: None
+concatenable_cond %= condition + orx + concatenable_cond, lambda h,s: None
+concatenable_cond %= condition, lambda h,s: None
+
+boolean_exp %= concatenable_cond, lambda h,s: s[1]
 
 print_exp %= printx + opar + string_exp + cpar, lambda h, s: PrintNode(s[3], s[1])
 
 conforms %= idx + asx + possible_types, lambda h,s: s[1]
+conforms %= func_call + asx + possible_types, lambda h,s: s[1]
 
 possible_types %= idx, lambda h,s: s[1]
 possible_types %= string, lambda h,s : s[1]
 possible_types %= boolx, lambda h,s: s[1]
 possible_types %= intx, lambda h,s:s[1]
+
+
 
