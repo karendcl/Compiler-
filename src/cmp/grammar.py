@@ -11,7 +11,6 @@ G = Grammar()
 program = G.NonTerminal("<program>", startSymbol=True)
 exp, exp_block, exp_list = G.NonTerminals("<exp> <exp-block> <exp-list>")
 def_func = G.NonTerminal("<def-func>")
-
 end_extended = G.NonTerminal("<end-extended>")
 param_list, param = G.NonTerminals("<param-list> <param>")
 arg_declaration = G.NonTerminal("<arg-declaration>")
@@ -43,6 +42,8 @@ boolean_exp = G.NonTerminal("<boolean>")
 conforms = G.NonTerminal("<conforms>")
 possible_types = G.NonTerminal("<poss-types>")
 concatenable_cond = G.NonTerminal("<bool-ext>")
+statement_list = G.NonTerminal("<stat-list>")
+id_list = G.NonTerminal("<id-list")
 #
 #
 # region TERMINALS
@@ -72,15 +73,19 @@ PI, E = G.Terminals("PI E")
 # #productions
 #
 # # ------esto no me queda muy claro
-program %= statement, lambda h, s: ProgramNode(s[1])
 
-statement %= def_protocol + statement, lambda h, s: s[1]
-statement %= type_dec + statement, lambda h, s: s[1]
-statement %= def_func + statement, lambda h, s: s[1]
-statement %= exp + semi_colon, lambda h, s: s[1]
-# statement %= exp, lambda h, s: s[1]
-statement %= exp_block, lambda h, s: s[1]
-statement %= exp_block + semi_colon, lambda h, s: s[1]
+program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1])
+program %= statement_list + exp_block, lambda h, s: ProgramNode(s[1])
+program %= statement_list + exp_block + semi_colon, lambda h, s: ProgramNode(s[1])
+
+statement_list %= def_protocol + statement_list, lambda h, s: s[1]
+statement_list %= type_dec + statement_list, lambda h, s: s[1]
+statement_list %= def_func + statement_list, lambda h, s: s[1]
+statement_list %= G.Epsilon, lambda h,s:None
+# statement %= exp + semi_colon, lambda h, s: s[1]
+# # statement %= exp, lambda h, s: s[1]
+# statement %= exp_block, lambda h, s: s[1]
+# statement %= exp_block + semi_colon, lambda h, s: s[1]
 
 exp %= while_block, lambda h, s: s[1]
 exp %= for_exp, lambda h, s: s[1]
@@ -107,8 +112,12 @@ concatenable %= G.Epsilon, lambda h, s: None
 # exp_or_block %= exp + semi_colon, lambda h, s: s[1]
 # exp_or_block %= exp_block, lambda h, s: s[1]
 
+#todo can extend multiple protocols
 def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
-def_protocol %= protocol + idx + extends + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], s[3])
+def_protocol %= protocol + idx + extends + id_list + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], s[3])
+
+id_list %= idx, lambda h,s: s[1]
+id_list %= idx + comma, lambda h,s:s[1]
 
 def_method %= idx + opar + param_list + cpar + colon + idx, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6])
 
@@ -223,6 +232,7 @@ atom %= func_call, lambda h,s : s[1]
 
 #boolean expressions as described in hulk
 #todo (condition)
+#todo check all AST nodes
 condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
 condition %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
 condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])

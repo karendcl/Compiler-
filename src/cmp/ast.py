@@ -3,18 +3,13 @@ from src.cmp.utils import Token, emptyToken
 from typing import List, Optional, Tuple, Union
 from abc import ABC, abstractmethod
 
+class Node(ABC):
+    pass
 
 
-
-
-class Node:
-    def __init__(self, token: Token = emptyToken):
-        self.token = token
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.token.lex})"
-
-
+class Statement(Node):
+    def __init__(self, ):
+        pass
 
 class DeclarationNode(Node):
     pass
@@ -25,6 +20,9 @@ class ExpressionNode(Node):
         super().__init__(token)
         self.computed_type = computed_type
 
+
+
+#-------------Declaration Nodes
 
 class FuncDeclarationNode(DeclarationNode):
     def __init__(
@@ -38,7 +36,6 @@ class FuncDeclarationNode(DeclarationNode):
         self.params = params
         self.body = body
         self.token = token
-
 
 class AttrDeclarationNode(DeclarationNode):
     def __init__(
@@ -70,14 +67,6 @@ class ClassDeclarationNode(DeclarationNode):
         self.features = features
 
 
-class ProgramNode(Node):
-    def __init__(self, declarations: List[ClassDeclarationNode]):
-        super().__init__(emptyToken)
-        self.declarations = declarations
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({len(self.declarations)} classes)"
-
 
 class AssignNode(ExpressionNode):
     def __init__(self, idx: Token, expr: ExpressionNode, token: Token):
@@ -86,6 +75,13 @@ class AssignNode(ExpressionNode):
         self.idToken = idx
         self.expr = expr
 
+class ProgramNode(Node):
+    def __init__(self, declarations: List[ClassDeclarationNode]):
+        super().__init__(emptyToken)
+        self.declarations = declarations
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({len(self.declarations)} classes)"
 
 class CallNode(ExpressionNode):
     def __init__(
@@ -196,8 +192,7 @@ class ArithmeticNode(BinaryNode):
     pass
 
 
-class ComparisonNode(BinaryNode):
-    pass
+
 
 
 class ConstantNumNode(AtomicNode):
@@ -223,48 +218,44 @@ class InstantiateNode(ExpressionNode):
         self.params = params
 
 
-class PlusNode(ArithmeticNode):
-    pass
 
 
-class MinusNode(ArithmeticNode):
-    pass
 
-
-class StarNode(ArithmeticNode):
-    pass
-
-
-class DivNode(ArithmeticNode):
-    pass
-
-class PowNode(ArithmeticNode):
-    pass
-
-class LeqNode(ComparisonNode):
-    pass
-
-
-class LessNode(ComparisonNode):
-    pass
-
-
-class EqualNode(ComparisonNode):
-    pass
-
-class AndNode(ComparisonNode):
-    pass
-
-class OrNode(ComparisonNode):
-    pass
 
 class VoidNode(UnaryNode):
     pass
 
 
-class NotNode(UnaryNode):
+
+
+
+
+
+
+class RandNode(AtomicNode):
     pass
 
+class RangeNode(BinaryNode):
+    pass
+
+class ForNode(ExpressionNode):
+    def __init__(self, iterable: ExpressionNode, body: ExpressionNode, token: Token, varidx):
+        super().__init__(token)
+        self.iterable = iterable
+        self.body = body
+        self.varidx = varidx
+
+
+
+class IndexationNode(ExpressionNode):
+    def __init__(self, obj: ExpressionNode, index: ExpressionNode):
+        super().__init__()
+        self.obj = obj
+        self.index = index
+
+#--------UNARY NODES---------------------
+class NotNode(UnaryNode):
+    pass
 
 class NegNode(UnaryNode):
     pass
@@ -281,31 +272,49 @@ class SinNode(UnaryNode):
 class ExponEulerNode(UnaryNode):
     pass
 
-class LogNode(BinaryNode):
+
+#--------ARITHMETIC NODES----------------
+class ModNode(ArithmeticNode):
     pass
 
-class RandNode(AtomicNode):
+class LogNode(ArithmeticNode):
     pass
 
-class RangeNode(BinaryNode):
+class PlusNode(ArithmeticNode):
     pass
 
-class ForNode(ExpressionNode):
-    def __init__(self, iterable: ExpressionNode, body: ExpressionNode, token: Token, varidx):
-        super().__init__(token)
-        self.iterable = iterable
-        self.body = body
-        self.varidx = varidx
-
-class ModNode(BinaryNode):
+class MinusNode(ArithmeticNode):
     pass
 
-class IndexationNode(ExpressionNode):
-    def __init__(self, obj: ExpressionNode, index: ExpressionNode):
-        super().__init__()
-        self.obj = obj
-        self.index = index
+class StarNode(ArithmeticNode):
+    pass
 
+class DivNode(ArithmeticNode):
+    pass
+
+class PowNode(ArithmeticNode):
+    pass
+
+#--------COMPARISON NODES------------
+
+class ComparisonNode(BinaryNode):
+    pass
+
+class LeqNode(ComparisonNode):
+    pass
+
+class LessNode(ComparisonNode):
+    pass
+
+class EqualNode(ComparisonNode):
+    pass
+
+class AndNode(ComparisonNode):
+    pass
+
+class OrNode(ComparisonNode):
+    pass
 
 class IsNode(ComparisonNode):
     pass
+
