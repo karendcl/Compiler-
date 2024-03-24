@@ -22,7 +22,7 @@ elif_block = G.NonTerminal("<elif-block>")
 while_block = G.NonTerminal("<while-block>")
 for_exp = G.NonTerminal("<for-exp>")
 type_dec = G.NonTerminal("<type-dec>")
-term, factor, atom, k, mod_= G.NonTerminals("<term> <factor> <atom> <k> <mod>")
+term, factor, atom, k, mod_ = G.NonTerminals("<term> <factor> <atom> <k> <mod>")
 statement = G.NonTerminal("<statement>")
 def_protocol = G.NonTerminal("<def-protocol>")
 method_declarations = G.NonTerminal("<method-declarations>")
@@ -35,13 +35,13 @@ attribute = G.NonTerminal("<attribute>")
 vector, iterable = G.NonTerminals("<vector> <iterable>")
 func_call = G.NonTerminal("<func-call>")
 print_exp = G.NonTerminal("<print-exp>")
-string_exp, not_str_exp = G.NonTerminals("<string-exp> <not-str>")
+string_exp = G.NonTerminal("<string-exp>")
 concatenable = G.NonTerminal("<concatenable>")
 functions_in_type = G.NonTerminal("<functions-in-type>")
-attr_call = G.NonTerminal("<attr-call>")
 indexation = G.NonTerminal("<indexation>")
 boolean_exp = G.NonTerminal("<boolean>")
 conforms = G.NonTerminal("<conforms>")
+possible_types = G.NonTerminal("<poss-types>")
 
 
 # region TERMINALS
@@ -61,7 +61,8 @@ typex, new, inherits, isx, asx = G.Terminals("type new inherits is as")
 protocol, extends = G.Terminals("protocol extends")
 true, false = G.Terminals("true false")
 concat, concat_space = G.Terminals("@ @@")
-strx, idx, boolx, self = G.Terminals("str id bool self")
+strx, idx, boolx, string, intx = G.Terminals("str id bool string int")
+
 rangex = G.Terminal("range")
 printx = G.Terminal("print")
 PI, E = G.Terminals("PI E")
@@ -87,13 +88,13 @@ exp %= instance, lambda h, s: s[1]
 exp %= mutate_var, lambda h, s: s[1]
 exp %= string_exp, lambda h, s: s[1]
 exp %= iterable, lambda h, s: s[1]
+exp %= conforms, lambda h, s:s[1]
 
 string_exp %= indexation + concatenable, lambda h, s: s[1]
 string_exp %= let_exp, lambda h, s: s[1]
 string_exp %= term + concatenable, lambda h, s: s[1]
 string_exp %= strx + concatenable, lambda h, s: ConstantStringNode(s[1], s[1].lex[1:-1])
-string_exp %= func_call + concatenable, lambda h, s: s[1]
-string_exp %= attr_call + concatenable, lambda h, s: s[1]
+# string_exp %= func_call + concatenable, lambda h, s: s[1]
 string_exp %= conditional, lambda h, s: s[1]
 
 concatenable %= concat + string_exp, lambda h, s: ""
@@ -128,7 +129,7 @@ functions_in_type %= idx + opar + param_list + cpar + rarrow + exp + semi_colon,
 functions_in_type %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
 attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
-attribute %= idx + colon + idx, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
+attribute %= idx + colon + possible_types, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
 
 instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4], s[1])
 
@@ -149,8 +150,8 @@ func_call %= idx + dot + idx, lambda h, s: CallNode(s[1], s[3])
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= idx + colon + idx, lambda h, s: (s[1], s[3])
-arg_declaration %= atom, lambda h,s: (s[1], None)
+arg_declaration %= idx + colon + possible_types, lambda h, s: (s[1], s[3])
+arg_declaration %= term, lambda h,s: (s[1], None)
 arg_declaration %= G.Epsilon, lambda h, s: None
 
 param %= arg_declaration, lambda h, s: s[1]
@@ -220,6 +221,7 @@ atom %= log + opar + exp + comma + exp + cpar, lambda h, s: LogNode(s[3], s[5], 
 atom %= rand + opar + cpar, lambda h, s: RandNode(s[2])
 atom %= PI, lambda h, s: ConstantNumNode(s[1])
 atom %= E, lambda h, s: ConstantNumNode(s[1])
+atom %= func_call, lambda h,s : s[1]
 
 #boolean expressions as described in hulk
 condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
@@ -239,10 +241,13 @@ condition %= exp + isx + exp, lambda h, s: IsNode(s[1], s[3], s[2])
 
 boolean_exp %= condition, lambda h,s: s[1]
 boolean_exp %= func_call, lambda h,s: s[1]
-boolean_exp %= attr_call, lambda h,s: s[1]
-
 
 print_exp %= printx + opar + string_exp + cpar, lambda h, s: PrintNode(s[3], s[1])
 
-conforms %= idx + asx + idx, lambda h,s: s[1]
+conforms %= idx + asx + possible_types, lambda h,s: s[1]
+
+possible_types %= idx, lambda h,s: s[1]
+possible_types %= string, lambda h,s : s[1]
+possible_types %= boolx, lambda h,s: s[1]
+possible_types %= intx, lambda h,s:s[1]
 
