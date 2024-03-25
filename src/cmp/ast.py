@@ -3,43 +3,39 @@ from src.cmp.utils import Token, emptyToken
 from typing import List, Optional, Tuple, Union
 from abc import ABC, abstractmethod
 
+
 class Node(ABC):
     pass
 
 
 class Statement(Node):
-    def __init__(self, ):
-        pass
+    pass
+
 
 class DeclarationNode(Node):
     pass
 
 
 class ExpressionNode(Node):
-    def __init__(self, token: Token = emptyToken, computed_type: Optional[Type] = None):
-        super().__init__(token)
-        self.computed_type = computed_type
+    pass
 
 
-
-#-------------Declaration Nodes
-
-
-
+# -------------Declaration Nodes
 class FuncDeclarationNode(DeclarationNode):
+    #DONE
     def __init__(
-        self,
-        token: Token,
-        params: List[Tuple[Token, Token]],
-        body: ExpressionNode,
+            self,
+            idx,
+            params,
+            body
     ):
-        self.id = token.lex
-        # `param` is (nameToken, typeToken)
+        self.idx = idx
+        # `param` is (token, typeToken)
         self.params = params
         self.body = body
-        self.token = token
 
 class MethodDeclaration(DeclarationNode):
+    # DONE
     def __init__(
             self,
             idx,
@@ -52,44 +48,61 @@ class MethodDeclaration(DeclarationNode):
 
 
 class AttrDeclarationNode(DeclarationNode):
+    #DONE
     def __init__(
-        self,
-        idx: Token,
-        typex: Optional[Token] = None,
-        expr: Optional[ExpressionNode] = None,
-        token: Token = emptyToken,
+            self,
+            idx,
+            value = None,
+            type_expected =None
+
     ):
-        self.id = idx.lex
-        self.idToken = idx
-        self.typeToken = typex
-        self.expr = expr
-        self.token = token
+        self.idx = idx
+        self.value = value
+        self.type_expected = type_expected
+
+
+class ProtocolDeclarationNode(DeclarationNode):
+    # DONE
+    def __init__(
+            self,
+            idx,
+            methods: Optional[List[MethodDeclaration]] = None,
+            extends=None
+    ):
+        self.idx = idx
+        self.methods = [] if methods is None else methods
+        self.extends = [] if extends is None else extends
+
+
+class TypeDeclarationNode(DeclarationNode):
+    # DONE
+    def __init__(
+            self,
+            idx,
+            body: Optional[List[Union[FuncDeclarationNode, AttrDeclarationNode]]] = None,
+            inherits=None,
+            params: List[Tuple] = None
+    ):
+        self.idx = idx
+        self.functions = [x for x in body if x is FuncDeclarationNode] if body is not None else []
+        self.attributes = [x for x in body if x is AttrDeclarationNode] if body is not None else []
+        self.inherits = inherits
+        self.params = params
 
 
 class ClassDeclarationNode(DeclarationNode):
     def __init__(
-        self,
-        idx: Token,
-        features: List[Union[FuncDeclarationNode, AttrDeclarationNode]],
-        token: Token,
-        parent: Optional[Token] = None,
+            self,
+            idx: Token,
+            features: List[Union[FuncDeclarationNode, AttrDeclarationNode]],
+            token: Token,
+            parent: Optional[Token] = None,
     ):
         self.id = idx.lex
         self.tokenId = idx
         self.token = token
         self.parent = parent
         self.features = features
-
-class ProtocolDeclarationNode(DeclarationNode):
-    def __init__(
-        self,
-        idx,
-        methods=None,
-        extends=None
-    ):
-        self.idx = idx
-        self.methods = [] if methods is None else methods
-        self.extends = [] if extends is None else extends
 
 
 class AssignNode(ExpressionNode):
@@ -99,6 +112,7 @@ class AssignNode(ExpressionNode):
         self.idToken = idx
         self.expr = expr
 
+
 class ProgramNode(Node):
     def __init__(self, declarations: List[ClassDeclarationNode]):
         super().__init__(emptyToken)
@@ -107,10 +121,11 @@ class ProgramNode(Node):
     def __repr__(self):
         return f"{self.__class__.__name__}({len(self.declarations)} classes)"
 
+
 class CallNode(ExpressionNode):
     def __init__(
-        self,
-        obj_called,
+            self,
+            obj_called,
             params
     ):
         super().__init__()
@@ -130,7 +145,7 @@ class CaseBranchNode(Node):
 
 class CaseNode(ExpressionNode):
     def __init__(
-        self, expr: ExpressionNode, branch_list: List[CaseBranchNode], token: Token
+            self, expr: ExpressionNode, branch_list: List[CaseBranchNode], token: Token
     ):
         super().__init__(token)
         self.expr = expr
@@ -152,25 +167,28 @@ class LoopNode(ExpressionNode):
 
 class ConditionalNode(ExpressionNode):
     def __init__(
-        self,
-        cond: ExpressionNode,
-        then_body: ExpressionNode,
-        else_body: ExpressionNode,
-        token: Token,
+            self,
+            cond: ExpressionNode,
+            then_body: ExpressionNode,
+            else_body: ExpressionNode,
+            token: Token,
     ):
         super().__init__(token)
         self.condition = cond
         self.then_body = then_body
         self.else_body = else_body
 
+
 ElseBlockNode = BlockNode
+
+
 class LetVarNode(Node):
     def __init__(
-        self,
-        idx: Token,
-        typex: Token,
-        expr: Optional[ExpressionNode] = None,
-        token: Token = emptyToken,
+            self,
+            idx: Token,
+            typex: Token,
+            expr: Optional[ExpressionNode] = None,
+            token: Token = emptyToken,
     ):
         self.token = token
         self.id = idx.lex
@@ -216,9 +234,6 @@ class ArithmeticNode(BinaryNode):
     pass
 
 
-
-
-
 class ConstantNumNode(AtomicNode):
     pass
 
@@ -236,31 +251,27 @@ class VariableNode(AtomicNode):
 
 
 class InstantiateNode(ExpressionNode):
-    def __init__(self, type_idx, params: Optional[List[ExpressionNode]], token: Token):
-        super().__init__(token)
-        self.type_idx = type_idx
+    #DONE
+    def __init__(
+            self,
+            idx,
+            params
+    ):
+        self.idx = idx
         self.params = params
-
-
-
-
 
 
 class VoidNode(UnaryNode):
     pass
 
 
-
-
-
-
-
-
 class RandNode(AtomicNode):
     pass
 
+
 class RangeNode(BinaryNode):
     pass
+
 
 class ForNode(ExpressionNode):
     def __init__(self, iterable: ExpressionNode, body: ExpressionNode, token: Token, varidx):
@@ -270,75 +281,92 @@ class ForNode(ExpressionNode):
         self.varidx = varidx
 
 
-
 class IndexationNode(ExpressionNode):
     def __init__(self, obj: ExpressionNode, index: ExpressionNode):
         super().__init__()
         self.obj = obj
         self.index = index
 
-#--------UNARY NODES---------------------
+
+# --------UNARY NODES---------------------
 class NotNode(UnaryNode):
     pass
+
 
 class NegNode(UnaryNode):
     pass
 
+
 class SqrtNode(UnaryNode):
     pass
+
 
 class CosNode(UnaryNode):
     pass
 
+
 class SinNode(UnaryNode):
     pass
+
 
 class ExponEulerNode(UnaryNode):
     pass
 
 
-#--------ARITHMETIC NODES----------------
+# --------ARITHMETIC NODES----------------
 class ModNode(ArithmeticNode):
     pass
+
 
 class LogNode(ArithmeticNode):
     pass
 
+
 class PlusNode(ArithmeticNode):
     pass
+
 
 class MinusNode(ArithmeticNode):
     pass
 
+
 class StarNode(ArithmeticNode):
     pass
+
 
 class DivNode(ArithmeticNode):
     pass
 
+
 class PowNode(ArithmeticNode):
     pass
 
-#--------COMPARISON NODES------------
+
+# --------COMPARISON NODES------------
 
 class ComparisonNode(BinaryNode):
     pass
 
+
 class LeqNode(ComparisonNode):
     pass
+
 
 class LessNode(ComparisonNode):
     pass
 
+
 class EqualNode(ComparisonNode):
     pass
+
 
 class AndNode(ComparisonNode):
     pass
 
+
 class OrNode(ComparisonNode):
     pass
 
+
 class IsNode(ComparisonNode):
     pass
-

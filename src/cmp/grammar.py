@@ -44,6 +44,7 @@ possible_types = G.NonTerminal("<poss-types>")
 concatenable_cond = G.NonTerminal("<bool-ext>")
 statement_list = G.NonTerminal("<stat-list>")
 id_list = G.NonTerminal("<id-list")
+call_name = G.NonTerminal("<call-name>")
 #
 #
 # region TERMINALS
@@ -121,10 +122,9 @@ method_declarations %= G.Epsilon, lambda h,s: []
 method_declarations %= def_method + semi_colon, lambda h, s: [s[1]]
 method_declarations %= def_method + method_declarations, lambda h, s: [s[1]] + s[2]
 
-
 #-----------Type Declaration Stuff ---------------------
-type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
-type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[5], s[1], s[4])
+type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[5], None, s[3])
+type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[6], s[4], None)
 
 type_args %= opar + param_list + cpar, lambda h, s: s[2]
 type_args %= G.Epsilon, lambda h, s: []
@@ -134,11 +134,11 @@ type_body %= functions_in_type + type_body, lambda h, s: [s[1]] + s[3]
 type_body %= attribute + semi_colon, lambda h, s: [s[1]]
 type_body %= attribute + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
 
-functions_in_type %= idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
-functions_in_type %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
+functions_in_type %= idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6])
+functions_in_type %= idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[1], s[3], s[5])
 
-attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
-attribute %= idx + colon + possible_types, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
+attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
+attribute %= idx + colon + possible_types, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
 
 instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4], s[1])
 
@@ -150,17 +150,24 @@ exp_list %= exp + semi_colon, lambda h, s: [s[1]]
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
+# func_call %= call_name + opar + param_list + cpar, lambda h,s: s[1]
+# func_call %= call_name, lambda h,s: s[1]
 func_call %= idx + dot + func_call, lambda h, s: CallNode(s[1], s[3])
 func_call %= idx + opar + param_list + cpar, lambda h, s: CallNode(s[1], s[3])
 func_call %= idx + dot + idx, lambda h, s: CallNode(s[1], s[3])
 
+# call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
+# call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
+#done
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
+#done
 arg_declaration %= idx + colon + possible_types, lambda h, s: (s[1], s[3])
 arg_declaration %= term, lambda h,s: (s[1], None)
-arg_declaration %= G.Epsilon, lambda h, s: None
+arg_declaration %= G.Epsilon, lambda h, s: (None,None)
 
+#done
 param %= arg_declaration, lambda h, s: s[1]
 
 let_exp %= let + assign_list + inx + exp , lambda h, s: LetNode(s[2], s[4], s[1])
