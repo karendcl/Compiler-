@@ -25,6 +25,7 @@ class StringExpression(ExpressionNode):
             expressions
     ):
         self.expressions = expressions
+
 # -------------Declaration Nodes
 class FuncDeclarationNode(DeclarationNode):
     #DONE
@@ -35,9 +36,17 @@ class FuncDeclarationNode(DeclarationNode):
             body
     ):
         self.idx = idx
-        # `param` is (token, typeToken)
         self.params = params
         self.body = body
+
+class Param(ExpressionNode):
+    def __init__(
+            self,
+            expr,
+            type_
+    ):
+        self.expr = expr
+        self.type_ = type_
 
 class MethodDeclaration(DeclarationNode):
     # DONE
@@ -95,21 +104,6 @@ class TypeDeclarationNode(DeclarationNode):
         self.params = params
 
 
-class ClassDeclarationNode(DeclarationNode):
-    def __init__(
-            self,
-            idx: Token,
-            features: List[Union[FuncDeclarationNode, AttrDeclarationNode]],
-            token: Token,
-            parent: Optional[Token] = None,
-    ):
-        self.id = idx.lex
-        self.tokenId = idx
-        self.token = token
-        self.parent = parent
-        self.features = features
-
-
 class AssignNode(ExpressionNode):
     def __init__(
             self,
@@ -161,9 +155,7 @@ class AttrCallNode(CallNode):
 
 class BlockNode(ExpressionNode):
     def __init__(self, expr_list: List[ExpressionNode]):
-
         self.expr_list = expr_list
-
 
 class LoopNode(ExpressionNode):
     def __init__(
@@ -202,7 +194,6 @@ class LetNode(ExpressionNode):
 
 class AtomicNode(ExpressionNode):
     def __init__(self, value=None):
-
         self.value = value
 
 class UnaryNode(ExpressionNode):

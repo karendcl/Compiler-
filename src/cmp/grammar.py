@@ -76,7 +76,7 @@ PI, E = G.Terminals("PI E")
 #
 # # ------esto no me queda muy claro
 
-program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1], s[2])
+program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1], [s[2]])
 program %= statement_list + exp_block, lambda h, s: ProgramNode(s[1], s[2])
 program %= statement_list + exp_block + semi_colon, lambda h, s: ProgramNode(s[1], s[2])
 
@@ -101,7 +101,7 @@ string_exp %= conforms, lambda h, s: s[1]
 string_exp %= let_exp, lambda h, s: s[1]
 string_exp %= conditional, lambda h, s: s[1]
 
-string_exp %= indexation + concatenable, lambda h, s: StringExpression([s[1], s[2]])
+string_exp %= indexation + concatenable, lambda h, s: StringExpression([s[1]] + [s[2]])
 string_exp %= indexation, lambda h,s: s[1]
 
 string_exp %= term + concatenable, lambda h, s: StringExpression([s[1], s[2]])
@@ -167,13 +167,13 @@ single_func_call %= idx + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= idx + colon + possible_types, lambda h, s: (s[1], s[3])
-arg_declaration %= term, lambda h,s: (s[1], None)
-arg_declaration %= G.Epsilon, lambda h, s: (None,None)
+arg_declaration %= idx + colon + possible_types, lambda h, s:  Param(s[1],s[3])
+arg_declaration %= term, lambda h,s: Param(s[1],None)
+arg_declaration %= G.Epsilon, lambda h, s: Param(None,None)
 
 param %= arg_declaration, lambda h, s: s[1]
 
-let_exp %= let + assign_list + inx + exp, lambda h, s: LetNode(s[2], s[4])
+let_exp %= let + assign_list + inx + exp, lambda h, s: LetNode(s[2], [s[4]])
 let_exp %= let + assign_list + inx + exp_block, lambda h, s: LetNode(s[2], s[4])
 
 assign_list %= assign_var, lambda h, s: [s[1]]

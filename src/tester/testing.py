@@ -7,13 +7,13 @@ from src.lexer.utils.regexs import Regexs
 from src.lexer import Usage_Example
 import json
 from src.cmp.ast import *
-import src.cmp.visitor as visitor
+from src.cmp.format_visitor import *
 
 #building lexer
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=False)
+pars = parser.LR1Parser(G, verbose=True)
 
 number = 0
 
@@ -118,11 +118,13 @@ testcase46 = 'let a = b.a().c() as int in print(a);'
 
 testcase47 = 'print(4+5+6 as int);'
 
+formatter = FormatVisitor()
 def testing(testcase, id):
     global number
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
+        print(formatter.visit(ast))
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
         number +=1
@@ -140,7 +142,6 @@ while True:
 for i, testcase in enumerate(testcases):
     testcase = lexer(testcase)
     testing(testcase, i)
-
 
 
 print(f'{number} tests failed')
