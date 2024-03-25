@@ -45,6 +45,8 @@ concatenable_cond = G.NonTerminal("<bool-ext>")
 statement_list = G.NonTerminal("<stat-list>")
 id_list = G.NonTerminal("<id-list")
 call_name = G.NonTerminal("<call-name>")
+single_func_call = G.NonTerminal("<sing-func-call>")
+multiple_func_call = G.NonTerminal("<mult-func>")
 #
 #
 # region TERMINALS
@@ -140,7 +142,7 @@ functions_in_type %= idx + opar + param_list + cpar + exp_block, lambda h, s: Fu
 attribute %= idx + equal + exp, lambda h, s: AttrDeclarationNode(s[1], s[3], None)
 attribute %= idx + colon + possible_types, lambda h, s: AttrDeclarationNode(s[1], None, s[3])
 
-instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4], s[1])
+instance %= new + idx + opar + param_list + cpar, lambda h, s: InstantiateNode(s[2], s[4])
 
 exp_block %= curly_o + exp_list + curly_c, lambda h, s: s[2]
 
@@ -150,24 +152,26 @@ exp_list %= exp + semi_colon, lambda h, s: [s[1]]
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
-#todo func call to a func call
-func_call %= call_name + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1], s[3])
-func_call %= call_name, lambda h,s: AttrCallNode(s[1])
-func_call %= idx + opar + param_list + cpar, lambda h, s: FuncCallNode([s[1]], s[3])
+func_call %= idx + dot + idx, lambda h,s: AttrCallNode(s[1], s[3])
+func_call %= idx + dot + multiple_func_call, lambda h,s : FuncCallNode(s[1],s[3])
+func_call %= multiple_func_call, lambda h,s: s[1]
 
-call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
-call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
+multiple_func_call %= single_func_call , lambda h,s: s[1]
+multiple_func_call %= single_func_call + dot + multiple_func_call, lambda h,s: FuncCallNode(s[1], s[3])
 
-#done
+single_func_call %= idx + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1], s[3])
+
+#
+# call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
+# call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
+
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-#done
 arg_declaration %= idx + colon + possible_types, lambda h, s: (s[1], s[3])
 arg_declaration %= term, lambda h,s: (s[1], None)
 arg_declaration %= G.Epsilon, lambda h, s: (None,None)
 
-#done
 param %= arg_declaration, lambda h, s: s[1]
 
 let_exp %= let + assign_list + inx + exp , lambda h, s: LetNode(s[2], s[4], s[1])

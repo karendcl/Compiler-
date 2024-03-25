@@ -125,21 +125,24 @@ class ProgramNode(Node):
 class CallNode(ExpressionNode):
     pass
 class FuncCallNode(CallNode):
+    #DONE
     def __init__(
             self,
             obj_called,
             params
     ):
-        super().__init__()
         self.obj_called = obj_called
         self.params = params
 
 class AttrCallNode(CallNode):
+    #DONE
     def __init__(
             self,
-            obj_called
+            idx,
+            attr_called
     ):
-        self.obj_called = obj_called
+        assert idx.lex == 'self', 'Error: attributes are private'
+        self.attr_called = attr_called
 
 class CaseBranchNode(Node):
     def __init__(self, token: Token, idx: Token, typex: Token, expr: ExpressionNode):
