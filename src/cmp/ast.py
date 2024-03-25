@@ -24,6 +24,8 @@ class ExpressionNode(Node):
 
 #-------------Declaration Nodes
 
+
+
 class FuncDeclarationNode(DeclarationNode):
     def __init__(
         self,
@@ -36,6 +38,18 @@ class FuncDeclarationNode(DeclarationNode):
         self.params = params
         self.body = body
         self.token = token
+
+class MethodDeclaration(DeclarationNode):
+    def __init__(
+            self,
+            idx,
+            params,
+            expected_type
+    ):
+        self.idx = idx
+        self.params = params
+        self.expected_type = expected_type
+
 
 class AttrDeclarationNode(DeclarationNode):
     def __init__(
@@ -66,6 +80,16 @@ class ClassDeclarationNode(DeclarationNode):
         self.parent = parent
         self.features = features
 
+class ProtocolDeclarationNode(DeclarationNode):
+    def __init__(
+        self,
+        idx,
+        methods=None,
+        extends=None
+    ):
+        self.idx = idx
+        self.methods = [] if methods is None else methods
+        self.extends = [] if extends is None else extends
 
 
 class AssignNode(ExpressionNode):

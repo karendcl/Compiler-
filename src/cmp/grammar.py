@@ -107,23 +107,22 @@ concatenable %= concat + string_exp, lambda h, s: ""
 concatenable %= concat_space + string_exp, lambda h, s: " "
 concatenable %= G.Epsilon, lambda h, s: None
 
-#-------------------------------------------
 
-# exp_or_block %= exp + semi_colon, lambda h, s: s[1]
-# exp_or_block %= exp_block, lambda h, s: s[1]
+#---------- Protocol Declaration Stuff ----------------
+def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ProtocolDeclarationNode(s[2], s[4], None)
+def_protocol %= protocol + idx + extends + id_list + curly_o + method_declarations + curly_c, lambda h, s: ProtocolDeclarationNode(s[2], s[6], s[4])
 
-#todo can extend multiple protocols
-def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
-def_protocol %= protocol + idx + extends + id_list + curly_o + method_declarations + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], s[3])
+id_list %= idx, lambda h,s: [s[1]]
+id_list %= idx + comma + id_list, lambda h,s: [s[1]] + s[3]
 
-id_list %= idx, lambda h,s: s[1]
-id_list %= idx + comma, lambda h,s:s[1]
+def_method %= idx + opar + param_list + cpar + colon + possible_types, lambda h, s: MethodDeclaration(s[1], s[3], s[6])
 
-def_method %= idx + opar + param_list + cpar + colon + idx, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6])
-
+method_declarations %= G.Epsilon, lambda h,s: []
 method_declarations %= def_method + semi_colon, lambda h, s: [s[1]]
 method_declarations %= def_method + method_declarations, lambda h, s: [s[1]] + s[2]
 
+
+#-----------Type Declaration Stuff ---------------------
 type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[4], s[1], None)
 type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: ClassDeclarationNode(s[2], s[5], s[1], s[4])
 
