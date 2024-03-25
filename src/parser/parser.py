@@ -202,8 +202,8 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
         else:
             raise Exception("Invalid action!!!")
 
-    assert len(stack) == 1
-    assert isinstance(next(tokens).token_type, EOF)
+    assert len(stack) == 1, f'stack:{stack} '
+    assert isinstance(next(tokens).token_type, EOF) , 'next token is not eof'
     return stack[0]
 
 

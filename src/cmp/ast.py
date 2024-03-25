@@ -19,7 +19,12 @@ class DeclarationNode(Node):
 class ExpressionNode(Node):
     pass
 
-
+class StringExpression(ExpressionNode):
+    def __init__(
+            self,
+            expressions
+    ):
+        self.expressions = expressions
 # -------------Declaration Nodes
 class FuncDeclarationNode(DeclarationNode):
     #DONE
@@ -52,8 +57,8 @@ class AttrDeclarationNode(DeclarationNode):
     def __init__(
             self,
             idx,
-            value = None,
-            type_expected =None
+            value=None,
+            type_expected=None
 
     ):
         self.idx = idx
@@ -106,24 +111,32 @@ class ClassDeclarationNode(DeclarationNode):
 
 
 class AssignNode(ExpressionNode):
-    def __init__(self, idx: Token, expr: ExpressionNode, token: Token):
-        super().__init__(token)
-        self.id = idx.lex
-        self.idToken = idx
+    def __init__(
+            self,
+            idx: Token,
+            expr: ExpressionNode
+    ):
+        self.idx = idx
         self.expr = expr
 
-
+class DestructiveAssignment(AssignNode):
+    pass
 class ProgramNode(Node):
-    def __init__(self, declarations: List[ClassDeclarationNode]):
-        super().__init__(emptyToken)
-        self.declarations = declarations
+    def __init__(
+            self,
+            statements,
+            expression
+    ):
+        self.statements = statements
+        self.expression = expression
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({len(self.declarations)} classes)"
+        return f"{self.__class__.__name__}({len(self.statements)} statements)"
 
 
 class CallNode(ExpressionNode):
     pass
+
 class FuncCallNode(CallNode):
     #DONE
     def __init__(
@@ -144,34 +157,20 @@ class AttrCallNode(CallNode):
         assert idx.lex == 'self', 'Error: attributes are private'
         self.attr_called = attr_called
 
-class CaseBranchNode(Node):
-    def __init__(self, token: Token, idx: Token, typex: Token, expr: ExpressionNode):
-        self.token = token
-        self.id = idx.lex
-        self.idToken = idx
-        self.typex = typex.lex
-        self.typexToken = typex
-        self.expression = expr
-
-
-class CaseNode(ExpressionNode):
-    def __init__(
-            self, expr: ExpressionNode, branch_list: List[CaseBranchNode], token: Token
-    ):
-        super().__init__(token)
-        self.expr = expr
-        self.branch_list = branch_list
 
 
 class BlockNode(ExpressionNode):
-    def __init__(self, expr_list: List[ExpressionNode], token: Token):
-        super().__init__(token)
+    def __init__(self, expr_list: List[ExpressionNode]):
+
         self.expr_list = expr_list
 
 
 class LoopNode(ExpressionNode):
-    def __init__(self, cond: ExpressionNode, body: ExpressionNode, token: Token):
-        super().__init__(token)
+    def __init__(
+            self,
+            cond,
+            body,
+    ):
         self.condition = cond
         self.body = body
 
@@ -179,12 +178,10 @@ class LoopNode(ExpressionNode):
 class ConditionalNode(ExpressionNode):
     def __init__(
             self,
-            cond: ExpressionNode,
-            then_body: ExpressionNode,
-            else_body: ExpressionNode,
-            token: Token,
+            cond,
+            then_body,
+            else_body,
     ):
-        super().__init__(token)
         self.condition = cond
         self.then_body = then_body
         self.else_body = else_body
@@ -192,52 +189,35 @@ class ConditionalNode(ExpressionNode):
 
 ElseBlockNode = BlockNode
 
-
-class LetVarNode(Node):
+class LetNode(ExpressionNode):
     def __init__(
             self,
-            idx: Token,
-            typex: Token,
-            expr: Optional[ExpressionNode] = None,
-            token: Token = emptyToken,
+            assignments,
+            body
     ):
-        self.token = token
-        self.id = idx.lex
-        self.idToken = idx
-        self.typex = typex.lex
-        self.typexToken = typex
-        self.expression = expr
-
-
-class LetNode(ExpressionNode):
-    def __init__(self, id_list: List[LetVarNode], body: ExpressionNode, token: Token):
-        super().__init__(token)
-        self.id_list = id_list
+        self.assignments = assignments
         self.body = body
 
 
-class AtomicNode(ExpressionNode):
-    def __init__(self, token: Token, value: Optional[str] = None):
-        super().__init__(token)
-        self.lex = token.lex
 
+class AtomicNode(ExpressionNode):
+    def __init__(self, value=None):
+
+        self.value = value
 
 class UnaryNode(ExpressionNode):
-    def __init__(self, expr: ExpressionNode, symbol: Token):
-        super().__init__(symbol)
+    def __init__(self, expr: ExpressionNode):
         self.expr = expr
 
 
 class BinaryNode(ExpressionNode):
-    def __init__(self, left: ExpressionNode, right: ExpressionNode, symbol: Token):
-        super().__init__(symbol)
+    def __init__(self, left: ExpressionNode, right: ExpressionNode):
         self.left = left
         self.right = right
 
 
 class PrintNode(ExpressionNode):
-    def __init__(self, expr: ExpressionNode, token: Token):
-        super().__init__(token)
+    def __init__(self, expr: ExpressionNode):
         self.expr = expr
 
 
@@ -279,14 +259,28 @@ class VoidNode(UnaryNode):
 class RandNode(AtomicNode):
     pass
 
+class List_Comprehension():
+    def __init__(
+            self,
+            idx,
+            exp_for_idx,
+            exp
+    ):
+        self.idx = idx
+        self.exp_for_idx = exp_for_idx
+        self.expr = exp
 
 class RangeNode(BinaryNode):
     pass
 
 
 class ForNode(ExpressionNode):
-    def __init__(self, iterable: ExpressionNode, body: ExpressionNode, token: Token, varidx):
-        super().__init__(token)
+    def __init__(self,
+                 iterable,
+                 body,
+                 varidx
+                 ):
+
         self.iterable = iterable
         self.body = body
         self.varidx = varidx
@@ -294,7 +288,6 @@ class ForNode(ExpressionNode):
 
 class IndexationNode(ExpressionNode):
     def __init__(self, obj: ExpressionNode, index: ExpressionNode):
-        super().__init__()
         self.obj = obj
         self.index = index
 

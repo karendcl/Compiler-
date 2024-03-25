@@ -13,7 +13,7 @@ import src.cmp.visitor as visitor
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=True)
+pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 
@@ -122,10 +122,11 @@ def testing(testcase, id):
     global number
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
-        # ast = parser.evaluate_reverse_parse(parse, operations, testcase)
+        ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
         number +=1
+        print(e)
         print('\x1b[6;30;41m' + f'Test {id} failed!' + '\x1b[0m')
 
 

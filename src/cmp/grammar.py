@@ -1,8 +1,7 @@
-import math
 
 from src.cmp.pycompiler import Grammar
 from src.cmp.ast import *
-from src.cmp.utils import selfToken
+
 
 # grammar
 G = Grammar()
@@ -77,14 +76,14 @@ PI, E = G.Terminals("PI E")
 #
 # # ------esto no me queda muy claro
 
-program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1])
-program %= statement_list + exp_block, lambda h, s: ProgramNode(s[1])
-program %= statement_list + exp_block + semi_colon, lambda h, s: ProgramNode(s[1])
+program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1], s[2])
+program %= statement_list + exp_block, lambda h, s: ProgramNode(s[1], s[2])
+program %= statement_list + exp_block + semi_colon, lambda h, s: ProgramNode(s[1], s[2])
 
-statement_list %= def_protocol + statement_list, lambda h, s: s[1]
-statement_list %= type_dec + statement_list, lambda h, s: s[1]
-statement_list %= def_func + statement_list, lambda h, s: s[1]
-statement_list %= G.Epsilon, lambda h,s:None
+statement_list %= def_protocol + statement_list, lambda h, s: [s[1]] + s[2]
+statement_list %= type_dec + statement_list, lambda h, s: [s[1]] + s[2]
+statement_list %= def_func + statement_list, lambda h, s: [s[1]] + s[2]
+statement_list %= G.Epsilon, lambda h,s: []
 # statement %= exp + semi_colon, lambda h, s: s[1]
 # # statement %= exp, lambda h, s: s[1]
 # statement %= exp_block, lambda h, s: s[1]
@@ -97,19 +96,23 @@ exp %= instance, lambda h, s: s[1]
 exp %= mutate_var, lambda h, s: s[1]
 exp %= string_exp, lambda h, s: s[1]
 exp %= iterable, lambda h, s: s[1]
-string_exp %= conforms, lambda h, s:s[1]
+string_exp %= conforms, lambda h, s: s[1]
 
-string_exp %= indexation + concatenable, lambda h, s: s[1]
 string_exp %= let_exp, lambda h, s: s[1]
-string_exp %= term + concatenable, lambda h, s: s[1]
-string_exp %= strx + concatenable, lambda h, s: ConstantStringNode(s[1], s[1].lex[1:-1])
-# string_exp %= func_call + concatenable, lambda h, s: s[1]
 string_exp %= conditional, lambda h, s: s[1]
 
-concatenable %= concat + string_exp, lambda h, s: ""
-concatenable %= concat_space + string_exp, lambda h, s: " "
-concatenable %= G.Epsilon, lambda h, s: None
+string_exp %= indexation + concatenable, lambda h, s: StringExpression([s[1], s[2]])
+string_exp %= indexation, lambda h,s: s[1]
 
+string_exp %= term + concatenable, lambda h, s: StringExpression([s[1], s[2]])
+string_exp %= term, lambda h,s: s[1]
+
+string_exp %= strx + concatenable, lambda h, s: ConstantStringNode(StringExpression([s[1].lex , s[2]]))
+string_exp %= strx, lambda h,s: ConstantStringNode(s[1].lex)
+
+
+concatenable %= concat + string_exp, lambda h, s: [""] + [s[2]]
+concatenable %= concat_space + string_exp, lambda h, s: [" "] + [s[2]]
 
 #---------- Protocol Declaration Stuff ----------------
 def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ProtocolDeclarationNode(s[2], s[4], None)
@@ -161,10 +164,6 @@ multiple_func_call %= single_func_call + dot + multiple_func_call, lambda h,s: F
 
 single_func_call %= idx + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1], s[3])
 
-#
-# call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
-# call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
-
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
@@ -174,97 +173,97 @@ arg_declaration %= G.Epsilon, lambda h, s: (None,None)
 
 param %= arg_declaration, lambda h, s: s[1]
 
-let_exp %= let + assign_list + inx + exp , lambda h, s: LetNode(s[2], s[4], s[1])
-let_exp %= let + assign_list + inx + exp_block, lambda h, s: LetNode(s[2], s[4], s[1])
+let_exp %= let + assign_list + inx + exp, lambda h, s: LetNode(s[2], s[4])
+let_exp %= let + assign_list + inx + exp_block, lambda h, s: LetNode(s[2], s[4])
 
 assign_list %= assign_var, lambda h, s: [s[1]]
 assign_list %= assign_var + comma + assign_list, lambda h, s: [s[1]] + s[3]
 
-assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
+assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3])
 
-mutate_var %= idx + mut + exp, lambda h, s: AssignNode(s[1], s[3], s[2])
+mutate_var %= idx + mut + exp, lambda h, s: DestructiveAssignment(s[1], s[3])
 
-conditional %= ifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
-conditional %= ifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
+conditional %= ifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
+conditional %= ifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
 
-elif_block %= elsex + exp , lambda h, s: BlockNode(s[2], s[1])
-elif_block %= elsex + exp_block, lambda h, s: s[2]
-elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
-elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[2], s[3], s[4], s[1])
+elif_block %= elsex + exp, lambda h, s: ElseBlockNode([s[2]])
+elif_block %= elsex + exp_block, lambda h, s: ElseBlockNode(s[2])
+elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
+elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
 
-while_block %= whilex + opar + boolean_exp + cpar + exp + semi_colon, lambda h, s: LoopNode(s[2], s[3], s[1])
-while_block %= whilex + opar + boolean_exp + cpar + exp_block, lambda h, s: LoopNode(s[2], s[3], s[1])
+while_block %= whilex + opar + boolean_exp + cpar + exp + semi_colon, lambda h, s: LoopNode(s[3], [s[5]])
+while_block %= whilex + opar + boolean_exp + cpar + exp_block, lambda h, s: LoopNode(s[3], s[5])
 
-for_exp %= forx + opar + idx + inx + exp + cpar + exp, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
-for_exp %= forx + opar + idx + inx + exp + cpar + exp_block, lambda h, s: ForNode(s[5], s[7], s[1], s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp, lambda h, s: ForNode(s[5],s[7],s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp_block, lambda h, s: ForNode(s[5],s[7],s[3])
 
 iterable %= vector, lambda h, s: s[1]
-iterable %= rangex + opar + exp + comma + exp + cpar, lambda h, s: RangeNode(s[3], s[5], s[1])
+iterable %= rangex + opar + exp + comma + exp + cpar, lambda h, s: RangeNode(s[3], s[5])
 
 vector %= square_o + list_ + square_c, lambda h, s: s[2]
-vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: s[2]
+vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: List_Comprehension(s[4], s[2],s[6])
 
 list_ %= exp, lambda h, s: [s[1]]
 list_ %= exp + comma + list_, lambda h, s: [s[1]] + s[3]
 
 indexation %= idx + square_o + exp + square_c, lambda h, s: IndexationNode(s[1], s[3])
 indexation %= iterable + square_o + exp + square_c, lambda h, s: IndexationNode(s[1], s[3])
-
+indexation %= func_call + square_o + exp + square_c, lambda h,s: IndexationNode(s[1], s[3])
 
 term %= factor, lambda h, s: s[1]
-term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3], s[2])
-term %= term + minus + factor, lambda h, s: MinusNode(s[1], s[3], s[2])
+term %= term + plus + factor, lambda h, s: PlusNode(s[1], s[3])
+term %= term + minus + factor, lambda h, s: MinusNode(s[1], s[3])
 
 factor %= mod_, lambda h, s: s[1]
-factor %= factor + star + mod_, lambda h, s: StarNode(s[1], s[3], s[2])
-factor %= factor + div + mod_, lambda h, s: DivNode(s[1], s[3], s[2])
+factor %= factor + star + mod_, lambda h, s: StarNode(s[1], s[3])
+factor %= factor + div + mod_, lambda h, s: DivNode(s[1], s[3])
 
 mod_ %= k, lambda h, s: s[1]
-mod_ %= mod_ + mod + k, lambda h, s: ModNode(s[1], s[3], s[2])
+mod_ %= mod_ + mod + k, lambda h, s: ModNode(s[1], s[3])
 
 k %= atom, lambda h, s: s[1]
-k %= k + pow + atom, lambda h, s: PowNode(s[1], s[3], s[2])
+k %= k + pow + atom, lambda h, s: PowNode(s[1], s[3])
 
 atom %= idx, lambda h, s: VariableNode(s[1])
 atom %= num, lambda h, s: ConstantNumNode(s[1])
-atom %= minus + num, lambda h, s: NegNode(ConstantNumNode(s[2]), s[1])
+atom %= minus + num, lambda h, s: NegNode(ConstantNumNode(s[2]))
 atom %= opar + exp + cpar, lambda h, s: s[2]
-atom %= sqrt + opar + exp + cpar, lambda h, s: SqrtNode(s[3], s[1])
-atom %= cos + opar + exp + cpar, lambda h, s: CosNode(s[3], s[1])
-atom %= sin + opar + exp + cpar, lambda h, s: SinNode(s[3], s[1])
-atom %= expon + opar + exp + cpar, lambda h, s: ExponEulerNode(s[3], s[1])
-atom %= log + opar + exp + comma + exp + cpar, lambda h, s: LogNode(s[3], s[5], s[1])
+atom %= sqrt + opar + exp + cpar, lambda h, s: SqrtNode(s[3])
+atom %= cos + opar + exp + cpar, lambda h, s: CosNode(s[3])
+atom %= sin + opar + exp + cpar, lambda h, s: SinNode(s[3])
+atom %= expon + opar + exp + cpar, lambda h, s: ExponEulerNode(s[3])
+atom %= log + opar + exp + comma + exp + cpar, lambda h, s: LogNode(s[3], s[5])
 atom %= rand + opar + cpar, lambda h, s: RandNode(s[2])
 atom %= PI, lambda h, s: ConstantNumNode(s[1])
 atom %= E, lambda h, s: ConstantNumNode(s[1])
-atom %= func_call, lambda h,s : s[1]
+atom %= func_call, lambda h, s: s[1]
 # atom %= concatenable_cond, lambda h,s: None
 
 #boolean expressions as described in hulk
 #todo (condition)
 #todo check all AST nodes
-condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3], s[2])
-condition %= exp + less + exp, lambda h, s: LessNode(s[1], s[3], s[2])
-condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3], s[2])
-condition %= exp + geq + exp, lambda h, s: LessNode(s[3], s[1], s[2])
-condition %= exp + greater + exp, lambda h, s: LeqNode(s[3], s[1], s[2])
-condition %= exp + neq + exp, lambda h, s: NotNode(EqualNode(s[1], s[3], s[2]), s[2])
+condition %= exp + leq + exp, lambda h, s: LeqNode(s[1], s[3])
+condition %= exp + less + exp, lambda h, s: LessNode(s[1], s[3])
+condition %= exp + equals + exp, lambda h, s: EqualNode(s[1], s[3])
+condition %= exp + geq + exp, lambda h, s: LessNode(s[3], s[1])
+condition %= exp + greater + exp, lambda h, s: LeqNode(s[3], s[1])
+condition %= exp + neq + exp, lambda h, s: NotNode(EqualNode(s[1], s[3]))
 
 condition %= true, lambda h, s: ConstantBoolNode(s[1])
 condition %= false, lambda h, s: ConstantBoolNode(s[1])
 condition %= opar + exp + cpar, lambda h, s: s[2]
-condition %= notx + exp, lambda h, s: NotNode(s[2], s[1])
-condition %= exp + isx + possible_types, lambda h, s: IsNode(s[1], s[3], s[2])
-condition %= func_call, lambda h,s:None
-condition %= idx, lambda h,s: None
+condition %= notx + exp, lambda h, s: NotNode(s[2])
+condition %= exp + isx + possible_types, lambda h, s: IsNode(s[1], s[3])
+condition %= func_call, lambda h,s: s[1]
+condition %= idx, lambda h,s: s[1]
 
-concatenable_cond %= condition + andx + concatenable_cond, lambda h,s: None
-concatenable_cond %= condition + orx + concatenable_cond, lambda h,s: None
-concatenable_cond %= condition, lambda h,s: None
+concatenable_cond %= condition + andx + concatenable_cond, lambda h,s: [s[1]] + s[3]
+concatenable_cond %= condition + orx + concatenable_cond, lambda h,s: [s[1]]+ s[3]
+concatenable_cond %= condition, lambda h,s: [s[1]]
 
 boolean_exp %= concatenable_cond, lambda h,s: s[1]
 
-print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3], s[1])
+print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3])
 
 conforms %= term + asx + possible_types, lambda h,s: s[1]
 # conforms %= func_call + asx + possible_types, lambda h,s: s[1]
