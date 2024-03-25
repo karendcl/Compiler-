@@ -255,6 +255,15 @@ class InstantiateNode(ExpressionNode):
 class VoidNode(UnaryNode):
     pass
 
+class ConformsNode(ExpressionNode):
+    def __init__(
+            self,
+            exp,
+            type_to
+    ):
+        self.exp = exp
+        self.type_to = type_to
+
 
 class RandNode(AtomicNode):
     pass

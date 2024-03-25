@@ -237,7 +237,6 @@ atom %= rand + opar + cpar, lambda h, s: RandNode(s[2])
 atom %= PI, lambda h, s: ConstantNumNode(s[1])
 atom %= E, lambda h, s: ConstantNumNode(s[1])
 atom %= func_call, lambda h, s: s[1]
-# atom %= concatenable_cond, lambda h,s: None
 
 #boolean expressions as described in hulk
 #todo (condition)
@@ -265,8 +264,8 @@ boolean_exp %= concatenable_cond, lambda h,s: s[1]
 
 print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3])
 
-conforms %= term + asx + possible_types, lambda h,s: s[1]
-# conforms %= func_call + asx + possible_types, lambda h,s: s[1]
+conforms %= term + asx + possible_types, lambda h,s: ConformsNode(s[1], s[3])
+
 
 possible_types %= idx, lambda h,s: s[1]
 possible_types %= string, lambda h,s : s[1]
