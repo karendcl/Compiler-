@@ -101,13 +101,13 @@ string_exp %= conforms, lambda h, s: s[1]
 string_exp %= let_exp, lambda h, s: s[1]
 string_exp %= conditional, lambda h, s: s[1]
 
-string_exp %= indexation + concatenable, lambda h, s: StringExpression([s[1]] + [s[2]])
+string_exp %= indexation + concatenable, lambda h, s: StringExpression(s[1], s[2])
 string_exp %= indexation, lambda h,s: s[1]
 
-string_exp %= term + concatenable, lambda h, s: StringExpression([s[1], s[2]])
+string_exp %= term + concatenable, lambda h, s: StringExpression(s[1],s[2])
 string_exp %= term, lambda h,s: s[1]
 
-string_exp %= strx + concatenable, lambda h, s: ConstantStringNode(StringExpression([s[1].lex , s[2]]))
+string_exp %= strx + concatenable, lambda h, s: StringExpression(ConstantStringNode(s[1]), s[2])
 string_exp %= strx, lambda h,s: ConstantStringNode(s[1].lex)
 
 
@@ -156,11 +156,11 @@ def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colo
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
 func_call %= idx + dot + idx, lambda h,s: AttrCallNode(s[1], s[3])
-func_call %= idx + dot + multiple_func_call, lambda h,s : FuncCallNode(s[1],s[3])
+func_call %= idx + dot + multiple_func_call, lambda h,s : FuncCallNode(s[1],[s[3]])
 func_call %= multiple_func_call, lambda h,s: s[1]
 
 multiple_func_call %= single_func_call , lambda h,s: s[1]
-multiple_func_call %= single_func_call + dot + multiple_func_call, lambda h,s: FuncCallNode(s[1], s[3])
+multiple_func_call %= single_func_call + dot + multiple_func_call, lambda h,s: FuncCallNode(s[1], [s[3]])
 
 single_func_call %= idx + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1], s[3])
 
@@ -183,25 +183,25 @@ assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3])
 
 mutate_var %= idx + mut + exp, lambda h, s: DestructiveAssignment(s[1], s[3])
 
-conditional %= ifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
+conditional %= ifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], [s[5]], s[6])
 conditional %= ifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
 
 elif_block %= elsex + exp, lambda h, s: ElseBlockNode([s[2]])
 elif_block %= elsex + exp_block, lambda h, s: ElseBlockNode(s[2])
-elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
-elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
+elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode([s[3]], s[5], s[6])
+elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode([s[3]], s[5], s[6])
 
 while_block %= whilex + opar + boolean_exp + cpar + exp + semi_colon, lambda h, s: LoopNode(s[3], [s[5]])
 while_block %= whilex + opar + boolean_exp + cpar + exp_block, lambda h, s: LoopNode(s[3], s[5])
 
-for_exp %= forx + opar + idx + inx + exp + cpar + exp, lambda h, s: ForNode(s[5],s[7],s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp, lambda h, s: ForNode(s[5],[s[7]],s[3])
 for_exp %= forx + opar + idx + inx + exp + cpar + exp_block, lambda h, s: ForNode(s[5],s[7],s[3])
 
 iterable %= vector, lambda h, s: s[1]
 iterable %= rangex + opar + exp + comma + exp + cpar, lambda h, s: RangeNode(s[3], s[5])
 
 vector %= square_o + list_ + square_c, lambda h, s: s[2]
-vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: List_Comprehension(s[4], s[2],s[6])
+vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: List_Comprehension(s[4], [s[2]],s[6])
 
 list_ %= exp, lambda h, s: [s[1]]
 list_ %= exp + comma + list_, lambda h, s: [s[1]] + s[3]

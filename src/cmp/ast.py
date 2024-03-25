@@ -19,12 +19,7 @@ class DeclarationNode(Node):
 class ExpressionNode(Node):
     pass
 
-class StringExpression(ExpressionNode):
-    def __init__(
-            self,
-            expressions
-    ):
-        self.expressions = expressions
+
 
 # -------------Declaration Nodes
 class FuncDeclarationNode(DeclarationNode):
@@ -373,4 +368,7 @@ class OrNode(ComparisonNode):
 
 
 class IsNode(ComparisonNode):
+    pass
+
+class StringExpression(BinaryNode):
     pass

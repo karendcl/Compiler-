@@ -13,7 +13,7 @@ from src.cmp.format_visitor import *
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=True)
+pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 

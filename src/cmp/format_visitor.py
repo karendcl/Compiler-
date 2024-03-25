@@ -6,11 +6,11 @@ class FormatVisitor(object):
     def visit(self, node, tabs):
         pass
 
-    @visitor.when(StringExpression)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__StringExpression: [{len(node.expressions)} expressions]'
-        statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expressions)
-        return f'{ans}\n{statements}'
+    # @visitor.when(StringExpression)
+    # def visit(self, node, tabs=0):
+    #     ans = '\t' * tabs + f'\\__StringExpression: [{len(node.expressions)} expressions]'
+    #     statements = '\n'.join(self.visit(child, tabs + 1) for child in node.right)
+    #     return f'{ans}\n{statements}'
 
     @visitor.when(MethodDeclaration)
     def visit(self, node, tabs=0):
@@ -93,7 +93,7 @@ class FormatVisitor(object):
         ans = '\t' * tabs + f'\\__ConditionalNode:'
         cond = self.visit(node.condition, tabs + 1)
         then = '\n'.join(self.visit(arg, tabs + 1) for arg in node.then_body)
-        else_ = '\n'.join(self.visit(arg, tabs + 1) for arg in node.else_body)
+        else_ = self.visit(node.else_body, tabs+1)
         return f'{ans}\nif: {cond}\ndo: {then}\nelse: {else_}'
 
     @visitor.when(LetNode)
@@ -125,15 +125,15 @@ class FormatVisitor(object):
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__ListNode: '
         expr_for = '\n'.join(self.visit(arg, tabs + 1) for arg in node.exp_for_idx)
-        list_ = '\n'.join(self.visit(arg, tabs + 1) for arg in node.exp)
+        list_ = self.visit(node.expr, tabs + 1)
         return f'{ans}{expr_for} for {node.idx.lex} in {list_}'
 
     @visitor.when(ForNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__ForNode: '
-        iterable = '\n'.join(self.visit(arg, tabs + 1) for arg in node.iterable)
+        iterable = self.visit(node.iterable, tabs+1)
         body = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
-        return f'{ans}\nfor {node.idx.lex} in {iterable} : {body}'
+        return f'{ans}\nfor {node.varidx.lex} in {iterable} : {body}'
 
     @visitor.when(IndexationNode)
     def visit(self, node, tabs=0):
