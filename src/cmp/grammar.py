@@ -111,8 +111,8 @@ string_exp %= strx + concatenable, lambda h, s: StringExpression(ConstantStringN
 string_exp %= strx, lambda h,s: ConstantStringNode(s[1].lex)
 
 
-concatenable %= concat + string_exp, lambda h, s: [""] + [s[2]]
-concatenable %= concat_space + string_exp, lambda h, s: [" "] + [s[2]]
+concatenable %= concat + string_exp, lambda h, s: StringExpression("", s[2])
+concatenable %= concat_space + string_exp, lambda h, s: StringExpression(" ",s[2])
 
 #---------- Protocol Declaration Stuff ----------------
 def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ProtocolDeclarationNode(s[2], s[4], None)
@@ -169,7 +169,7 @@ param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
 arg_declaration %= idx + colon + possible_types, lambda h, s:  Param(s[1],s[3])
 arg_declaration %= term, lambda h,s: Param(s[1],None)
-arg_declaration %= G.Epsilon, lambda h, s: Param(None,None)
+arg_declaration %= G.Epsilon, lambda h, s: Param(VoidNode(None),None)
 
 param %= arg_declaration, lambda h, s: s[1]
 
@@ -256,9 +256,9 @@ condition %= exp + isx + possible_types, lambda h, s: IsNode(s[1], s[3])
 condition %= func_call, lambda h,s: s[1]
 condition %= idx, lambda h,s: s[1]
 
-concatenable_cond %= condition + andx + concatenable_cond, lambda h,s: [s[1]] + s[3]
-concatenable_cond %= condition + orx + concatenable_cond, lambda h,s: [s[1]]+ s[3]
-concatenable_cond %= condition, lambda h,s: [s[1]]
+concatenable_cond %= condition + andx + concatenable_cond, lambda h,s: AndNode(s[1], s[3])
+concatenable_cond %= condition + orx + concatenable_cond, lambda h,s: OrNode(s[1], s[3])
+concatenable_cond %= condition, lambda h,s: s[1]
 
 boolean_exp %= concatenable_cond, lambda h,s: s[1]
 
