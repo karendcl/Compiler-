@@ -123,6 +123,8 @@ class ProgramNode(Node):
 
 
 class CallNode(ExpressionNode):
+    pass
+class FuncCallNode(CallNode):
     def __init__(
             self,
             obj_called,
@@ -132,6 +134,12 @@ class CallNode(ExpressionNode):
         self.obj_called = obj_called
         self.params = params
 
+class AttrCallNode(CallNode):
+    def __init__(
+            self,
+            obj_called
+    ):
+        self.obj_called = obj_called
 
 class CaseBranchNode(Node):
     def __init__(self, token: Token, idx: Token, typex: Token, expr: ExpressionNode):

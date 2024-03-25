@@ -114,7 +114,7 @@ testcase44 = 'let a = b as c in a;'
 
 testcase45 = 'let a = if (a is string) 4 else 5 in a;'
 
-testcase46 = 'let a = b.c() as int in print(a);'
+testcase46 = 'let a = b.a.c() as int in print(a);'
 
 testcase47 = 'print(4+5+6 as int);'
 

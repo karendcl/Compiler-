@@ -150,14 +150,14 @@ exp_list %= exp + semi_colon, lambda h, s: [s[1]]
 def_func %= function + idx + opar + param_list + cpar + rarrow + exp + semi_colon, lambda h, s: FuncDeclarationNode(s[2], s[4], s[7])
 def_func %= function + idx + opar + param_list + cpar + exp_block, lambda h, s: FuncDeclarationNode(s[2], s[4], s[6])
 
-# func_call %= call_name + opar + param_list + cpar, lambda h,s: s[1]
-# func_call %= call_name, lambda h,s: s[1]
-func_call %= idx + dot + func_call, lambda h, s: CallNode(s[1], s[3])
-func_call %= idx + opar + param_list + cpar, lambda h, s: CallNode(s[1], s[3])
-func_call %= idx + dot + idx, lambda h, s: CallNode(s[1], s[3])
+#todo func call to a func call
+func_call %= call_name + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1], s[3])
+func_call %= call_name, lambda h,s: AttrCallNode(s[1])
+func_call %= idx + opar + param_list + cpar, lambda h, s: FuncCallNode([s[1]], s[3])
 
-# call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
-# call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
+call_name %= idx + dot + idx, lambda h,s: [s[1]] + [s[3]]
+call_name %= idx + dot + call_name, lambda h,s: [s[1]] + s[3]
+
 #done
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
