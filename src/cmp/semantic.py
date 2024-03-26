@@ -457,6 +457,7 @@ class InferencerManager:
 
 
 def LCA(types):
+
     if len(types) == 0:
         return None
 

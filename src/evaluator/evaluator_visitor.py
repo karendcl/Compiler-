@@ -11,6 +11,7 @@ class RunTimeException(Exception):
 class EvaluatorVisitor(object):
 
     booleans = {'true': True, 'false': False}
+
     @visitor.on('node')
     def visit(self, node, tabs):
         pass
@@ -42,20 +43,19 @@ class EvaluatorVisitor(object):
 
     @visitor.when(AssignNode)
     def visit(self,node,tabs=0):
-        ans = '\t' * tabs + f'\\__Assign: {node.idx}'
+        # ans = '\t' * tabs + f'\\__Assign: {node.idx}'
         statements = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{statements}'
+
 
     @visitor.when(DestructiveAssignment)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__DesAssign: {node.idx} = {node.expr}'
-        # statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expressions)
-        return f'{ans}'
+        # ans = '\t' * tabs + f'\\__DesAssign: {node.idx} = {node.expr}'
+        statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expr)
+
 
 
     @visitor.when(ProgramNode)
     def visit(self, node, tabs=0):
-
         statements = '\n'.join(self.visit(child, tabs + 1) for child in node.statements)
         expr = '\n'.join(str(self.visit(child, tabs + 1)) for child in node.expression)
         return f'{statements}\n{expr}'
@@ -153,11 +153,6 @@ class EvaluatorVisitor(object):
         body = self.visit(node.body, tabs + 1)
         return f'{ans}\n{params}\n{body}'
 
-    @visitor.when(Param)
-    def visit(self,node,tabs=0):
-        expr = self.visit(node.expr, tabs+1)
-        ans = '\t' * tabs + f'\\__ParamNode: '
-        return f'{ans}\n{expr}'
 
     @visitor.when(BinaryNode)
     def visit(self, node, tabs=0):

@@ -9,6 +9,9 @@ import json
 from src.cmp.ast import *
 from src.cmp.format_visitor import *
 from src.evaluator.evaluator_visitor import *
+from src.semantic_checker import TypeCollector
+from src.semantic_checker import TypeBuilder
+from src.semantic_checker.toold.Context import Context
 
 #building lexer
 lexer = Usage_Example.lexer
@@ -121,6 +124,7 @@ testcase47 = 'print(4+5+6 as int);'
 
 testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod % 3 == 1) "Woke" else "Dumb");'
 
+testcase49 = 'print(self.b);'
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
 def testing(testcase, id):
@@ -128,10 +132,18 @@ def testing(testcase, id):
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
-        # print(formatter.visit(ast))
+        print(formatter.visit(ast))
 
-        a = evaluator.visit(ast)
-        print(a)
+        # a = evaluator.visit(ast)
+        # print(a)
+        ctx = Context()
+        type_collector = TypeCollector.TypeCollector(ctx)
+        type_collector.visit(ast)
+        print(type_collector.ctx)
+        type_builder = TypeBuilder.TypeBuilder(context=type_collector.ctx, errors=type_collector.errors)
+        type_builder.visit(ast)
+        print(ctx)
+
 
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')

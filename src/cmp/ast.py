@@ -22,33 +22,27 @@ class ExpressionNode(Node):
 
 
 # -------------Declaration Nodes
+
+
 class FuncDeclarationNode(DeclarationNode):
     #DONE
     def __init__(
             self,
-            idx,
-            params,
+            token,
+            params: List[Tuple],
             body
     ):
-        self.idx = idx
+        self.token = token
+        self.idx = token.lex
         self.params = params
         self.body = body
-
-class Param(ExpressionNode):
-    def __init__(
-            self,
-            expr,
-            type_
-    ):
-        self.expr = expr
-        self.type_ = type_
 
 class MethodDeclaration(DeclarationNode):
     # DONE
     def __init__(
             self,
             idx,
-            params,
+            params: List[Tuple],
             expected_type
     ):
         self.idx = idx
@@ -74,11 +68,12 @@ class ProtocolDeclarationNode(DeclarationNode):
     # DONE
     def __init__(
             self,
-            idx,
+            token,
             methods: Optional[List[MethodDeclaration]] = None,
             extends=None
     ):
-        self.idx = idx
+        self.token = token
+        self.idx = token.lex
         self.methods = [] if methods is None else methods
         self.extends = [] if extends is None else extends
 
@@ -87,12 +82,13 @@ class TypeDeclarationNode(DeclarationNode):
     # DONE
     def __init__(
             self,
-            idx,
+            token,
             body: Optional[List[Union[FuncDeclarationNode, AttrDeclarationNode]]] = None,
             inherits=None,
             params: List[Tuple] = None
     ):
-        self.idx = idx
+        self.token = token
+        self.idx = token.lex
         self.functions = [x for x in body if x is FuncDeclarationNode] if body is not None else []
         self.attributes = [x for x in body if x is AttrDeclarationNode] if body is not None else []
         self.inherits = inherits
@@ -132,7 +128,7 @@ class FuncCallNode(CallNode):
     def __init__(
             self,
             obj_called,
-            params
+            params: List[Tuple]
     ):
         self.obj_called = obj_called
         self.params = params
@@ -145,6 +141,7 @@ class AttrCallNode(CallNode):
             attr_called
     ):
         assert idx.lex == 'self', 'Error: attributes are private'
+        self.idx = idx.lex
         self.attr_called = attr_called
 
 

@@ -14,9 +14,9 @@ class FormatVisitor(object):
 
     @visitor.when(MethodDeclaration)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__MethodDeclaration: {node.idx}  {node.params} -> {node.expected_type}'
-        # statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expressions)
-        return f'{ans}'
+        ans = '\t' * tabs + f'\\__MethodDeclaration: {node.idx.lex} -> {node.expected_type.lex}'
+        params = '\n'.join(self.visit(child, tabs + 1) for child, k in node.params)
+        return f'{ans}\n{params}'
 
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, tabs=0):
@@ -150,11 +150,6 @@ class FormatVisitor(object):
         body = self.visit(node.body, tabs + 1)
         return f'{ans}\n{params}\n{body}'
 
-    @visitor.when(Param)
-    def visit(self,node,tabs=0):
-        expr = self.visit(node.expr, tabs+1)
-        ans = '\t' * tabs + f'\\__ParamNode: '
-        return f'{ans}\n{expr}'
 
     @visitor.when(BinaryNode)
     def visit(self, node, tabs=0):
@@ -265,6 +260,8 @@ class FormatVisitor(object):
         ans = '\t' * tabs + f'\\__NegNode:'
         left = self.visit(node.expr, tabs + 1)
         return f'{ans}\n{left}'
+
+
 
 
 

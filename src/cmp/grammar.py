@@ -168,9 +168,9 @@ single_func_call %= idx + opar + param_list + cpar, lambda h,s: FuncCallNode(s[1
 param_list %= param, lambda h, s: [s[1]]
 param_list %= param + comma + param_list, lambda h, s: [s[1]] + s[3]
 
-arg_declaration %= idx + colon + possible_types, lambda h, s:  Param(s[1],s[3])
-arg_declaration %= term, lambda h,s: Param(s[1],None)
-arg_declaration %= G.Epsilon, lambda h, s: Param(VoidNode(None),None)
+arg_declaration %= idx + colon + possible_types, lambda h, s: (s[1],s[3])
+arg_declaration %= term, lambda h,s: (s[1],None)
+arg_declaration %= G.Epsilon, lambda h, s: (VoidNode(None),None)
 
 param %= arg_declaration, lambda h, s: s[1]
 
