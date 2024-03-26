@@ -8,6 +8,7 @@ from src.lexer import Usage_Example
 import json
 from src.cmp.ast import *
 from src.cmp.format_visitor import *
+from src.evaluator.evaluator_visitor import *
 
 #building lexer
 lexer = Usage_Example.lexer
@@ -18,7 +19,7 @@ pars = parser.LR1Parser(G, verbose=False)
 number = 0
 
 #testing simple arithmetic expressions
-testcase0 = '1+2;'
+testcase0 = '-5;'
 testcase1 = '1+2*3;'
 
 #testing function declaration
@@ -121,12 +122,18 @@ testcase47 = 'print(4+5+6 as int);'
 testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod % 3 == 1) "Woke" else "Dumb");'
 
 formatter = FormatVisitor()
+evaluator = EvaluatorVisitor()
 def testing(testcase, id):
     global number
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
-        print(formatter.visit(ast))
+        # print(formatter.visit(ast))
+
+        a = evaluator.visit(ast)
+        print(a)
+
+
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
         number +=1
