@@ -102,10 +102,11 @@ class TypeDeclarationNode(DeclarationNode):
 class AssignNode(ExpressionNode):
     def __init__(
             self,
-            idx: Token,
+            token: Token,
             expr: ExpressionNode
     ):
-        self.idx = idx
+        self.token = token
+        self.idx = token.lex
         self.expr = expr
 
 class DestructiveAssignment(AssignNode):
@@ -212,7 +213,9 @@ class ArithmeticNode(BinaryNode):
 
 
 class ConstantNumNode(AtomicNode):
-    pass
+    def __init__(self,token):
+        super().__init__(token)
+        self.idx = token.lex
 
 
 class ConstantStringNode(AtomicNode):
@@ -223,8 +226,11 @@ class ConstantBoolNode(AtomicNode):
     pass
 
 
+
 class VariableNode(AtomicNode):
-    pass
+    def __init__(self,value):
+        super().__init__(value)
+        self.idx = value.lex
 
 
 class InstantiateNode(ExpressionNode):
@@ -273,12 +279,14 @@ class ForNode(ExpressionNode):
     def __init__(self,
                  iterable,
                  body,
-                 varidx
+                 varidx,
+                 elsex
                  ):
 
         self.iterable = iterable
         self.body = body
         self.varidx = varidx
+        self.elsex = elsex
 
 
 class IndexationNode(ExpressionNode):
@@ -372,3 +380,4 @@ class IsNode(ComparisonNode):
 
 class StringExpression(BinaryNode):
     pass
+

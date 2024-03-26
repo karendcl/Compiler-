@@ -133,7 +133,8 @@ class FormatVisitor(object):
         ans = '\t' * tabs + f'\\__ForNode: '
         iterable = self.visit(node.iterable, tabs+1)
         body = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
-        return f'{ans}\n{node.varidx.lex} \n{iterable}\n{body}'
+        elsex = self.visit(node.elsex, tabs+1)
+        return f'{ans}\n{'\t' * (tabs+1)}{node.varidx.lex}\n{iterable}\n{body}\n{elsex}'
 
     @visitor.when(IndexationNode)
     def visit(self, node, tabs=0):
@@ -175,8 +176,8 @@ class FormatVisitor(object):
 
     @visitor.when(ConstantStringNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
-        return f'{ans}\n{node.value}'
+        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}: {node.value}'
+        return ans
 
     @visitor.when(ComparisonNode)
     def visit(self, node, tabs=0):
@@ -187,7 +188,7 @@ class FormatVisitor(object):
 
     @visitor.when(VariableNode)
     def visit(self, node, tabs=0):
-        return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.value}'
+        return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.idx}'
 
     @visitor.when(RandNode)
     def visit(self, node, tabs=0):
@@ -199,7 +200,7 @@ class FormatVisitor(object):
 
     @visitor.when(ConstantNumNode)
     def visit(self, node, tabs=0):
-        return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.value}'
+        return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.idx}'
 
     @visitor.when(ConstantBoolNode)
     def visit(self, node, tabs=0):
@@ -258,6 +259,19 @@ class FormatVisitor(object):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
         return f'{ans}\n{left}\n{right}'
+
+    @visitor.when(NegNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__NegNode:'
+        left = self.visit(node.expr, tabs + 1)
+        return f'{ans}\n{left}'
+
+
+
+
+
+
+
 
 
 

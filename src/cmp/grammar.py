@@ -77,6 +77,7 @@ PI, E = G.Terminals("PI E")
 # # ------esto no me queda muy claro
 
 program %= statement_list + exp + semi_colon, lambda h, s: ProgramNode(s[1], [s[2]])
+program %= statement_list + exp, lambda h,s: ProgramNode(s[1], [s[2]])
 program %= statement_list + exp_block, lambda h, s: ProgramNode(s[1], s[2])
 program %= statement_list + exp_block + semi_colon, lambda h, s: ProgramNode(s[1], s[2])
 
@@ -111,8 +112,8 @@ string_exp %= strx + concatenable, lambda h, s: StringExpression(ConstantStringN
 string_exp %= strx, lambda h,s: ConstantStringNode(s[1].lex)
 
 
-concatenable %= concat + string_exp, lambda h, s: StringExpression("", s[2])
-concatenable %= concat_space + string_exp, lambda h, s: StringExpression(" ",s[2])
+concatenable %= concat + string_exp, lambda h, s: StringExpression(ConstantStringNode(""), s[2])
+concatenable %= concat_space + string_exp, lambda h, s: StringExpression(ConstantStringNode(" "),s[2])
 
 #---------- Protocol Declaration Stuff ----------------
 def_protocol %= protocol + idx + curly_o + method_declarations + curly_c, lambda h, s: ProtocolDeclarationNode(s[2], s[4], None)
@@ -188,14 +189,18 @@ conditional %= ifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda 
 
 elif_block %= elsex + exp, lambda h, s: ElseBlockNode([s[2]])
 elif_block %= elsex + exp_block, lambda h, s: ElseBlockNode(s[2])
-elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode([s[3]], s[5], s[6])
-elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode([s[3]], s[5], s[6])
+elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], [s[5]], s[6])
+elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
 
-while_block %= whilex + opar + boolean_exp + cpar + exp + semi_colon, lambda h, s: LoopNode(s[3], [s[5]])
-while_block %= whilex + opar + boolean_exp + cpar + exp_block, lambda h, s: LoopNode(s[3], s[5])
+while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp , lambda h, s: LoopNode(s[3], [s[5]])
+while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp_block, lambda h, s: LoopNode(s[3], [s[5]])
+while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp , lambda h, s: LoopNode(s[3], s[5])
+while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp_block, lambda h, s: LoopNode(s[3], s[5])
 
-for_exp %= forx + opar + idx + inx + exp + cpar + exp, lambda h, s: ForNode(s[5],[s[7]],s[3])
-for_exp %= forx + opar + idx + inx + exp + cpar + exp_block, lambda h, s: ForNode(s[5],s[7],s[3])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp_block, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp_block + elsex + exp, lambda h, s: ForNode(s[5],s[7],s[3],s[9])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp_block + elsex + exp_block, lambda h, s: ForNode(s[5],s[7],s[3],s[9])
 
 iterable %= vector, lambda h, s: s[1]
 iterable %= rangex + opar + exp + comma + exp + cpar, lambda h, s: RangeNode(s[3], s[5])
@@ -266,11 +271,10 @@ print_exp %= printx + opar + exp + cpar, lambda h, s: PrintNode(s[3])
 
 conforms %= term + asx + possible_types, lambda h,s: ConformsNode(s[1], s[3])
 
-
 possible_types %= idx, lambda h,s: s[1]
 possible_types %= string, lambda h,s : s[1]
 possible_types %= boolx, lambda h,s: s[1]
-possible_types %= intx, lambda h,s:s[1]
+possible_types %= intx, lambda h,s: s[1]
 
 
 
