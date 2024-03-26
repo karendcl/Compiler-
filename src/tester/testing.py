@@ -125,6 +125,10 @@ testcase47 = 'print(4+5+6 as int);'
 testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod % 3 == 1) "Woke" else "Dumb");'
 
 testcase49 = 'print(self.b);'
+
+testcase50 = ('type A { a = 0; b = 0; c = 0; }'
+              'type B inherits A { b = 1; c = 1; }'
+              'print(4);')
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
 def testing(testcase, id):
@@ -137,9 +141,9 @@ def testing(testcase, id):
         # # a = evaluator.visit(ast)
         # # print(a)
         # ctx = Context()
-        # type_collector = TypeCollector.TypeCollector(ctx)
-        # type_collector.visit(ast)
-        # print(type_collector.ctx)
+        type_collector = TypeCollector.TypeCollector()
+        type_collector.visit(ast)
+        print(type_collector.context)
         # type_builder = TypeBuilder.TypeBuilder(context=type_collector.ctx, errors=type_collector.errors)
         # type_builder.visit(ast)
         # print(ctx)
