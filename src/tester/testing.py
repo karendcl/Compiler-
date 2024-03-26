@@ -17,7 +17,7 @@ from src.semantic_checker.toold.Context import Context
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=False)
+pars = parser.LR1Parser(G, verbose=True)
 
 number = 0
 
@@ -81,7 +81,7 @@ testcase27 = 'for (x in range(1,10)) print(x) else print(a);'
 
 #testing protocol declaration
 testcase28 = 'protocol Hashable { hash(): Number; } 4;'
-testcase29 = 'protocol Equatable extends Hashable { equals(other: Object): Boolean; } 4;'
+testcase29 = 'protocol Equatable extends Hashable { equals(other:Object): Boolean; } 4;'
 
 #testing iterables declaration
 testcase30 = 'let numbers = [1,2,3,4,5,6,7,8] in for (x in numbers) print(x) else print(a);'
@@ -134,15 +134,15 @@ def testing(testcase, id):
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print(formatter.visit(ast))
 
-        # a = evaluator.visit(ast)
-        # print(a)
-        ctx = Context()
-        type_collector = TypeCollector.TypeCollector(ctx)
-        type_collector.visit(ast)
-        print(type_collector.ctx)
-        type_builder = TypeBuilder.TypeBuilder(context=type_collector.ctx, errors=type_collector.errors)
-        type_builder.visit(ast)
-        print(ctx)
+        # # a = evaluator.visit(ast)
+        # # print(a)
+        # ctx = Context()
+        # type_collector = TypeCollector.TypeCollector(ctx)
+        # type_collector.visit(ast)
+        # print(type_collector.ctx)
+        # type_builder = TypeBuilder.TypeBuilder(context=type_collector.ctx, errors=type_collector.errors)
+        # type_builder.visit(ast)
+        # print(ctx)
 
 
 

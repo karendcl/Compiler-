@@ -42,7 +42,7 @@ class MethodDeclaration(DeclarationNode):
     def __init__(
             self,
             idx,
-            params: List[Tuple],
+            params,
             expected_type
     ):
         self.idx = idx
@@ -74,8 +74,8 @@ class ProtocolDeclarationNode(DeclarationNode):
     ):
         self.token = token
         self.idx = token.lex
-        self.methods = [] if methods is None else methods
-        self.extends = [] if extends is None else extends
+        self.methods = methods
+        self.extends = extends
 
 
 class TypeDeclarationNode(DeclarationNode):

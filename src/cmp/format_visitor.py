@@ -15,8 +15,12 @@ class FormatVisitor(object):
     @visitor.when(MethodDeclaration)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__MethodDeclaration: {node.idx.lex} -> {node.expected_type.lex}'
-        params = '\n'.join(self.visit(child, tabs + 1) for child, k in node.params)
+        params = ''
+        for i,k in node.params:
+            if not isinstance(i, VoidNode):
+                params += f'{i.lex} : {k.lex}\n'
         return f'{ans}\n{params}'
+
 
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, tabs=0):
@@ -26,7 +30,7 @@ class FormatVisitor(object):
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self,node,tabs=0):
-        ans = '\t' * tabs + f'\\__ProtocolDeclaration: {node.idx} extends {node.extends}'
+        ans = '\t' * tabs + f'\\__ProtocolDeclaration: {node.idx} extends {'None'}'
         statements = '\n'.join(self.visit(child, tabs + 1) for child in node.methods)
         return f'{ans}\n{statements}'
 
@@ -60,7 +64,10 @@ class FormatVisitor(object):
     @visitor.when(FuncCallNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__FuncCallNode:'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
+        try:
+            args = '\n'.join(self.visit(arg, tabs + 1) for arg, type_ in node.params)
+        except:
+            args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
         return f'{ans}\n{args}'
 
     @visitor.when(AttrCallNode)
@@ -112,7 +119,7 @@ class FormatVisitor(object):
     @visitor.when(InstantiateNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__InstantiateNode: {node.idx.lex}'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
+        args = '\n'.join(self.visit(arg, tabs + 1) for arg, type_ in node.params)
         return f'{ans}\n{args}'
 
     @visitor.when(ConformsNode)
@@ -145,7 +152,7 @@ class FormatVisitor(object):
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, tabs=0):
-        params = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
+        params = '\n'.join(self.visit(arg, tabs + 1) for arg, type_ in node.params)
         ans = '\t' * tabs + f'\\__FuncDeclarationNode: def {node.idx})'
         body = self.visit(node.body, tabs + 1)
         return f'{ans}\n{params}\n{body}'
@@ -204,7 +211,7 @@ class FormatVisitor(object):
     @visitor.when(InstantiateNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__InstantiateNode: {node.idx.lex}'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
+        args = '\n'.join(self.visit(arg, tabs + 1) for arg, type_ in node.params)
         return f'{ans}\n{args}'
 
     @visitor.when(AndNode)
