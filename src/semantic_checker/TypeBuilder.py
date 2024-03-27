@@ -52,7 +52,7 @@ class TypeBuilder1(object):
                     self.errors.append(se.text)
 
 
-class TypeBuilder(object):
+class TypeBuilder2(object):
     def __init__(self, context, errors=[]):
         self.errors: list[str] = errors
         self.ctx = context
@@ -72,6 +72,7 @@ class TypeBuilder(object):
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
+        print(f'Visiting {self.current_type}')
         try:
             self.current_type = self.ctx.get_type(node.idx)
         except SemanticError as se:
@@ -102,6 +103,7 @@ class TypeBuilder(object):
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node: ProtocolDeclarationNode):
+        print(f'Visiting {self.current_type}')
         try:
             self.current_type = self.ctx.get_protocol(node.idx)
         except SemanticError as se:

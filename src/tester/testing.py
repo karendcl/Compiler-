@@ -127,16 +127,18 @@ testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod 
 
 testcase49 = 'print(self.b);'
 
-testcase50 = ('type A { a = 0; b = 0; c = 0; d: int; getX() => self.a; }'
+testcase50 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
               'protocol S { h(): int; }'
-              'protocol M extends S { i(): int; }'
+              'protocol M { i(): int; }'
               'protocol J extends M {k():int;}'
               'print(4);')
+
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
+
 def testing(testcase, id):
     global number
     try:
@@ -144,31 +146,35 @@ def testing(testcase, id):
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print(formatter.visit(ast))
 
+        #COLLECTING TYPES
         type_collector = TypeCollector.TypeCollector(errors=[])
         type_collector.visit(ast)
         print(type_collector.context)
 
+        #CHECKING CIRCULAR DEPENDENCIES
         type_builder = TypeBuilder.TypeBuilder1(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
         if check_for_circular_dependencies(type_collector.context):
             type_collector.errors.append('Circular dependence present')
 
+        #CLEARING TYPES BUILT
         for i in type_collector.context.protocols:
             pr = type_collector.context.get_protocol(i)
             pr.parents = pr.orig_parent
+            print(pr)
         for i in type_collector.context.types:
             tp = type_collector.context.get_type(i)
             tp.parent = tp.orig_parent
+            print(tp)
 
+        print(type_collector.context)
 
+        #BUILDING ACTUAL TYPES AND METHODS OF TYPES AND PROTOCOLS
         #todo check errors of already implemented methods and attributes
-        type_builder = TypeBuilder.TypeBuilder(type_collector.context, type_collector.errors)
+        type_builder = TypeBuilder.TypeBuilder2(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
         print(type_collector.context)
         print(type_builder.errors)
-
-
-
 
 
 

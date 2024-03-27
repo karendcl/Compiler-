@@ -64,11 +64,13 @@ class Type:
         self.parent = parent
 
         new_methods = parent.methods
-        # if intersection is not null
-        for method in self.methods:
-            if method in new_methods:
+
+        print(self.methods)
+
+        for method in new_methods:
+            if method in self.methods:
                 raise SemanticError(
-                    f'Method {method.name} already defined in {self.name} or one of the inherited classes.')
+                    f'Method {method.name} already defined in {self.name}.')
 
         self.methods.extend(new_methods)
 
