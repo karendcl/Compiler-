@@ -3,6 +3,55 @@ from src.cmp.semantic import SemanticError, Type, Protocol
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
 
+
+class TypeBuilder1(object):
+    def __init__(self, context, errors=[]):
+        self.errors: list[str] = errors
+        self.ctx = context
+        self.current_type= None
+
+    @visitor.on("node")
+    def visit(self, node):
+        pass
+
+    @visitor.when(ProgramNode)
+    def visit(self, node: ProgramNode):
+        for declaration in node.statements:
+            if not isinstance(declaration, FuncDeclarationNode):
+                self.visit(declaration)
+
+        return self.errors
+
+    @visitor.when(TypeDeclarationNode)
+    def visit(self, node):
+        try:
+            self.current_type = self.ctx.get_type(node.idx)
+        except SemanticError as se:
+            self.errors.append(se.text)
+
+        if node.inherits is not None:
+            try:
+                parent_type = self.ctx.get_type(node.inherits.lex)
+                self.current_type.set_parent(parent_type)
+            except SemanticError as se:
+                self.errors.append(se.text)
+
+    @visitor.when(ProtocolDeclarationNode)
+    def visit(self, node: ProtocolDeclarationNode):
+        try:
+            self.current_type = self.ctx.get_protocol(node.idx)
+        except SemanticError as se:
+            self.errors.append(se.text)
+
+        if node.extends is not [] and node.extends is not None:
+            for i in node.extends:
+                try:
+                    parent_type = self.ctx.get_protocol(i.lex)
+                    self.current_type.set_parent(parent_type)
+                except SemanticError as se:
+                    self.errors.append(se.text)
+
+
 class TypeBuilder(object):
     def __init__(self, context, errors=[]):
         self.errors: list[str] = errors

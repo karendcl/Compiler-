@@ -238,6 +238,7 @@ class InstantiateNode(ExpressionNode):
             params
     ):
         self.idx = idx
+        self.iden = idx.lex
         self.params = params
 
 

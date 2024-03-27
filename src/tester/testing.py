@@ -12,6 +12,7 @@ from src.evaluator.evaluator_visitor import *
 from src.semantic_checker import TypeCollector
 from src.semantic_checker import TypeBuilder
 from src.cmp.semantic import Context
+from src.semantic_checker.toold.graph import check_for_circular_dependencies
 
 #building lexer
 lexer = Usage_Example.lexer
@@ -130,9 +131,9 @@ testcase50 = ('type A { a = 0; b = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
-              'protocol S extends M { h(): int; }'
+              'protocol S extends J { h(): int; }'
               'protocol M { i(): int; }'
-              'protocol J extends M,S {k():int;}'
+              'protocol J extends S {k():int;}'
               'print(4);')
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
@@ -143,9 +144,19 @@ def testing(testcase, id):
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print(formatter.visit(ast))
 
-        type_collector = TypeCollector.TypeCollector()
+        type_collector = TypeCollector.TypeCollector(errors=[])
         type_collector.visit(ast)
         print(type_collector.context)
+
+        #todo Create TypeBuilder1 that only collects the inheritance and extensions to check for circular dependencies
+        type_builder = TypeBuilder.TypeBuilder1(type_collector.context, type_collector.errors)
+        type_builder.visit(ast)
+        #
+        check_for_circular_dependencies(type_collector.context)
+        #
+        # print(type_collector.context)
+        # print(type_builder.errors)
+        #todo Clean list of context for actual TypeBuilder
 
         type_builder = TypeBuilder.TypeBuilder(type_collector.context, type_collector.errors)
         type_builder.visit(ast)

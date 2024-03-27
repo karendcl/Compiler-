@@ -153,6 +153,10 @@ class Type:
     def __repr__(self):
         return str(self)
 
+    @property
+    def __hash__(self):
+        return hash(self.name)
+
 class Protocol(Type):
     def __init__(self, name:str):
         self.name = name
@@ -245,26 +249,60 @@ class VoidType(Type):
     def __eq__(self, other):
         return isinstance(other, VoidType)
 
+    def __hash__(self):
+        return super().__hash__
+
 class IntType(Type):
     def __init__(self):
         Type.__init__(self, 'int')
+        self.parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
 
+    def __hash__(self):
+        return super().__hash__
 class BoolType(Type):
     def __init__(self):
         Type.__init__(self, 'bool')
+        self.parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, BoolType)
 
+    def __hash__(self):
+        return super().__hash__
 class StringType(Type):
     def __init__(self):
         Type.__init__(self, 'string')
+        self.parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, StringType)
+
+    def __hash__(self):
+        return super().__hash__
+class ObjectType(Type):
+    def __init__(self):
+        Type.__init__(self, 'object')
+        self.parent = None
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, ObjectType)
+
+    def __hash__(self):
+        return super().__hash__
+
+class NoneType(Type):
+    def __init__(self):
+        Type.__init__(self, 'None')
+        self.parent = None
+
+    def __hash__(self):
+        return super().__hash__
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, NoneType)
 
 class Context:
     def __init__(self):
