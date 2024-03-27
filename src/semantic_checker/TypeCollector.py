@@ -1,6 +1,6 @@
 from typing import Union
-from src.semantic_checker.toold.types import SemanticError, Type, Protocol
-from src.semantic_checker.toold.Context import Context
+from src.cmp.semantic import SemanticError, Type, Protocol
+from src.cmp.semantic import Context, IntType, VoidType, BoolType, StringType
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
 
@@ -9,11 +9,6 @@ class TypeCollector(object):
     def __init__(self, errors=[]):
         self.context = None
         self.errors = errors
-        self.context = Context()
-        self.context.create_type('int')
-        self.context.create_type('string')
-        self.context.create_type('bool')
-        self.context.create_type('void')
 
     @visitor.on('node')
     def visit(self, node):
@@ -21,6 +16,13 @@ class TypeCollector(object):
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
+        self.context = Context()
+        self.context.types['int'] = IntType()
+        self.context.types['bool'] = BoolType()
+        self.context.types['void'] = VoidType()
+        self.context.types['string'] = StringType()
+        self.context.types['Object'] = Type('Object')
+        self.context.types['None'] = Type('None')
         for statement in node.statements:
             if not isinstance(statement, FuncDeclarationNode):
                 self.visit(statement)

@@ -124,9 +124,9 @@ id_list %= idx + comma + id_list, lambda h,s: [s[1]] + s[3]
 
 def_method %= idx + opar + param_list + cpar + colon + possible_types, lambda h, s: MethodDeclaration(s[1], s[3], s[6])
 
-method_declarations %= G.Epsilon, lambda h,s: []
+# method_declarations %= G.Epsilon, lambda h,s: []
 method_declarations %= def_method + semi_colon, lambda h, s: [s[1]]
-method_declarations %= def_method + method_declarations, lambda h, s: [s[1]] + s[2]
+method_declarations %= def_method + semi_colon + method_declarations, lambda h, s: [s[1]] + s[3]
 
 #-----------Type Declaration Stuff ---------------------
 type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[5], None, s[3])

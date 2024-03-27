@@ -11,13 +11,13 @@ from src.cmp.format_visitor import *
 from src.evaluator.evaluator_visitor import *
 from src.semantic_checker import TypeCollector
 from src.semantic_checker import TypeBuilder
-from src.semantic_checker.toold.Context import Context
+from src.cmp.semantic import Context
 
 #building lexer
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=True)
+pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 
@@ -126,8 +126,12 @@ testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod 
 
 testcase49 = 'print(self.b);'
 
-testcase50 = ('type A { a = 0; b = 0; c = 0; }'
+testcase50 = ('type A { a = 0; b = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
+              'protocol N { f(): int; '
+              '             g( a: int ): int; }'
+              'protocol S extends M { h(): int; }'
+              'protocol M extends N { i(): int; }'
               'print(4);')
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
@@ -138,15 +142,17 @@ def testing(testcase, id):
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
         print(formatter.visit(ast))
 
-        # # a = evaluator.visit(ast)
-        # # print(a)
-        # ctx = Context()
         type_collector = TypeCollector.TypeCollector()
         type_collector.visit(ast)
         print(type_collector.context)
-        # type_builder = TypeBuilder.TypeBuilder(context=type_collector.ctx, errors=type_collector.errors)
-        # type_builder.visit(ast)
-        # print(ctx)
+
+        type_builder = TypeBuilder.TypeBuilder(type_collector.context, type_collector.errors)
+        type_builder.visit(ast)
+        print(type_collector.context)
+        print(type_builder.errors)
+
+
+
 
 
 

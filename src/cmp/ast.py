@@ -69,7 +69,7 @@ class ProtocolDeclarationNode(DeclarationNode):
     def __init__(
             self,
             token,
-            methods: Optional[List[MethodDeclaration]] = None,
+            methods: Optional[List[MethodDeclaration]] = [],
             extends=None
     ):
         self.token = token
@@ -89,8 +89,8 @@ class TypeDeclarationNode(DeclarationNode):
     ):
         self.token = token
         self.idx = token.lex
-        self.functions = [x for x in body if x is FuncDeclarationNode] if body is not None else []
-        self.attributes = [x for x in body if x is AttrDeclarationNode] if body is not None else []
+        self.functions = [x for x in body if isinstance(x,FuncDeclarationNode)] if body is not None else []
+        self.attributes = [x for x in body if isinstance(x,AttrDeclarationNode)] if body is not None else []
         self.inherits = inherits
         self.params = params
 
@@ -242,7 +242,9 @@ class InstantiateNode(ExpressionNode):
 
 
 class VoidNode(UnaryNode):
-    pass
+    def __init__(self, expr):
+        super().__init__(expr)
+        self.lex = 'None'
 
 class ConformsNode(ExpressionNode):
     def __init__(
