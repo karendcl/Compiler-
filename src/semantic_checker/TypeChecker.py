@@ -25,6 +25,8 @@ class TypeChecker:
         for elem in node.statements:
             self.visit(elem, scope.create_child())
 
+        self.visit(node.expression, scope.create_child())
+
         return scope
 
     @visitor.when(TypeDeclarationNode)
@@ -58,10 +60,6 @@ class TypeChecker:
     @visitor.when(MethodDeclaration)
     def visit(self, node: MethodDeclaration, scope: Scope):
         self.current_method = self.current_type.get_method(node.idx)
-
-        # Parameters can hide the attribute declaration, that's why we are not checking if there is defined,
-        # instead we are checking for local declaration. Also it is checked that the static type of a parameter is
-        # different of SELF_TYPE.
 
         scope.define_variable('self', self.current_type)
 

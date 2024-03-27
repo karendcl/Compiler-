@@ -11,6 +11,7 @@ from src.cmp.format_visitor import *
 from src.evaluator.evaluator_visitor import *
 from src.semantic_checker import TypeCollector
 from src.semantic_checker import TypeBuilder
+from src.semantic_checker import TypeChecker
 from src.cmp.semantic import Context
 from src.semantic_checker.toold.graph import check_for_circular_dependencies
 
@@ -131,7 +132,7 @@ testcase50 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
-              'protocol S { h(): int; }'
+              'protocol S extends M { h(): int; }'
               'protocol M { i(): int; }'
               'protocol J extends M {k():int;}'
               'print(4);')
@@ -160,21 +161,26 @@ def testing(testcase, id):
         #CLEARING TYPES BUILT
         for i in type_collector.context.protocols:
             pr = type_collector.context.get_protocol(i)
+            pr.children = []
             pr.parents = pr.orig_parent
-            print(pr)
         for i in type_collector.context.types:
             tp = type_collector.context.get_type(i)
             tp.parent = tp.orig_parent
+            tp.children = []
             print(tp)
 
         print(type_collector.context)
 
         #BUILDING ACTUAL TYPES AND METHODS OF TYPES AND PROTOCOLS
-        #todo check errors of already implemented methods and attributes
         type_builder = TypeBuilder.TypeBuilder2(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
         print(type_collector.context)
         print(type_builder.errors)
+
+        # type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
+        # type_checker.visit(ast)
+
+
 
 
 
