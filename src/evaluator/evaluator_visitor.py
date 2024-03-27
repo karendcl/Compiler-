@@ -1,4 +1,5 @@
 import random
+import math
 
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
@@ -11,10 +12,20 @@ class RunTimeException(Exception):
 class EvaluatorVisitor(object):
 
     booleans = {'true': True, 'false': False}
+    
+
+    #-------------NOT DONE-----------------
 
     @visitor.on('node')
     def visit(self, node, tabs):
         pass
+
+    @visitor.when(FuncDeclarationNode)
+    def visit(self, node, tabs=0):
+        params = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
+        ans = '\t' * tabs + f'\\__FuncDeclarationNode: def {node.idx})'
+        body = self.visit(node.body, tabs + 1)
+        return f'{ans}\n{params}\n{body}'
 
     @visitor.when(MethodDeclaration)
     def visit(self, node, tabs=0):
@@ -46,13 +57,10 @@ class EvaluatorVisitor(object):
         # ans = '\t' * tabs + f'\\__Assign: {node.idx}'
         statements = self.visit(node.expr, tabs + 1)
 
-
     @visitor.when(DestructiveAssignment)
     def visit(self, node, tabs=0):
         # ans = '\t' * tabs + f'\\__DesAssign: {node.idx} = {node.expr}'
         statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expr)
-
-
 
     @visitor.when(ProgramNode)
     def visit(self, node, tabs=0):
@@ -71,12 +79,6 @@ class EvaluatorVisitor(object):
         ans = '\t' * tabs + f'\\__AttrCallNode: {node.idx}.{node.attr_called}'
         # args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
         return f'{ans}'
-
-    @visitor.when(PrintNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__PrintNode <expr>'
-        expr = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr}'
 
     @visitor.when(BlockNode)
     def visit(self, node, tabs=0):
@@ -112,6 +114,19 @@ class EvaluatorVisitor(object):
         left = self.visit(node.expr, tabs + 1)
         return f'{ans}\n{left}'
 
+    @visitor.when(BinaryNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        return f'{ans}\n{left}\n{right}'
+
+    @visitor.when(PrintNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__PrintNode <expr>'
+        expr = self.visit(node.expr, tabs + 1)
+        return f'{ans}\n{expr}'
+
     @visitor.when(InstantiateNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__InstantiateNode: {node.idx.lex}'
@@ -130,6 +145,10 @@ class EvaluatorVisitor(object):
         expr_for = '\n'.join(self.visit(arg, tabs + 1) for arg in node.exp_for_idx)
         list_ = self.visit(node.expr, tabs + 1)
         return f'{ans}\n{expr_for}\n{node.idx.lex}\n{list_}'
+    
+    @visitor.when(RangeNode)
+    def visit(self, node, tabs=0):
+        pass
 
     @visitor.when(ForNode)
     def visit(self, node, tabs=0):
@@ -146,21 +165,6 @@ class EvaluatorVisitor(object):
         index = self.visit(node.index, tabs+1)
         return f'{ans}\n{iterable}\n{index}'
 
-    @visitor.when(FuncDeclarationNode)
-    def visit(self, node, tabs=0):
-        params = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
-        ans = '\t' * tabs + f'\\__FuncDeclarationNode: def {node.idx})'
-        body = self.visit(node.body, tabs + 1)
-        return f'{ans}\n{params}\n{body}'
-
-
-    @visitor.when(BinaryNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        return f'{ans}\n{left}\n{right}'
-
     @visitor.when(StringExpression)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
@@ -168,66 +172,37 @@ class EvaluatorVisitor(object):
         right = self.visit(node.right, tabs + 1)
         return f'{ans}\n{left}\n{right}'
 
+    
+    #----------------DONE------------------
+
     @visitor.when(AtomicNode)
     def visit(self, node, tabs=0):
         return node.value
-
-    @visitor.when(ConstantStringNode)
-    def visit(self, node, tabs=0):
-        return node.value
-
-    @visitor.when(VariableNode)
-    def visit(self, node, tabs=0):
-        return node.idx
-
-    @visitor.when(RandNode)
-    def visit(self, node, tabs=0):
-        return random.random()
-
-
-    @visitor.when(VoidNode)
-    def visit(self, node, tabs=0):
-        return
 
     @visitor.when(ConstantNumNode)
     def visit(self, node, tabs=0):
         return node.idx
 
+    @visitor.when(ConstantStringNode)
+    def visit(self, node, tabs=0):
+        return node.value
+    
     @visitor.when(ConstantBoolNode)
     def visit(self, node, tabs=0):
         return self.booleans[node.value]
 
-    @visitor.when(InstantiateNode)
+    @visitor.when(VariableNode)
     def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__InstantiateNode: {node.idx.lex}'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
-        return f'{ans}\n{args}'
-
-    @visitor.when(AndNode)
+        return node.idx
+    
+    @visitor.when(VoidNode)
     def visit(self, node, tabs=0):
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        try:
-            left = self.booleans[left.value]
-            right = self.booleans[right.value]
-            return left and right
-        except:
-            raise Exception('Boolean Expression expected')
+        return
 
-
-    @visitor.when(OrNode)
+    @visitor.when(RandNode)
     def visit(self, node, tabs=0):
-
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        try:
-            left = self.booleans[left.value]
-            right = self.booleans[right.value]
-            return left or right
-        except:
-            raise Exception('Boolean Expression expected')
-
-
+        return random.random()
+    
     @visitor.when(NotNode)
     def visit(self, node, tabs=0):
         left = self.visit(node.expr, tabs + 1)
@@ -237,12 +212,106 @@ class EvaluatorVisitor(object):
         except:
             raise RunTimeException
 
-    @visitor.when(LessNode)
+    @visitor.when(NegNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.expr, tabs + 1)
+        try:
+            return left * -1
+        except:
+            raise RunTimeException
+        
+    @visitor.when(SqrtNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.expr, tabs + 1)
+        try:
+            return math.sqrt(left)
+        except:
+            raise RunTimeException
+
+    @visitor.when(CosNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.expr, tabs + 1)
+        try:
+            return math.cos(left)
+        except:
+            raise RunTimeException
+
+    @visitor.when(SinNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.expr, tabs + 1)
+        try:
+            return math.sin(left)
+        except:
+            raise RunTimeException
+
+    @visitor.when(ExponEulerNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.expr, tabs + 1)
+        try:
+            return math.e ** left
+        except:
+            raise RunTimeException
+
+    @visitor.when(ModNode)
     def visit(self, node, tabs=0):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
         try:
-            return left < right
+            return left % right
+        except:
+            raise RunTimeException
+
+    @visitor.when(LogNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return math.log(right, left)
+        except:
+            raise RunTimeException
+
+    @visitor.when(PlusNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return left + right
+        except:
+            raise RunTimeException
+        
+    @visitor.when(MinusNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return left - right
+        except:
+            raise RunTimeException
+
+    @visitor.when(StarNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return left * right
+        except:
+            raise RunTimeException
+        
+    @visitor.when(DivNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return left/right
+        except:
+            raise RunTimeException
+
+    @visitor.when(PowNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return left ** right
         except:
             raise RunTimeException
 
@@ -255,25 +324,16 @@ class EvaluatorVisitor(object):
         except:
             raise RunTimeException
 
-    @visitor.when(StarNode)
+    @visitor.when(LessNode)
     def visit(self, node, tabs=0):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
         try:
-            return left * right
+            return left < right
         except:
             raise RunTimeException
-    @visitor.when(PlusNode)
-    def visit(self, node, tabs=0):
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        try:
-            return left + right
-        except:
-            raise RunTimeException
-
+        
     @visitor.when(EqualNode)
-    #DONE
     def visit(self, node, tabs=0):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
@@ -282,8 +342,30 @@ class EvaluatorVisitor(object):
         except:
             raise RunTimeException
 
+    @visitor.when(AndNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            left = self.booleans[left.value]
+            right = self.booleans[right.value]
+            return left and right
+        except:
+            raise Exception('Boolean Expression expected')
+
+    @visitor.when(OrNode)
+    def visit(self, node, tabs=0):
+
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            left = self.booleans[left.value]
+            right = self.booleans[right.value]
+            return left or right
+        except:
+            raise Exception('Boolean Expression expected')
+        
     @visitor.when(IsNode)
-    #DONE
     def visit(self, node, tabs=0):
         left = self.visit(node.left, tabs + 1)
         right = self.visit(node.right, tabs + 1)
@@ -291,13 +373,3 @@ class EvaluatorVisitor(object):
             return left is right
         except:
             raise RunTimeException
-
-    @visitor.when(NegNode)
-    #DONE
-    def visit(self, node, tabs=0):
-        left = self.visit(node.expr, tabs + 1)
-        try:
-            return left * -1
-        except:
-            raise RunTimeException
-
