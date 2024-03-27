@@ -3,7 +3,8 @@ from typing import List
 from src.cmp.ast import *
 import src.cmp.errors as err
 import src.cmp.visitor as visitor
-from src.cmp.semantic import Context, Type, Method, Scope, ErrorType, SemanticError
+from src.cmp.semantic import *
+from src.cmp import ast
 
 
 class TypeChecker:
@@ -17,18 +18,78 @@ class TypeChecker:
     def visit(self, node, scope):
         pass
 
+#---------------------------------DONE
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode, scope: Scope = None):
+        #DONE
         if scope is None:
             scope = Scope()
 
         for elem in node.statements:
             self.visit(elem, scope.create_child())
 
-        self.visit(node.expression, scope.create_child())
-
+        print(f'About to visit the expression')
+        for i in node.expression:
+            self.visit(i, scope.create_child())
+        print(node.expression)
         return scope
 
+    @visitor.when(ast.PrintNode)
+    def visit(self, node: PrintNode, scope: Scope):
+        print(f'visiting Print')
+        self.visit(node.expr, scope)
+        return ObjectType
+
+    @visitor.when(ConstantNumNode)
+    def visit(self, node: ConstantNumNode, scope: Scope):
+        print('Visiting Constant Num')
+        return IntType
+
+    @visitor.when(ConstantStringNode)
+    def visit(self, node: ConstantStringNode, scope: Scope):
+        print('Visiting Constant String')
+        return StringType
+
+    @visitor.when(ConstantBoolNode)
+    def visit(self, node: ConstantBoolNode, scope: Scope):
+        return BoolType
+
+    @visitor.when(StringExpression)
+    def visit(self, node: StringExpression, scope: Scope):
+        print(f'Visiting string expression')
+        expected = [IntType, StringType]
+        left_type = self.visit(node.left, scope)
+        right_type = self.visit(node.right, scope)
+        if left_type in expected:
+            if right_type in expected:
+                return StringType
+            else:
+                self.errors.append(err.INCOMPATIBLE_TYPES(right_type, StringType))
+        else:
+            self.errors.append(err.INCOMPATIBLE_TYPES(left_type, StringType))
+        return ErrorType
+
+    @visitor.when(StarNode)
+    def visit(self, node: StarNode, scope: Scope):
+        print('Visiting Star Node')
+        return self._check_int_binary_operation(node, scope, '*', IntType)
+
+    @visitor.when(NegNode)
+    def visit(self, node: NegNode, scope: Scope):
+        print('Visiting Neg Node')
+        return self._check_unary_operation(node, scope, '-', IntType)
+
+    @visitor.when(PlusNode)
+    def visit(self, node: PlusNode, scope: Scope):
+        print('Visiting Plus Node')
+        return self._check_int_binary_operation(node, scope, '+', IntType)
+
+    @visitor.when(MinusNode)
+    def visit(self, node: MinusNode, scope: Scope):
+        print('Visiting Minus Node')
+        return self._check_int_binary_operation(node, scope, '-', IntType)
+
+    #------------------------------------NOT DONE
     @visitor.when(TypeDeclarationNode)
     def visit(self, node: TypeDeclarationNode, scope: Scope):
         self.current_type = self.context.get_type(node.idx)
@@ -173,17 +234,17 @@ class TypeChecker:
 
         return method.return_type if method.return_type.name != 'SELF_TYPE' else ancestor_type
 
-    @visitor.when(ConstantNumNode)
-    def visit(self, node: ConstantNumNode, scope: Scope):
-        return self.context.get_type('Int')
 
-    @visitor.when(ConstantStringNode)
-    def visit(self, node: ConstantStringNode, scope: Scope):
-        return self.context.get_type('String')
 
-    @visitor.when(ConstantBoolNode)
-    def visit(self, node:ConstantBoolNode, scope: Scope):
-        return self.context.get_type('Bool')
+
+
+    @visitor.when(IsNode)
+    def visit(self, node:IsNode, scope:Scope):
+        #see if variable is defined
+        pass
+
+
+
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
@@ -203,54 +264,46 @@ class TypeChecker:
 
     @visitor.when(NotNode)
     def visit(self, node: NotNode, scope: Scope):
-        return self._check_unary_operation(node, scope, 'not', self.context.get_type('Bool'))
+        return self._check_unary_operation(node, scope, 'not', BoolType)
 
-    @visitor.when(NegNode)
-    def visit(self, node: NegNode, scope: Scope):
-        return self._check_unary_operation(node, scope, '-', self.context.get_type('Int'))
 
-    @visitor.when(PlusNode)
-    def visit(self, node: PlusNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '+', self.context.get_type('Int'))
 
-    @visitor.when(MinusNode)
-    def visit(self, node: MinusNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '-', self.context.get_type('Int'))
 
-    @visitor.when(StarNode)
-    def visit(self, node: StarNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '*', self.context.get_type('Int'))
 
     @visitor.when(DivNode)
     def visit(self, node: DivNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '/', self.context.get_type('Int'))
+        return self._check_int_binary_operation(node, scope, '/', IntType)
 
     @visitor.when(LeqNode)
     def visit(self, node: LeqNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '<=', self.context.get_type('Bool'))
+        return self._check_int_binary_operation(node, scope, '<=', BoolType)
 
     @visitor.when(LessNode)
     def visit(self, node: LessNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '<', self.context.get_type('Bool'))
+        return self._check_int_binary_operation(node, scope, '<', BoolType)
 
     @visitor.when(EqualNode)
     def visit(self, node: EqualNode, scope: Scope):
         self.visit(node.left, scope)
         self.visit(node.right, scope)
-        return self.context.get_type('Bool')
+        return BoolType
 
-    def _check_int_binary_operation(self, node: BinaryNode, scope: Scope, operation: str, return_type: Type):
+
+
+    def _check_int_binary_operation(self, node: BinaryNode, scope: Scope, operation: str, return_type):
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
 
-        if left_type == right_type == self.context.get_type('Int'):
+        if left_type == right_type == IntType:
             return return_type
         self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
         return ErrorType()
 
-    def _check_unary_operation(self, node: UnaryNode, scope: Scope, operation: str, expected_type: Type):
+
+    def _check_unary_operation(self, node: UnaryNode, scope: Scope, operation: str, expected_type):
         typex = self.visit(node.expr, scope)
         if typex == expected_type:
             return typex
         self.errors.append(err.INVALID_UNARY_OPERATION % (operation, typex.name))
         return ErrorType()
+

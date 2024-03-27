@@ -134,8 +134,15 @@ class Type:
             plain[method.name] = (method, self)
         return plain.values() if clean else plain
 
+    def implements(self, protocol):
+        #todo check el cuerpo de los metodos del protocol esten en el tipo
+        return False
+
+
     def conforms_to(self, other):
-        return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
+        return (other.bypass() or self == other or
+                (self.parent is not None and self.parent.conforms_to(other))
+                or self.implements(other))
 
     def bypass(self):
         return False
@@ -304,6 +311,7 @@ class ObjectType(Type):
 
 class NoneType(Type):
     def __init__(self):
+        #Not specified
         Type.__init__(self, 'None')
         self.parent = None
         self.orig_parent = None

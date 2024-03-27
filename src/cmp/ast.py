@@ -25,7 +25,7 @@ class ExpressionNode(Node):
 
 
 class FuncDeclarationNode(DeclarationNode):
-    #DONE
+    
     def __init__(
             self,
             token,
@@ -38,7 +38,7 @@ class FuncDeclarationNode(DeclarationNode):
         self.body = body
 
 class MethodDeclaration(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             idx,
@@ -51,7 +51,7 @@ class MethodDeclaration(DeclarationNode):
 
 
 class AttrDeclarationNode(DeclarationNode):
-    #DONE
+    
     def __init__(
             self,
             idx,
@@ -65,7 +65,7 @@ class AttrDeclarationNode(DeclarationNode):
 
 
 class ProtocolDeclarationNode(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             token,
@@ -79,7 +79,7 @@ class ProtocolDeclarationNode(DeclarationNode):
 
 
 class TypeDeclarationNode(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             token,
@@ -124,7 +124,7 @@ class CallNode(ExpressionNode):
     pass
 
 class FuncCallNode(CallNode):
-    #DONE
+    
     def __init__(
             self,
             obj_called,
@@ -134,7 +134,7 @@ class FuncCallNode(CallNode):
         self.params = params
 
 class AttrCallNode(CallNode):
-    #DONE
+    
     def __init__(
             self,
             idx,
@@ -210,16 +210,19 @@ class ArithmeticNode(BinaryNode):
 
 
 class ConstantNumNode(AtomicNode):
+    #Check done
     def __init__(self,token):
         super().__init__(token)
         self.idx = token.lex
 
 
 class ConstantStringNode(AtomicNode):
+    # Check done
     pass
 
 
 class ConstantBoolNode(AtomicNode):
+    # Check done
     pass
 
 
@@ -231,7 +234,7 @@ class VariableNode(AtomicNode):
 
 
 class InstantiateNode(ExpressionNode):
-    #DONE
+
     def __init__(
             self,
             idx,
@@ -379,5 +382,6 @@ class IsNode(ComparisonNode):
     pass
 
 class StringExpression(BinaryNode):
+    #Check done
     pass
 

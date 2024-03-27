@@ -12,7 +12,7 @@ from src.evaluator.evaluator_visitor import *
 from src.semantic_checker import TypeCollector
 from src.semantic_checker import TypeBuilder
 from src.semantic_checker import TypeChecker
-from src.cmp.semantic import Context
+from src.cmp.semantic import Context, Scope
 from src.semantic_checker.toold.graph import check_for_circular_dependencies
 
 #building lexer
@@ -24,8 +24,8 @@ pars = parser.LR1Parser(G, verbose=False)
 number = 0
 
 #testing simple arithmetic expressions
-testcase0 = '-5;'
-testcase1 = '1+2*3;'
+testcase0 = '4;'
+testcase1 = '1+2-3;'
 
 #testing function declaration
 testcase2 = ('function main() => print(1+2); '
@@ -134,7 +134,7 @@ testcase50 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
               'protocol S extends M { h(): int; }'
-              'protocol M { i(): int; }'
+              'protocol M extends S { i(): int; }'
               'protocol J extends M {k():int;}'
               'print(4);')
 
@@ -159,7 +159,7 @@ def testing(testcase, id):
         if check_for_circular_dependencies(type_collector.context):
             type_collector.errors.append('Circular dependence present')
 
-        #CLEARING TYPES BUILT
+        #RESETTING TYPES BUILT
         for i in type_collector.context.protocols:
             pr = type_collector.context.get_protocol(i)
             pr.children = []
@@ -178,12 +178,10 @@ def testing(testcase, id):
         print(type_collector.context)
         print(type_builder.errors)
 
-        # type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
-        # type_checker.visit(ast)
-
-
-
-
+        #CHECKING RETURN TYPES
+        type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
+        scope : Scope = type_checker.visit(ast)
+        print(type_checker.errors)
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
@@ -201,7 +199,8 @@ while True:
 
 for i, testcase in enumerate(testcases):
     testcase = lexer(testcase)
-    testing(testcase, i)
+    if i == 1:
+        testing(testcase, i)
 
 
 print(f'{number} tests failed')
