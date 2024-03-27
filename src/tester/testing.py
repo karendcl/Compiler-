@@ -131,9 +131,9 @@ testcase50 = ('type A { a = 0; b = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
-              'protocol S extends J { h(): int; }'
-              'protocol M { i(): int; }'
-              'protocol J extends S {k():int;}'
+              'protocol S { h(): int; }'
+              'protocol M extends S { i(): int; }'
+              'protocol J extends M {k():int;}'
               'print(4);')
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
@@ -152,7 +152,7 @@ def testing(testcase, id):
         type_builder = TypeBuilder.TypeBuilder1(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
         #
-        check_for_circular_dependencies(type_collector.context)
+        print(check_for_circular_dependencies(type_collector.context))
         #
         # print(type_collector.context)
         # print(type_builder.errors)
