@@ -69,6 +69,16 @@ class TypeChecker:
             self.errors.append(err.INCOMPATIBLE_TYPES(left_type, StringType))
         return ErrorType
 
+    @visitor.when(ModNode)
+    def visit(self, node: ArithmeticNode, scope: Scope):
+        print(f'Visiting {node.__class__.__name__} Node')
+        return self._check_int_binary_operation(node, scope, '%', IntType)
+
+    @visitor.when(LogNode)
+    def visit(self, node: ArithmeticNode, scope: Scope):
+        print(f'Visiting {node.__class__.__name__} Node')
+        return self._check_int_binary_operation(node, scope, 'log', IntType)
+
     @visitor.when(StarNode)
     def visit(self, node: StarNode, scope: Scope):
         print('Visiting Star Node')
@@ -88,6 +98,16 @@ class TypeChecker:
     def visit(self, node: MinusNode, scope: Scope):
         print('Visiting Minus Node')
         return self._check_int_binary_operation(node, scope, '-', IntType)
+
+    @visitor.when(PowNode)
+    def visit(self, node: MinusNode, scope: Scope):
+        print('Visiting Pow Node')
+        return self._check_int_binary_operation(node, scope, '^', IntType)
+
+    @visitor.when(DivNode)
+    def visit(self, node: DivNode, scope: Scope):
+        print('Visiting Div Node')
+        return self._check_int_binary_operation(node, scope, '/', IntType)
 
     #------------------------------------NOT DONE
     @visitor.when(TypeDeclarationNode)
@@ -270,9 +290,7 @@ class TypeChecker:
 
 
 
-    @visitor.when(DivNode)
-    def visit(self, node: DivNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '/', IntType)
+
 
     @visitor.when(LeqNode)
     def visit(self, node: LeqNode, scope: Scope):

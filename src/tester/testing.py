@@ -25,7 +25,7 @@ number = 0
 
 #testing simple arithmetic expressions
 testcase0 = '4;'
-testcase1 = '1+2-3;'
+testcase1 = 'log(4.5,4);'
 
 #testing function declaration
 testcase2 = ('function main() => print(1+2); '

@@ -325,30 +325,37 @@ class ExponEulerNode(UnaryNode):
 
 # --------ARITHMETIC NODES----------------
 class ModNode(ArithmeticNode):
+    #check done
     pass
 
 
 class LogNode(ArithmeticNode):
+    #check done
     pass
 
 
 class PlusNode(ArithmeticNode):
+    #check done
     pass
 
 
 class MinusNode(ArithmeticNode):
+    #check done
     pass
 
 
 class StarNode(ArithmeticNode):
+    #check done
     pass
 
 
 class DivNode(ArithmeticNode):
+    #check done
     pass
 
 
 class PowNode(ArithmeticNode):
+    #Check done
     pass
 
 
