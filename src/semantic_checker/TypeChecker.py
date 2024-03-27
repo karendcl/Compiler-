@@ -53,13 +53,11 @@ class TypeChecker:
             if not expr_type.conforms_to(attr_type):
                 self.errors.append(err.INCOMPATIBLE_TYPES % (expr_type.name, attr_type.name))
 
-            if attr_type
-
         scope.define_variable(node.idx, attr_type)
 
-    @visitor.when(ast.MethodDeclarationNode)
-    def visit(self, node: ast.MethodDeclarationNode, scope: Scope):
-        self.current_method = self.current_type.get_method(node.id)
+    @visitor.when(MethodDeclaration)
+    def visit(self, node: MethodDeclaration, scope: Scope):
+        self.current_method = self.current_type.get_method(node.idx)
 
         # Parameters can hide the attribute declaration, that's why we are not checking if there is defined,
         # instead we are checking for local declaration. Also it is checked that the static type of a parameter is
@@ -77,15 +75,9 @@ class TypeChecker:
             else:
                 self.errors.append(err.LOCAL_ALREADY_DEFINED % (param_name, self.current_method.name))
 
-        return_type = self.context.get_type(node.return_type) if node.return_type != 'SELF_TYPE' else self.current_type
-
-        expr_type = self.visit(node.body, scope)
-
-        if not expr_type.conforms_to(return_type):
-            self.errors.append(err.INCOMPATIBLE_TYPES % (expr_type.name, return_type.name))
-
-    @visitor.when(ast.LetNode)
-    def visit(self, node: ast.LetNode, scope: Scope):
+    @visitor.when(LetNode)
+    #todo fix this
+    def visit(self, node: LetNode, scope: Scope):
         for _id, _type, _expr in node.declarations:
             try:
                 var_static_type = self.context.get_type(_type) if _type != 'SELF_TYPE' else self.current_type
@@ -102,41 +94,41 @@ class TypeChecker:
             if expr_type is not None and not expr_type.conforms_to(var_static_type):
                 self.errors.append(err.INCOMPATIBLE_TYPES % (expr_type.name, var_static_type.name))
 
-        return self.visit(node.expr, scope.create_child())
+        return self.visit(node.body, scope.create_child())
 
-    @visitor.when(ast.AssignNode)
-    def visit(self, node: ast.AssignNode, scope: Scope):
-        var_info = scope.find_variable(node.id)
+    @visitor.when(AssignNode)
+    def visit(self, node: AssignNode, scope: Scope):
+        var_info = scope.find_variable(node.idx)
 
         expr_type = self.visit(node.expr, scope.create_child())
 
         if var_info is None:
-            self.errors.append(err.VARIABLE_NOT_DEFINED % (node.id, self.current_method.name))
+            self.errors.append(err.VARIABLE_NOT_DEFINED % (node.idx, self.current_method.name))
         else:
             if not expr_type.conforms_to(var_info.type):
                 self.errors.append(err.INCOMPATIBLE_TYPES % (expr_type.name, var_info.type.name))
 
         return expr_type
 
-    @visitor.when(ast.BlockNode)
-    def visit(self, node: ast.BlockNode, scope: Scope):
+    @visitor.when(BlockNode)
+    def visit(self, node: BlockNode, scope: Scope):
         child_scope = scope.create_child()
         return_type = ErrorType()
-        for expr in node.expressions:
+        for expr in node.expr_list:
             return_type = self.visit(expr, child_scope)
         return return_type
 
-    @visitor.when(ast.ConditionalNode)
-    def visit(self, node: ast.ConditionalNode, scope: Scope):
-        if_type = self.visit(node.if_expr, scope)
-        then_type = self.visit(node.then_expr, scope)
-        else_type = self.visit(node.else_expr, scope)
+    @visitor.when(ConditionalNode)
+    def visit(self, node: ConditionalNode, scope: Scope):
+        if_type = self.visit(node.condition, scope)
+        then_type = self.visit(node.then_body, scope)
+        else_type = self.visit(node.then_body, scope)
         if if_type != self.context.get_type('Bool'):
             self.errors.append(err.INCOMPATIBLE_TYPES % (if_type.name, 'Bool'))
         return then_type.join(else_type)
 
-    @visitor.when(ast.WhileNode)
-    def visit(self, node: ast.WhileNode, scope: Scope):
+    @visitor.when(LoopNode)
+    def visit(self, node: LoopNode, scope: Scope):
         condition = self.visit(node.condition, scope)
         if condition != self.context.get_type('Bool'):
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'Bool'))
@@ -144,26 +136,9 @@ class TypeChecker:
         self.visit(node.body, scope.create_child())
         return self.context.get_type('Object')
 
-    @visitor.when(ast.SwitchCaseNode)
-    def visit(self, node: ast.SwitchCaseNode, scope: Scope):
-        self.visit(node.expr, scope)
-        types = []
-        for _id, _type, _expr in node.cases:
-            new_scope = scope.create_child()
-            try:
-                if _type != 'SELF_TYPE':
-                    new_scope.define_variable(_id, self.context.get_type(_type))
-                else:
-                    self.errors.append(err.INVALID_CASE_TYPE % _type)
-            except SemanticError as e:
-                new_scope.define_variable(_id, ErrorType())
-                self.errors.append(e.text)
-
-            types.append(self.visit(_expr, new_scope))
-
-        return Type.multi_join(types)
 
     @visitor.when(FuncCallNode)
+    #todo also fix this
     def visit(self, node: FuncCallNode, scope: Scope):
         if node.obj_called is None:
             node.obj_called = VariableNode('self')
@@ -172,7 +147,7 @@ class TypeChecker:
 
         if node.obj_called is not None:
             try:
-                ancestor_type = self.context.get_type(node.type)
+                ancestor_type = self.context.get_type(node.obj_called.idx)
             except SemanticError as e:
                 ancestor_type = ErrorType()
                 self.errors.append(e.text)
