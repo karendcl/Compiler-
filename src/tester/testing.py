@@ -148,16 +148,20 @@ def testing(testcase, id):
         type_collector.visit(ast)
         print(type_collector.context)
 
-        #todo Create TypeBuilder1 that only collects the inheritance and extensions to check for circular dependencies
         type_builder = TypeBuilder.TypeBuilder1(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
-        #
-        print(check_for_circular_dependencies(type_collector.context))
-        #
-        # print(type_collector.context)
-        # print(type_builder.errors)
-        #todo Clean list of context for actual TypeBuilder
+        if check_for_circular_dependencies(type_collector.context):
+            type_collector.errors.append('Circular dependence present')
 
+        for i in type_collector.context.protocols:
+            pr = type_collector.context.get_protocol(i)
+            pr.parents = pr.orig_parent
+        for i in type_collector.context.types:
+            tp = type_collector.context.get_type(i)
+            tp.parent = tp.orig_parent
+
+
+        #todo check errors of already implemented methods and attributes
         type_builder = TypeBuilder.TypeBuilder(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
         print(type_collector.context)

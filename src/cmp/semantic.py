@@ -56,6 +56,7 @@ class Type:
         self.methods = []
         self.parent = None
         self.children = []
+        self.orig_parent = None
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -163,7 +164,7 @@ class Protocol(Type):
         self.methods = []
         self.parents = []
         self.children: List[Protocol] = []
-
+        self.orig_parent = []
 
 
     def set_parent(self, parent):
@@ -226,6 +227,7 @@ class Protocol(Type):
 class ErrorType(Type):
     def __init__(self):
         Type.__init__(self, '<error>')
+        self.orig_parent = None
 
     def conforms_to(self, other):
         return True
@@ -239,6 +241,7 @@ class ErrorType(Type):
 class VoidType(Type):
     def __init__(self):
         Type.__init__(self, '<void>')
+        self.orig_parent = None
 
     def conforms_to(self, other):
         raise Exception('Invalid type: void type.')
@@ -256,6 +259,7 @@ class IntType(Type):
     def __init__(self):
         Type.__init__(self, 'int')
         self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
@@ -266,6 +270,7 @@ class BoolType(Type):
     def __init__(self):
         Type.__init__(self, 'bool')
         self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, BoolType)
@@ -276,6 +281,7 @@ class StringType(Type):
     def __init__(self):
         Type.__init__(self, 'string')
         self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, StringType)
@@ -286,6 +292,7 @@ class ObjectType(Type):
     def __init__(self):
         Type.__init__(self, 'object')
         self.parent = None
+        self.orig_parent = None
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, ObjectType)
@@ -297,6 +304,7 @@ class NoneType(Type):
     def __init__(self):
         Type.__init__(self, 'None')
         self.parent = None
+        self.orig_parent = None
 
     def __hash__(self):
         return super().__hash__
