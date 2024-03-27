@@ -126,7 +126,8 @@ testcase47 = 'print(4+5+6 as int);'
 
 testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod % 3 == 1) "Woke" else "Dumb");'
 
-testcase49 = 'print(self.b);'
+testcase49 = ('type A {}'
+              '4;')
 
 testcase50 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'

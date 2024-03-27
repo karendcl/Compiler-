@@ -131,9 +131,13 @@ method_declarations %= def_method + semi_colon + method_declarations, lambda h, 
 #-----------Type Declaration Stuff ---------------------
 type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[5], None, s[3])
 type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[6], s[4], None)
+#empty body
+type_dec %= typex + idx + inherits + idx + curly_o + curly_c, lambda h, s: TypeDeclarationNode(s[2], [], s[4], None)
+type_dec %= typex + idx + type_args + curly_o + curly_c, lambda h, s: TypeDeclarationNode(s[2], [], None, s[3])
 
 type_args %= opar + param_list + cpar, lambda h, s: s[2]
 type_args %= G.Epsilon, lambda h, s: []
+
 
 type_body %= functions_in_type, lambda h, s: [s[1]]
 type_body %= functions_in_type + type_body, lambda h, s: [s[1]] + s[3]
