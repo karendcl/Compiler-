@@ -55,11 +55,28 @@ class Type:
         self.attributes = []
         self.methods = []
         self.parent = None
+        self.children = []
 
     def set_parent(self, parent):
         if self.parent is not None:
             raise SemanticError(f'Parent type is already set for {self.name}.')
         self.parent = parent
+
+        new_methods = parent.methods
+        # if intersection is not null
+        for method in self.methods:
+            if method in new_methods:
+                raise SemanticError(
+                    f'Method {method.name} already defined in {self.name} or one of the inherited classes.')
+
+        self.methods.extend(new_methods)
+
+        for child in self.children:
+            for method_ in new_methods:
+                child.define_method(method_.name, method_.param_names, method_.param_types, method_.return_type)
+
+        parent.children.append(self)
+
 
     def set_params(self, params: List[Tuple]):
         self.params = params
@@ -98,6 +115,8 @@ class Type:
 
         method = Function(name, param_names, param_types)
         self.methods.append(method)
+        for child in self.children:
+            child.methods.append(method)
         return method
 
     def all_attributes(self, clean=True):
@@ -139,20 +158,31 @@ class Protocol(Type):
         self.name = name
         self.methods = []
         self.parents = []
-        self.children = []
+        self.children: List[Protocol] = []
 
 
 
     def set_parent(self, parent):
         if not isinstance(parent, Protocol):
-            return SemanticError('Protocols can only extend protocols.')
+            raise SemanticError('Protocols can only extend protocols.')
 
         if parent in self.parents:
-            return SemanticError(f'Protocol {parent.name} already extends {self.name}')
+            raise SemanticError(f'Protocol {parent.name} already extends {self.name}')
 
         self.parents.append(parent)
         new_methods = parent.methods
+        #if intersection is not null
+        for method in self.methods:
+            if method in new_methods:
+                raise SemanticError(f'Method {method.name} already defined in {self.name} or one of the extending protocols.')
+
         self.methods.extend(new_methods)
+
+        for child in self.children:
+            for method_ in new_methods:
+                child.define_method(method_.name, method_.param_names, method_.param_types, method_.return_type)
+
+        parent.children.append(self)
 
 
     def get_method(self, name:str):
@@ -172,11 +202,13 @@ class Protocol(Type):
 
         method = Method(name, param_names, param_types, return_type)
         self.methods.append(method)
+        for child in self.children:
+            child.methods.append(method)
         return method
 
     def __str__(self):
         output = f'protocol {self.name}'
-        parent = '' if self.parents ==[] else f' : {self.parents}'
+        parent = '' if self.parents == [] else f' : {', '.join(x.name for x in self.parents)}'
         output += parent
         output += ' {'
         output += '\n\t' if self.methods else ''

@@ -131,7 +131,8 @@ testcase50 = ('type A { a = 0; b = 0; c = 0; d: int; getX() => self.a; }'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
               'protocol S extends M { h(): int; }'
-              'protocol M extends N { i(): int; }'
+              'protocol M { i(): int; }'
+              'protocol J extends M,S {k():int;}'
               'print(4);')
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()
