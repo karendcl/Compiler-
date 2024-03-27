@@ -135,8 +135,7 @@ class Type:
         return plain.values() if clean else plain
 
     def implements(self, protocol):
-        #todo check el cuerpo de los metodos del protocol esten en el tipo
-        return False
+        return all(method in self.methods for method in protocol.methods)
 
 
     def conforms_to(self, other):
@@ -412,3 +411,24 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+def common_ancestor(list_):
+    if not list_:
+        return ErrorType
+    if len(list_) == 1:
+        return list_[0]
+    return common_ancestor(list_[0], common_ancestor(list_[1:]))
+def common_ancestor(t1: Type, t2: Type):
+    if t1 == t2:
+        return t1
+    if t1.parent is None:
+        return ErrorType
+    if t2.parent is None:
+        return ErrorType
+    if t1 == t2.parent:
+        return t2.parent
+    if t2 == t1.parent:
+        return t1.parent
+    if t1 == ObjectType or t2 == ObjectType:
+        return ObjectType
+    return common_ancestor(t1.parent, t2.parent)

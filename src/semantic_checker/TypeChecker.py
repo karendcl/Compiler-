@@ -109,7 +109,79 @@ class TypeChecker:
         print('Visiting Div Node')
         return self._check_int_binary_operation(node, scope, '/', IntType)
 
+    @visitor.when(NotNode)
+    def visit(self, node: NotNode, scope: Scope):
+        print('Visiting Not Node')
+        return self._check_unary_operation(node, scope, 'not', BoolType)
+
+    @visitor.when(LeqNode)
+    def visit(self, node: LeqNode, scope: Scope):
+        print('Visiting Leq Node')
+        return self._check_int_binary_operation(node, scope, '<=', BoolType)
+
+    @visitor.when(LessNode)
+    def visit(self, node: LessNode, scope: Scope):
+        print('Visiting Less Node')
+        return self._check_int_binary_operation(node, scope, '<', BoolType)
+
+    @visitor.when(EqualNode)
+    def visit(self, node: EqualNode, scope: Scope):
+        print('Visiting Equal Node')
+        self.visit(node.left, scope)
+        self.visit(node.right, scope)
+        return BoolType
+
+    @visitor.when(AndNode)
+    def visit(self, node: AndNode, scope: Scope):
+        print('Visiting And Node')
+        return self._check_bool_binary_operation(node, scope, 'and', BoolType)
+
+    @visitor.when(OrNode)
+    def visit(self, node: OrNode, scope: Scope):
+        print('Visiting Or Node')
+        return self._check_bool_binary_operation(node, scope, 'or', BoolType)
+
     #------------------------------------NOT DONE
+    @visitor.when(ConditionalNode)
+    def visit(self, node: ConditionalNode, scope: Scope):
+        print('Visiting Conditional Node')
+        condition = self.visit(node.condition, scope)
+        if condition != BoolType:
+            self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
+        then_type:Type = self.visit(node.then_body, scope)
+        if then_type == ErrorType:
+            return ErrorType
+        else_type:Type = self.visit(node.else_body, scope)
+        if else_type == ErrorType:
+            return ErrorType
+
+        return common_ancestor(then_type, else_type)
+
+    @visitor.when(LoopNode)
+    def visit(self, node: LoopNode, scope: Scope):
+        print('Visiting Loop Node')
+        condition = self.visit(node.condition, scope)
+        if condition != BoolType:
+            self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
+        body = []
+        for i in node.body:
+            body.append(self.visit(i, scope))
+
+        body_ = common_ancestor(body)
+        else_body = []
+        for i in node.else_body:
+            else_body.append(self.visit(i, scope))
+        else_ = common_ancestor(else_body)
+        return common_ancestor(body_, else_)
+
+
+
+
+
+
+
+
+
     @visitor.when(TypeDeclarationNode)
     def visit(self, node: TypeDeclarationNode, scope: Scope):
         self.current_type = self.context.get_type(node.idx)
@@ -282,30 +354,19 @@ class TypeChecker:
             self.errors.append(e.text)
             return ErrorType()
 
-    @visitor.when(NotNode)
-    def visit(self, node: NotNode, scope: Scope):
-        return self._check_unary_operation(node, scope, 'not', BoolType)
 
 
 
 
 
+    def _check_bool_binary_operation(self, node: BinaryNode, scope: Scope, operation: str, return_type):
+        left_type = self.visit(node.left, scope)
+        right_type = self.visit(node.right, scope)
 
-
-    @visitor.when(LeqNode)
-    def visit(self, node: LeqNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '<=', BoolType)
-
-    @visitor.when(LessNode)
-    def visit(self, node: LessNode, scope: Scope):
-        return self._check_int_binary_operation(node, scope, '<', BoolType)
-
-    @visitor.when(EqualNode)
-    def visit(self, node: EqualNode, scope: Scope):
-        self.visit(node.left, scope)
-        self.visit(node.right, scope)
-        return BoolType
-
+        if left_type == right_type == BoolType:
+            return return_type
+        self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
+        return ErrorType()
 
 
     def _check_int_binary_operation(self, node: BinaryNode, scope: Scope, operation: str, return_type):

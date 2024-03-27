@@ -155,12 +155,15 @@ class LoopNode(ExpressionNode):
             self,
             cond,
             body,
+            else_body
     ):
         self.condition = cond
         self.body = body
+        self.else_body = else_body
 
 
 class ConditionalNode(ExpressionNode):
+    #blind check done
     def __init__(
             self,
             cond,
@@ -366,22 +369,27 @@ class ComparisonNode(BinaryNode):
 
 
 class LeqNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class LessNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class EqualNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class AndNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class OrNode(ComparisonNode):
+    #blind test done
     pass
 
 
