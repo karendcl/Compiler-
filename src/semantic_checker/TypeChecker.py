@@ -340,29 +340,6 @@ class TypeChecker:
     def visit(self, node: AttrDeclarationNode, scope: Scope):
         pass
 
-
-    #------------------------------------NOT DONE
-
-    @visitor.when(IsNode)
-    def visit(self, node: IsNode, scope: Scope):
-        pass
-
-    @visitor.when(IndexationNode)
-    def visit(self, node: IndexationNode, scope: Scope):
-        pass
-
-    @visitor.when(ForNode)
-    def visit(self, node: ForNode, scope: Scope):
-        pass
-
-    @visitor.when(RangeNode)
-    def visit(self, node: RangeNode, scope: Scope):
-        pass
-
-    @visitor.when(List_Comprehension)
-    def visit(self, node: List_Comprehension, scope: Scope):
-        pass
-
     @visitor.when(InstantiateNode)
     def visit(self, node: InstantiateNode, scope: Scope):
         print('Visiting Instantiate Node')
@@ -399,6 +376,30 @@ class TypeChecker:
 
         return new_type_
 
+
+    #------------------------------------NOT DONE
+
+    @visitor.when(IsNode)
+    def visit(self, node: IsNode, scope: Scope):
+        pass
+
+    @visitor.when(IndexationNode)
+    def visit(self, node: IndexationNode, scope: Scope):
+        pass
+
+    @visitor.when(ForNode)
+    def visit(self, node: ForNode, scope: Scope):
+        pass
+
+    @visitor.when(RangeNode)
+    def visit(self, node: RangeNode, scope: Scope):
+        pass
+
+    @visitor.when(List_Comprehension)
+    def visit(self, node: List_Comprehension, scope: Scope):
+        pass
+    #posiblemente creat list type
+
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
         pass
@@ -406,7 +407,6 @@ class TypeChecker:
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
         pass
-
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):

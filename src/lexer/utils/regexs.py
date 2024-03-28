@@ -5,7 +5,7 @@ def Regexs():
 
     return [
         (let, "let"),
-        (intx, "int")
+        (intx, "int"),
         (inx, "in"),
         (ifx, "if"),
         (elsex, "else"),
@@ -18,7 +18,7 @@ def Regexs():
         (sin, "sin"),
         (expon, "expon"),
         (log, "log"),
-        (base, "base")
+        (base, "base"),
         (rand, "rand"),
         (typex, "type"),
         (new, "new"),

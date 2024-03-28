@@ -25,7 +25,7 @@ number = 0
 
 #testing simple arithmetic expressions
 testcase0 = ('{let x = 1 in'
-             ' let y = x as b in '
+             ' let y = x as int in '
              'x+y;}')
 
 testcase1 = 'print(1+2);'
