@@ -30,7 +30,6 @@ class TypeChecker:
             if isinstance(elem, FuncDeclarationNode):
                 self.visit(elem, scope.create_child())
 
-
         print(f'About to visit the expression')
         for i in node.expression:
             print(i)
@@ -346,9 +345,10 @@ class TypeChecker:
         try:
             new_type_ = self.context.get_type(node.iden)
             #check that it's the same amount of params
-            if len(node.params) != len(new_type_.params):
-                self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(new_type_.params), len(node.params)))
-                return ErrorType()
+            if new_type_.params:
+                if len(node.params) != len(new_type_.params):
+                    self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(new_type_.params), len(node.params)))
+                    return ErrorType()
 
             #check that the types of the params are the same as the ones in the declaration
             if len(node.params) == 0:
@@ -381,7 +381,35 @@ class TypeChecker:
 
     @visitor.when(IsNode)
     def visit(self, node: IsNode, scope: Scope):
-        pass
+        print('Visiting Is Node')
+        #check o q sea ese tipo o q implemente ese protocolo
+        try:
+            if node.right in G.nonTerminals:
+                type_as = self.context.get_type(str(node.right))
+            else:
+                type_as = self.context.get_type(node.right.lex)
+
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        try:
+            type_expr = self.visit(node.left, scope)
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        print(type_as, type_expr)
+        anc = common_ancestor(type_as, type_expr)
+        print(anc)
+
+        if anc == type_as:
+            return BoolType()
+        else:
+            print(type_expr)
+            print(type_as)
+            self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
+            return ErrorType()
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
@@ -389,28 +417,38 @@ class TypeChecker:
 
     @visitor.when(ForNode)
     def visit(self, node: ForNode, scope: Scope):
+        #check q es una lista
+
         pass
 
     @visitor.when(RangeNode)
     def visit(self, node: RangeNode, scope: Scope):
+        #posiblemente crear list type
+        #check q ambos son numeros
+        #return List Type
         pass
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
         pass
-    #posiblemente creat list type
+        #posiblemente creat list type
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
+        #check that the attribute is being called from 'self' and inside a function
+        #return type of attribute
         pass
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
+        #check amount of params
+        #check that param types correlate
+        #check that return type is actual expected type
         pass
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):
-        #declare the method in the context
+        #declare the function in the context, with params and if return type
         pass
 
 

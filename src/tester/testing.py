@@ -19,7 +19,7 @@ from src.semantic_checker.toold.graph import check_for_circular_dependencies
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=False)
+pars = parser.LR1Parser(G, verbose=True)
 
 number = 0
 
@@ -33,6 +33,24 @@ testcase1 = 'print(1+2);'
 testcase2 = 'if (1==1) print(1) else {print(2);};'
 
 testcase3 = 'print((((1+2)^3)*4)/5);'
+
+testcase4 = 'let a = 42 in print(if (a == 2) "1" else "2");'
+#
+testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+             'let a = new A(4,5) in print(a);')
+
+testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+              'type B inherits A { b = 1; c = 1; }'
+              'protocol N { f(): int; '
+              '             g( a: int ): int; }'
+              'protocol S extends M { h(): int; }'
+              'protocol M  { i(): int; }'
+              'protocol J extends M {k():int;}'
+              'let a = new B() in '
+              'if (a is A) print(1) else print(2);')
+
+
+
 # testcase1 = 'log(4.5,4);'
 #
 # #testing function declaration
@@ -41,28 +59,12 @@ testcase3 = 'print((((1+2)^3)*4)/5);'
 #
 # testcase10 = ('function f(x,y) => sin(x+y); '
 #               '4;')
-#
-# #testing let and expression block
-# testcase3 = '{let x = 1 in x;}'
-#
-# #testing nested let
-# testcase4 = ('{let x = 1 in'
-#              ' let y = 2 in '
-#              'x+y;}')
-#
-# #testing if
-# testcase5 = 'if (1==1) print(1) else {print(2);};'
+
 #
 # testcase6 = '42;'
 #
-# #testing parenthesis
-# testcase7 = 'print((((1+2)^3)*4)/5);'
-#
 # #testing nested expressions
-testcase4 = 'let a = 42 in print(if (a == 2) "1" else "2");'
-#
-testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
-             'let a = new A(4,5) in print(a);')
+
 #
 # testcase9 = 'print(sin(pi));'
 #
@@ -114,7 +116,7 @@ testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 #
 # #testing modulo operator
 # testcase37 = 'print(3^5%2^5);'
-# testcase38 = 'if (a is b) print(1) else print(2);'
+
 # testcase39 = 'print(sin(3^4));'
 # testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i else a;'
 #              'fact(4);')
@@ -138,15 +140,8 @@ testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 #
 # testcase49 = ('type A {}'
 #               '4;')
-#
-# testcase50 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
-#               'type B inherits A { b = 1; c = 1; }'
-#               'protocol N { f(): int; '
-#               '             g( a: int ): int; }'
-#               'protocol S extends M { h(): int; }'
-#               'protocol M extends A { i(): int; }'
-#               'protocol J extends M {k():int;}'
-#               'print(4);')
+
+
 
 formatter = FormatVisitor()
 evaluator = EvaluatorVisitor()

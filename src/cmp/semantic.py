@@ -57,6 +57,7 @@ class Type:
         self.parent = None
         self.children = []
         self.orig_parent = None
+        self.params = []
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -445,7 +446,7 @@ def common_ancestor_list(list_):
 def common_ancestor(t1: Type, t2: Type):
     if t1 == t2:
         return t1
-    if t1 == ObjectType or t2 == ObjectType:
+    if isinstance(t1,ObjectType) or isinstance(t2,ObjectType):
         return ObjectType
     if t1 == t2.parent:
         return t2.parent
