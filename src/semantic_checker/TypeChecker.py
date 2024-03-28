@@ -5,6 +5,7 @@ import src.cmp.errors as err
 import src.cmp.visitor as visitor
 from src.cmp.semantic import *
 from src.cmp import ast
+from src.cmp.grammar import G
 
 
 class TypeChecker:
@@ -291,6 +292,32 @@ class TypeChecker:
         var.vtype = expr_type
         return expr_type
 
+    @visitor.when(ConformsNode)
+    def visit(self, node: ConformsNode, scope: Scope):
+        print('Visiting Conforms Node')
+        try:
+            if node.type_to in G.nonTerminals:
+                type_as = self.context.get_type(str(node.type_to))
+            else:
+                type_as = self.context.get_type(node.type_to.lex)
+
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        try:
+            type_expr = self.visit(node.exp, scope)
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        anc = common_ancestor(type_as, type_expr)
+        if anc == type_as:
+            return type_as
+        else:
+            self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
+            return ErrorType()
+
 
 
     #------------------------------------NOT DONE
@@ -315,9 +342,13 @@ class TypeChecker:
     def visit(self, node: List_Comprehension, scope: Scope):
         pass
 
-    @visitor.when(ConformsNode)
-    def visit(self, node: ConformsNode, scope: Scope):
-        pass
+
+
+
+
+
+
+
 
     @visitor.when(VoidNode)
     def visit(self, node: VoidNode, scope: Scope):

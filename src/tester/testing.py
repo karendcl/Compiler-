@@ -25,7 +25,7 @@ number = 0
 
 #testing simple arithmetic expressions
 testcase0 = ('{let x = 1 in'
-             ' let y = x:=2 in '
+             ' let y = x as b in '
              'x+y;}')
 # testcase1 = 'log(4.5,4);'
 #
