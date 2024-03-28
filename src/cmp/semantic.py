@@ -449,7 +449,6 @@ class Scope:
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
-        child.locals = self.locals
         return child
 
     def define_variable(self, vname, vtype):

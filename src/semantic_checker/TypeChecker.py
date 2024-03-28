@@ -28,9 +28,10 @@ class TypeChecker:
 
         for elem in node.statements:
             if isinstance(elem, FuncDeclarationNode):
-                self.visit(elem, scope.create_child())
+                self.visit(elem, scope)
 
         print(f'About to visit the expression')
+
         for i in node.expression:
             ans = self.visit(i, scope.create_child())
 
@@ -146,10 +147,9 @@ class TypeChecker:
     @visitor.when(BlockNode)
     def visit(self, node: BlockNode, scope: Scope):
         print('Visiting Block Node')
-        child_scope = scope.create_child()
         return_type = ErrorType()
         for expr in node.expr_list:
-            return_type = self.visit(expr, child_scope)
+            return_type = self.visit(expr, scope.create_child())
         return return_type
 
     @visitor.when(ConditionalNode)
@@ -227,18 +227,18 @@ class TypeChecker:
     @visitor.when(LetNode)
     def visit(self, node: LetNode, scope: Scope):
         print('Visiting Let Node')
-        child_scope = scope.create_child()
+
         type_ = ErrorType()
         for decl in node.assignments:
-            type_ = self.visit(decl, child_scope)
+            type_ = self.visit(decl, scope)
             if type_ == ErrorType():
                 return ErrorType()
 
 
         body_return_type = ErrorType()
         for i in node.body:
-            print(f'Visiting Body Node with scope: {child_scope}')
-            body_return_type = self.visit(i, child_scope)
+            print(f'Visiting Body Node with scope: {scope}')
+            body_return_type = self.visit(i, scope)
             if body_return_type == ErrorType():
                 return ErrorType()
         return body_return_type
@@ -475,6 +475,7 @@ class TypeChecker:
 
         # define in a child scope the variable that will be used in the loop as the type of the iterable
         child_scope = scope.create_child()
+        child_scope.locals = scope.locals
 
         #check if variable is not already defined
         var = scope.find_variable(node.varidx.lex)
@@ -509,14 +510,11 @@ class TypeChecker:
             return ErrorType()
         return IterableType(ret_type[0])
 
-
-    #------------------------------------NOT DONE
-
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
         print('Visiting List Comprehension')
-        #for idx in iterable : do exp
-        #return iterable of exp.type
+        # for idx in iterable : do exp
+        # return iterable of exp.type
         iterable_type = self.visit(node.expr, scope)
         if not isinstance(iterable_type, IterableType):
             return ErrorType()
@@ -525,13 +523,13 @@ class TypeChecker:
 
         child_scope = scope.create_child()
 
-        #see if variable is already defined
+        # see if variable is already defined
         var = child_scope.find_variable(node.idx.lex)
         if var is not None:
-            self.errors.append(err.LOCAL_ALREADY_DEFINED %node.idx.lex)
+            self.errors.append(err.LOCAL_ALREADY_DEFINED % node.idx.lex)
             return ErrorType()
 
-        #declare it
+        # declare it
         child_scope.define_variable(node.idx.lex, id_type)
 
         ret_type = ErrorType()
@@ -544,7 +542,10 @@ class TypeChecker:
 
         return IterableType(ret_type)
 
-    
+
+    #------------------------------------NOT DONE
+
+
 
 
     @visitor.when(AttrCallNode)
