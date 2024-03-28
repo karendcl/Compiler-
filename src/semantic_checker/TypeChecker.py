@@ -30,6 +30,7 @@ class TypeChecker:
 
         print(f'About to visit the expression')
         for i in node.expression:
+            print(i)
             self.visit(i, scope.create_child())
         print(node.expression)
         return scope
@@ -52,7 +53,7 @@ class TypeChecker:
 
     @visitor.when(ConstantBoolNode)
     def visit(self, node: ConstantBoolNode, scope: Scope):
-        return BoolType
+        return BoolType()
 
     @visitor.when(StringExpression)
     def visit(self, node: StringExpression, scope: Scope):
@@ -129,7 +130,8 @@ class TypeChecker:
         print('Visiting Equal Node')
         self.visit(node.left, scope)
         self.visit(node.right, scope)
-        return BoolType
+        return BoolType()
+        # return self.context.get_type('bool')
 
     @visitor.when(AndNode)
     def visit(self, node: AndNode, scope: Scope):
@@ -141,44 +143,60 @@ class TypeChecker:
         print('Visiting Or Node')
         return self._check_bool_binary_operation(node, scope, 'or', BoolType)
 
-    #------------------------------------NOT DONE
+    @visitor.when(BlockNode)
+    def visit(self, node: BlockNode, scope: Scope):
+        print('Visiting Block Node')
+        child_scope = scope.create_child()
+        return_type = ErrorType()
+        for expr in node.expr_list:
+            return_type = self.visit(expr, child_scope)
+        return return_type
+
     @visitor.when(ConditionalNode)
     def visit(self, node: ConditionalNode, scope: Scope):
         print('Visiting Conditional Node')
         condition = self.visit(node.condition, scope)
-        if condition != BoolType:
+        if not isinstance(condition, BoolType):
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
-        then_type:Type = self.visit(node.then_body, scope)
-        if then_type == ErrorType:
-            return ErrorType
-        else_type:Type = self.visit(node.else_body, scope)
+
+        print('Visiting Then Body')
+        then_return_type = ErrorType
+        for i in node.then_body:
+            then_return_type = self.visit(i, scope)
+            if then_return_type == ErrorType:
+                return ErrorType
+
+        print('Visiting Else Body')
+        else_type: Type = self.visit(node.else_body, scope)
         if else_type == ErrorType:
             return ErrorType
 
-        return common_ancestor(then_type, else_type)
+        return common_ancestor(then_return_type, else_type)
 
     @visitor.when(LoopNode)
     def visit(self, node: LoopNode, scope: Scope):
         print('Visiting Loop Node')
         condition = self.visit(node.condition, scope)
-        if condition != BoolType:
+        if condition != BoolType():
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
-        body = []
+
+        body_return_type = ErrorType()
+        child_scope = scope.create_child()
         for i in node.body:
-            body.append(self.visit(i, scope))
+            body_return_type = self.visit(i, child_scope)
+            if body_return_type == ErrorType:
+                return ErrorType
 
-        body_ = common_ancestor(body)
-        else_body = []
+        else_return_type = ErrorType()
+        child_scope = scope.create_child()
         for i in node.else_body:
-            else_body.append(self.visit(i, scope))
-        else_ = common_ancestor(else_body)
-        return common_ancestor(body_, else_)
+            else_return_type = self.visit(i, child_scope)
+            if else_return_type == ErrorType:
+                return ErrorType
 
+        return common_ancestor(body_return_type, else_return_type)
 
-
-
-
-
+    #------------------------------------NOT DONE
 
 
 
@@ -261,31 +279,25 @@ class TypeChecker:
 
         return expr_type
 
-    @visitor.when(BlockNode)
-    def visit(self, node: BlockNode, scope: Scope):
-        child_scope = scope.create_child()
-        return_type = ErrorType()
-        for expr in node.expr_list:
-            return_type = self.visit(expr, child_scope)
-        return return_type
 
-    @visitor.when(ConditionalNode)
-    def visit(self, node: ConditionalNode, scope: Scope):
-        if_type = self.visit(node.condition, scope)
-        then_type = self.visit(node.then_body, scope)
-        else_type = self.visit(node.then_body, scope)
-        if if_type != self.context.get_type('Bool'):
-            self.errors.append(err.INCOMPATIBLE_TYPES % (if_type.name, 'Bool'))
-        return then_type.join(else_type)
 
-    @visitor.when(LoopNode)
-    def visit(self, node: LoopNode, scope: Scope):
-        condition = self.visit(node.condition, scope)
-        if condition != self.context.get_type('Bool'):
-            self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'Bool'))
+    # @visitor.when(ConditionalNode)
+    # def visit(self, node: ConditionalNode, scope: Scope):
+    #     if_type = self.visit(node.condition, scope)
+    #     then_type = self.visit(node.then_body, scope)
+    #     else_type = self.visit(node.then_body, scope)
+    #     if if_type != self.context.get_type('Bool'):
+    #         self.errors.append(err.INCOMPATIBLE_TYPES % (if_type.name, 'Bool'))
+    #     return then_type.join(else_type)
 
-        self.visit(node.body, scope.create_child())
-        return self.context.get_type('Object')
+    # @visitor.when(LoopNode)
+    # def visit(self, node: LoopNode, scope: Scope):
+    #     condition = self.visit(node.condition, scope)
+    #     if condition != self.context.get_type('Bool'):
+    #         self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'Bool'))
+    #
+    #     self.visit(node.body, scope.create_child())
+    #     return self.context.get_type('Object')
 
 
     @visitor.when(FuncCallNode)

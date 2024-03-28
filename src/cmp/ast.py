@@ -167,8 +167,8 @@ class ConditionalNode(ExpressionNode):
     def __init__(
             self,
             cond,
-            then_body,
-            else_body,
+            then_body: [ExpressionNode],
+            else_body: ExpressionNode,
     ):
         self.condition = cond
         self.then_body = then_body

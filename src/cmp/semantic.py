@@ -232,7 +232,22 @@ class Protocol(Type):
 
     def __repr__(self):
         return str(self)
+class ObjectType(Type):
+    # set property parent
+    parent = None
+    def __init__(self):
+        Type.__init__(self, 'object')
+        self.parent = None
+        self.orig_parent = None
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, ObjectType)
+
+    def __hash__(self):
+        return super().__hash__
+
 class ErrorType(Type):
+    parent = None
     def __init__(self):
         Type.__init__(self, '<error>')
         self.orig_parent = None
@@ -247,9 +262,10 @@ class ErrorType(Type):
         return isinstance(other, Type)
 
 class VoidType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, '<void>')
-        self.orig_parent = None
+        self.orig_parent = ObjectType()
 
     def conforms_to(self, other):
         raise Exception('Invalid type: void type.')
@@ -264,6 +280,7 @@ class VoidType(Type):
         return super().__hash__
 
 class IntType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'int')
         self.parent = ObjectType()
@@ -275,6 +292,7 @@ class IntType(Type):
     def __hash__(self):
         return super().__hash__
 class BoolType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'bool')
         self.parent = ObjectType()
@@ -286,6 +304,7 @@ class BoolType(Type):
     def __hash__(self):
         return super().__hash__
 class StringType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'string')
         self.parent = ObjectType()
@@ -296,19 +315,9 @@ class StringType(Type):
 
     def __hash__(self):
         return super().__hash__
-class ObjectType(Type):
-    def __init__(self):
-        Type.__init__(self, 'object')
-        self.parent = None
-        self.orig_parent = None
-
-    def __eq__(self, other):
-        return other.name == self.name and isinstance(other, ObjectType)
-
-    def __hash__(self):
-        return super().__hash__
 
 class NoneType(Type):
+    parent = ObjectType()
     def __init__(self):
         #Not specified
         Type.__init__(self, 'None')
@@ -412,23 +421,20 @@ class Scope:
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
 
-def common_ancestor(list_):
+def common_ancestor_list(list_):
     if not list_:
         return ErrorType
     if len(list_) == 1:
         return list_[0]
-    return common_ancestor(list_[0], common_ancestor(list_[1:]))
+    return common_ancestor(list_[0], common_ancestor_list(list_[1:]))
 def common_ancestor(t1: Type, t2: Type):
     if t1 == t2:
         return t1
-    if t1.parent is None:
-        return ErrorType
-    if t2.parent is None:
-        return ErrorType
+    if t1 == ObjectType or t2 == ObjectType:
+        return ObjectType
     if t1 == t2.parent:
         return t2.parent
     if t2 == t1.parent:
         return t1.parent
-    if t1 == ObjectType or t2 == ObjectType:
-        return ObjectType
+
     return common_ancestor(t1.parent, t2.parent)
