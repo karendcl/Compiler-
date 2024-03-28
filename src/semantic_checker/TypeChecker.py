@@ -156,6 +156,7 @@ class TypeChecker:
     @visitor.when(ConditionalNode)
     def visit(self, node: ConditionalNode, scope: Scope):
         print('Visiting Conditional Node')
+
         condition = self.visit(node.condition, scope)
         if not isinstance(condition, BoolType):
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
@@ -318,8 +319,21 @@ class TypeChecker:
             self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
             return ErrorType()
 
+    @visitor.when(VoidNode)
+    def visit(self, node: VoidNode, scope: Scope):
+        return VoidType()
 
+    @visitor.when(TypeDeclarationNode)
+    def visit(self, node: TypeDeclarationNode, scope: Scope):
+        pass
 
+    @visitor.when(ProtocolDeclarationNode)
+    def visit(self, node: ProtocolDeclarationNode, scope: Scope):
+        pass
+
+    @visitor.when(MethodDeclaration)
+    def visit(self, node: MethodDeclaration, scope: Scope):
+        pass
     #------------------------------------NOT DONE
 
     @visitor.when(IsNode)
@@ -342,18 +356,6 @@ class TypeChecker:
     def visit(self, node: List_Comprehension, scope: Scope):
         pass
 
-
-
-
-
-
-
-
-
-    @visitor.when(VoidNode)
-    def visit(self, node: VoidNode, scope: Scope):
-        return VoidType()
-
     @visitor.when(InstantiateNode)
     def visit(self, node: InstantiateNode, scope: Scope):
         pass
@@ -366,28 +368,13 @@ class TypeChecker:
     def visit(self, node: FuncCallNode, scope: Scope):
         pass
 
-
-
-
-    @visitor.when(TypeDeclarationNode)
-    def visit(self, node: TypeDeclarationNode, scope: Scope):
-        pass
-
-    @visitor.when(ProtocolDeclarationNode)
-    def visit(self, node: ProtocolDeclarationNode, scope: Scope):
-        pass
-
-    @visitor.when(MethodDeclaration)
-    def visit(self, node: MethodDeclaration, scope: Scope):
-        pass
-
     @visitor.when(AttrDeclarationNode)
     def visit(self, node: AttrDeclarationNode, scope: Scope):
         pass
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):
-        pass
+
 
 
 

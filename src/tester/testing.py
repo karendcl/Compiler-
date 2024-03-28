@@ -27,6 +27,12 @@ number = 0
 testcase0 = ('{let x = 1 in'
              ' let y = x as b in '
              'x+y;}')
+
+testcase1 = 'print(1+2);'
+
+testcase2 = 'if (1==1) print(1) else {print(2);};'
+
+testcase3 = 'print((((1+2)^3)*4)/5);'
 # testcase1 = 'log(4.5,4);'
 #
 # #testing function declaration
@@ -53,7 +59,7 @@ testcase0 = ('{let x = 1 in'
 # testcase7 = 'print((((1+2)^3)*4)/5);'
 #
 # #testing nested expressions
-# testcase8 = 'let a = 42 in print(if (a == 2) "1" else "2");'
+testcase4 = 'let a = 42 in print(if (a == 2) "1" else "2");'
 #
 #
 # testcase9 = 'print(sin(pi));'

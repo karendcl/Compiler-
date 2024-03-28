@@ -65,7 +65,7 @@ typex, new, inherits, isx, asx = G.Terminals("type new inherits is as")
 protocol, extends = G.Terminals("protocol extends")
 true, false = G.Terminals("true false")
 concat, concat_space = G.Terminals("@ @@")
-strx, idx, boolx, string, intx = G.Terminals("str id bool string int")
+strx, idx, boolx, string, intx, base = G.Terminals("str id bool string int base")
 
 rangex = G.Terminal("range")
 printx = G.Terminal("print")
