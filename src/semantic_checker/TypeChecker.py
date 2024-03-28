@@ -275,7 +275,7 @@ class TypeChecker:
         # check if variable is defined in the scope
         var = scope.find_variable(node.idx)
         if var is None:
-            self.errors.append(err.VARIABLE_NOT_DEFINED % (node.idx))
+            self.errors.append(err.VARIABLE_NOT_DEFINED % node.idx)
             return ErrorType()
 
         # check type of expression
@@ -376,13 +376,10 @@ class TypeChecker:
 
         return new_type_
 
-
-    #------------------------------------NOT DONE
-
     @visitor.when(IsNode)
     def visit(self, node: IsNode, scope: Scope):
         print('Visiting Is Node')
-        #check o q sea ese tipo o q implemente ese protocolo
+        # check o q sea ese tipo o q implemente ese protocolo
         try:
             if node.right in G.nonTerminals:
                 type_as = self.context.get_type(str(node.right))
@@ -410,6 +407,29 @@ class TypeChecker:
             print(type_as)
             self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
             return ErrorType()
+
+    @visitor.when(FuncDeclarationNode)
+    def visit(self, node: FuncDeclarationNode, scope: Scope):
+        print('Visiting Func Declaration Node')
+        # declare the function in the context, with params
+        # functions dont have a return type
+        try:
+            param_types = [self.context.get_type_or_protocol(type_) for _, type_ in node.params]
+            param_names = [name for name, _ in node.params]
+
+            for i, k in enumerate(param_names):
+                if isinstance(k, VoidNode):
+                    param_names.pop(i)
+                    param_types.pop(i)
+            try:
+                scope.define_function(node.idx, param_names, param_types)
+            except SemanticError as error:
+                self.errors.append(error.text)
+        except SemanticError as error:
+            self.errors.append(error.text)
+
+
+    #------------------------------------NOT DONE
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
@@ -446,10 +466,7 @@ class TypeChecker:
         #check that return type is actual expected type
         pass
 
-    @visitor.when(FuncDeclarationNode)
-    def visit(self, node: FuncDeclarationNode, scope: Scope):
-        #declare the function in the context, with params and if return type
-        pass
+
 
 
 
