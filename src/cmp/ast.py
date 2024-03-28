@@ -144,7 +144,6 @@ class AttrCallNode(CallNode):
             idx,
             attr_called
     ):
-        assert idx.lex == 'self', 'Error: attributes are private'
         self.idx = idx.lex
         self.attr_called = attr_called
 

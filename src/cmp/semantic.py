@@ -338,6 +338,20 @@ class NoneType(Type):
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, NoneType)
 
+class VectorType(Type):
+    parent = ObjectType()
+    name = 'Vector'
+    def __init__(self):
+        Type.__init__(self, 'Vector')
+        self.parent = ObjectType()
+        self.orig_parent = ObjectType()
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, VectorType)
+
+    def __hash__(self):
+        return super().__hash__
+
 class Context:
     def __init__(self):
         self.types = {}

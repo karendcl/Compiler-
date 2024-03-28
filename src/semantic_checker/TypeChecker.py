@@ -455,7 +455,15 @@ class TypeChecker:
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
-        #check that the attribute is being called from 'self' and inside a function
+        #check that if the attribute being called is 'self', then I am in a function in a type
+        if node.idx == 'self':
+            #check that it's being called from a function in a type declaration
+            if self.current_type is None:
+                self.errors.append(err.SELF_OUTSIDE_TYPE)
+                return ErrorType()
+
+
+        #check that the attribute is defined
         #return type of attribute
         pass
 
@@ -467,6 +475,15 @@ class TypeChecker:
         #check that return type is actual expected type
         params_of_call = node.params
         function_called = node.obj_called
+
+        #check if function is defined
+        try:
+            if function_called in G.nonTerminals:
+                function = scope.find_function(str(function_called))
+            else:
+                pass
+        except:
+            pass
 
         #FuncCallNode can be a.b() / b() / base.func() / self.func()
 
