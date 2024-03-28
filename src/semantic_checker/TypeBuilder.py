@@ -2,6 +2,7 @@ from typing import Union
 from src.cmp.semantic import SemanticError, Type, Protocol
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
+import src.cmp.errors as err
 
 
 class TypeBuilder1(object):
@@ -129,7 +130,10 @@ class TypeBuilder2(object):
             else:
                 type = self.ctx.get_type_or_protocol(node.type_expected.lex)
 
-            self.current_type.define_attribute(node.idx.lex, type, node.value)
+            if node.idx.lex =='self':
+                self.errors.append(err.SELF_INVALID_ATTRIBUTE_ID)
+            else:
+                self.current_type.define_attribute(node.idx.lex, type, node.value)
 
         except SemanticError as se:
             self.errors.append(se.text)
@@ -158,8 +162,12 @@ class TypeBuilder2(object):
                 if not isinstance(i, VoidNode):
                     param_names.append(i.lex)
                     param_types.append(self.ctx.get_type_or_protocol(k.lex))
-            self.current_type.define_method(
-                    node.idx.lex, param_names, param_types, self.ctx.get_type_or_protocol(node.expected_type.lex)
-                )
+
+            if node.expected_type is None:
+                self.errors.append(err.MISSING_RETURN_TYPE % node.idx.lex)
+            else:
+                self.current_type.define_method(
+                        node.idx.lex, param_names, param_types, self.ctx.get_type_or_protocol(node.expected_type.lex)
+                    )
         except SemanticError as se:
             self.errors.append(se.text)

@@ -29,4 +29,4 @@ MAIN_METHOD_NOT_FOUND = 'MainMethodNotFound: no main method in class Main.'
 VOID_EXPRESSION = 'VoidReferenceError: Object reference not set to an instance of an object.'
 CASE_OF_ERROR = 'CaseOfError: No branch matches wit de dynamic type of the case expression.'
 
-
+MISSING_RETURN_TYPE = 'TypeError: Missing return type for method declaration "%s".'

@@ -399,6 +399,16 @@ class VariableInfo:
     def __str__(self):
         return f'{self.name} : {self.type.name}'
 
+class FunctionInfo:
+    def __init__(self, name, param_names, param_types):
+        self.name = name
+        self.param_names = param_names
+        self.param_types = param_types
+
+    def __str__(self):
+        return f'{self.name}({self.param_names})'
+
+
 class Scope:
     def __init__(self, parent=None):
         self.locals = []
@@ -420,10 +430,23 @@ class Scope:
         self.locals.append(info)
         return info
 
+    def define_function(self,name,param_names, param_types):
+        info = FunctionInfo(name, param_names,param_types)
+        self.locals.append(info)
+        return info
+
+    def find_function(self, name, index = None):
+        locals = self.locals if index is None else itt.islice(self.locals, index)
+        try:
+            return next(x for x in locals if x.name == name and isinstance(x, FunctionInfo))
+        except StopIteration:
+            return self.parent.find_function(name, self.index) if self.parent is None else None
+
+
     def find_variable(self, vname, index=None):
         locals = self.locals if index is None else itt.islice(self.locals, index)
         try:
-            return next(x for x in locals if x.name == vname)
+            return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
         except StopIteration:
             return self.parent.find_variable(vname, self.index) if self.parent is None else None
 
@@ -436,13 +459,6 @@ class Scope:
     def __str__(self):
         return f'Locals: {','.join(str(x) for x in self.locals)}'
 
-
-def common_ancestor_list(list_):
-    if not list_:
-        return ErrorType
-    if len(list_) == 1:
-        return list_[0]
-    return common_ancestor(list_[0], common_ancestor_list(list_[1:]))
 def common_ancestor(t1: Type, t2: Type):
     if t1 == t2:
         return t1

@@ -461,10 +461,16 @@ class TypeChecker:
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
+        print('Visiting Func Call Node')
         #check amount of params
         #check that param types correlate
         #check that return type is actual expected type
-        pass
+        params_of_call = node.params
+        function_called = node.obj_called
+
+        #FuncCallNode can be a.b() / b() / base.func() / self.func()
+
+        #check if
 
 
 

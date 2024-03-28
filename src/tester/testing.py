@@ -41,6 +41,7 @@ testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 
 testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
+              'function p() => p;'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
               'protocol S extends M { h(): int; }'
@@ -187,6 +188,8 @@ def testing(testcase, id):
         type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
         scope : Scope = type_checker.visit(ast)
         print(type_checker.errors)
+        print(scope)
+
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
