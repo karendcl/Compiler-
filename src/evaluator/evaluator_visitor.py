@@ -14,11 +14,12 @@ class EvaluatorVisitor(object):
     booleans = {'true': True, 'false': False}
     
 
-    #-------------NOT DONE-----------------
-
     @visitor.on('node')
     def visit(self, node, tabs):
         pass
+
+
+    #-------------NOT DONE-----------------
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, tabs=0):
@@ -80,12 +81,6 @@ class EvaluatorVisitor(object):
         # args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
         return f'{ans}'
 
-    @visitor.when(BlockNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__BlockNode:'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.expr_list)
-        return f'{ans}\n{args}'
-
     @visitor.when(LoopNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__LoopNode:'
@@ -93,39 +88,12 @@ class EvaluatorVisitor(object):
         args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
         return f'{ans}\n{cond}\n{args}'
 
-    @visitor.when(ConditionalNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__ConditionalNode:'
-        cond = self.visit(node.condition, tabs + 1)
-        then = '\n'.join(self.visit(arg, tabs + 1) for arg in node.then_body)
-        else_ = self.visit(node.else_body, tabs+1)
-        return f'{ans}\n{cond}\n{then}\n{else_}'
-
     @visitor.when(LetNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__LetNode:'
         ass = '\n'.join(self.visit(arg, tabs + 1) for arg in node.assignments)
         args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
         return f'{ans}\n{ass}\n{args}'
-
-    @visitor.when(UnaryNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__{node.__class__.__name__} <expr>'
-        left = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{left}'
-
-    @visitor.when(BinaryNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        return f'{ans}\n{left}\n{right}'
-
-    @visitor.when(PrintNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__PrintNode <expr>'
-        expr = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr}'
 
     @visitor.when(InstantiateNode)
     def visit(self, node, tabs=0):
@@ -139,17 +107,6 @@ class EvaluatorVisitor(object):
         ans = '\t' * tabs + f'\\__Conforms: \n{ass}\n {'\t' * (tabs+1)} \\__to  {node.type_to.lex}'
         return f'{ans}'
 
-    @visitor.when(List_Comprehension)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__ListNode: '
-        expr_for = '\n'.join(self.visit(arg, tabs + 1) for arg in node.exp_for_idx)
-        list_ = self.visit(node.expr, tabs + 1)
-        return f'{ans}\n{expr_for}\n{node.idx.lex}\n{list_}'
-    
-    @visitor.when(RangeNode)
-    def visit(self, node, tabs=0):
-        pass
-
     @visitor.when(ForNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__ForNode: '
@@ -158,26 +115,29 @@ class EvaluatorVisitor(object):
         elsex = self.visit(node.elsex, tabs+1)
         return f'{ans}\n{'\t' * (tabs+1)}{node.varidx.lex}\n{iterable}\n{body}\n{elsex}'
 
-    @visitor.when(IndexationNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__IndexationNode: '
-        iterable = self.visit(node.obj, tabs+1)
-        index = self.visit(node.index, tabs+1)
-        return f'{ans}\n{iterable}\n{index}'
-
-    @visitor.when(StringExpression)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
-        left = self.visit(node.left, tabs + 1)
-        right = self.visit(node.right, tabs + 1)
-        return f'{ans}\n{left}\n{right}'
-
     
     #----------------DONE------------------
 
-    @visitor.when(AtomicNode)
+    @visitor.when(ConditionalNode)
     def visit(self, node, tabs=0):
-        return node.value
+        #ans = '\t' * tabs + f'\\__ConditionalNode:'
+        cond = self.visit(node.condition, tabs + 1)
+        then = '\n'.join(self.visit(arg, tabs + 1) for arg in node.then_body)
+        else_ = self.visit(node.else_body, tabs+1)
+        #return f'{ans}\n{cond}\n{then}\n{else_}'
+
+        if(cond):
+            return then
+        else:
+            return else_
+    
+    @visitor.when(PrintNode)
+    def visit(self, node, tabs=0):
+        #ans = '\t' * tabs + f'\\__PrintNode <expr>'
+        expr = self.visit(node.expr, tabs + 1)
+        #return f'{ans}\n{expr}'
+
+        return str(expr)
 
     @visitor.when(ConstantNumNode)
     def visit(self, node, tabs=0):
@@ -202,6 +162,35 @@ class EvaluatorVisitor(object):
     @visitor.when(RandNode)
     def visit(self, node, tabs=0):
         return random.random()
+    
+    @visitor.when(List_Comprehension)
+    def visit(self, node: List_Comprehension, tabs=0):
+        #ans = '\t' * tabs + f'\\__ListNode: '
+        expr_for = '\n'.join(self.visit(arg, tabs + 1) for arg in node.exp_for_idx)
+        list_ = self.visit(node.expr, tabs + 1)
+        #return f'{ans}\n{expr_for}\n{node.idx.lex}\n{list_}'
+
+        return [expr_for for node.idx in list_]
+
+    @visitor.when(RangeNode)
+    def visit(self, node, tabs=0):
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        try:
+            return range(left, right)
+        except:
+            raise RunTimeException
+        
+    @visitor.when(IndexationNode)
+    def visit(self, node, tabs=0):
+        #ans = '\t' * tabs + f'\\__IndexationNode: '
+        #iterable = self.visit(node.obj, tabs+1)
+        #index = self.visit(node.index, tabs+1)
+        #return f'{ans}\n{iterable}\n{index}'
+
+        iterable = self.visit(node.obj, tabs+1)
+        index = self.visit(node.index, tabs+1)
+        return iterable[index]
     
     @visitor.when(NotNode)
     def visit(self, node, tabs=0):
@@ -373,3 +362,38 @@ class EvaluatorVisitor(object):
             return left is right
         except:
             raise RunTimeException
+
+    @visitor.when(StringExpression)
+    def visit(self, node, tabs=0):
+        #ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        #return f'{ans}\n{left}\n{right}'
+
+        return f"{str(left)}" + f"{str(right)}"
+    
+    
+    #---------------Not in Ast ?----------------
+
+    @visitor.when(AtomicNode)
+    def visit(self, node, tabs=0):
+        return node.value
+
+    @visitor.when(UnaryNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__{node.__class__.__name__} <expr>'
+        left = self.visit(node.expr, tabs + 1)
+        return f'{ans}\n{left}'
+
+    @visitor.when(BinaryNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__} <expr>'
+        left = self.visit(node.left, tabs + 1)
+        right = self.visit(node.right, tabs + 1)
+        return f'{ans}\n{left}\n{right}'
+    
+    @visitor.when(BlockNode)
+    def visit(self, node, tabs=0):
+        ans = '\t' * tabs + f'\\__BlockNode:'
+        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.expr_list)
+        return f'{ans}\n{args}'
