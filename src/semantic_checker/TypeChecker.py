@@ -426,7 +426,7 @@ class TypeChecker:
                     param_names.pop(i)
                     param_types.pop(i)
             try:
-                scope.define_function(node.idx, param_names, param_types)
+                scope.define_function(node.idx, param_names, param_types, node.body)
             except SemanticError as error:
                 self.errors.append(error.text)
         except SemanticError as error:
@@ -475,6 +475,12 @@ class TypeChecker:
 
         # define in a child scope the variable that will be used in the loop as the type of the iterable
         child_scope = scope.create_child()
+
+        #check if variable is not already defined
+        var = scope.find_variable(node.varidx.lex)
+        if var is not None:
+            self.errors.append(err.LOCAL_ALREADY_DEFINED %var.name)
+            return ErrorType()
         child_scope.define_variable(node.varidx.lex, obj_type.elem_type)
 
         # visit the body of the loop
@@ -508,7 +514,37 @@ class TypeChecker:
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
-        pass
+        print('Visiting List Comprehension')
+        #for idx in iterable : do exp
+        #return iterable of exp.type
+        iterable_type = self.visit(node.expr, scope)
+        if not isinstance(iterable_type, IterableType):
+            return ErrorType()
+
+        id_type = iterable_type.elem_type
+
+        child_scope = scope.create_child()
+
+        #see if variable is already defined
+        var = child_scope.find_variable(node.idx.lex)
+        if var is not None:
+            self.errors.append(err.LOCAL_ALREADY_DEFINED %node.idx.lex)
+            return ErrorType()
+
+        #declare it
+        child_scope.define_variable(node.idx.lex, id_type)
+
+        ret_type = ErrorType()
+
+        for i in node.exp_for_idx:
+            ret_type = self.visit(i, child_scope)
+            if ret_type == ErrorType:
+                print('List Comprehension failed')
+                return ErrorType()
+
+        return IterableType(ret_type)
+
+    
 
 
     @visitor.when(AttrCallNode)

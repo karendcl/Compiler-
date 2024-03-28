@@ -346,6 +346,7 @@ class NoneType(Type):
 
 class IterableType(Type):
     parent = ObjectType()
+    name = 'Iterable'
     elem_type = None
     def __init__(self, elem_type = None):
         Type.__init__(self, 'Iterable')
@@ -357,7 +358,7 @@ class IterableType(Type):
 
 
     def __eq__(self, other):
-        return other.name == self.name and isinstance(other, VectorType)
+        return other.name == self.name and isinstance(other, IterableType)
 
     def __hash__(self):
         return super().__hash__
@@ -424,10 +425,12 @@ class VariableInfo:
         return f'{self.name} : {self.type.name}'
 
 class FunctionInfo:
-    def __init__(self, name, param_names, param_types):
+    def __init__(self, name, param_names, param_types, expression_body):
         self.name = name
         self.param_names = param_names
         self.param_types = param_types
+        self.body = expression_body
+
 
     def __str__(self):
         return f'{self.name}({self.param_names})'
@@ -454,8 +457,8 @@ class Scope:
         self.locals.append(info)
         return info
 
-    def define_function(self,name,param_names, param_types):
-        info = FunctionInfo(name, param_names,param_types)
+    def define_function(self,name,param_names, param_types, expression):
+        info = FunctionInfo(name, param_names,param_types, expression)
         self.locals.append(info)
         return info
 
