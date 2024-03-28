@@ -1,5 +1,5 @@
 from typing import Union
-from src.cmp.semantic import SemanticError, Type, Protocol
+from src.cmp.semantic import *
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
 import src.cmp.errors as err
@@ -65,6 +65,7 @@ class TypeBuilder2(object):
 
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
+
         for declaration in node.statements:
             if not isinstance(declaration, FuncDeclarationNode):
                 self.visit(declaration)

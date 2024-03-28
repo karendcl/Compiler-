@@ -19,7 +19,7 @@ from src.semantic_checker.toold.graph import check_for_circular_dependencies
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=True)
+pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 
@@ -41,7 +41,7 @@ testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 
 testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'type B inherits A { b = 1; c = 1; }'
-              'function p() => p;'
+              'function p(a) => a;'
               'protocol N { f(): int; '
               '             g( a: int ): int; }'
               'protocol S extends M { h(): int; }'
@@ -52,7 +52,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 
 testcase7 = 'let a = range(1,10) in a[1];'
 
-testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
+testcase8 = 'let a = [1,p,3,4] in for (x in a) print(x) else print(a);'
 
 
 

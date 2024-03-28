@@ -27,7 +27,10 @@ class Method:
         self.return_type = return_type
 
     def __str__(self):
-        params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
+        if self.param_names != []:
+            params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
+        else:
+            params = ''
         return f'[method] {self.name}({params}): {self.return_type.name};'
 
     def __eq__(self, other):
@@ -264,6 +267,9 @@ class ErrorType(Type):
     def __eq__(self, other):
         return isinstance(other, Type)
 
+    def __hash__(self):
+        return super().__hash__
+
 class VoidType(Type):
     parent = ObjectType()
     name = 'void'
@@ -340,13 +346,15 @@ class NoneType(Type):
 
 class IterableType(Type):
     parent = ObjectType()
-    name = 'Iterable'
     elem_type = None
     def __init__(self, elem_type = None):
         Type.__init__(self, 'Iterable')
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
         self.elem_type = elem_type
+
+
+
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, VectorType)

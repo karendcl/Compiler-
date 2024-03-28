@@ -34,8 +34,6 @@ class TypeChecker:
         for i in node.expression:
             ans = self.visit(i, scope.create_child())
 
-        print(f'Exprssion returned: {ans}')
-
         return scope
 
     @visitor.when(ast.PrintNode)
@@ -230,8 +228,12 @@ class TypeChecker:
     def visit(self, node: LetNode, scope: Scope):
         print('Visiting Let Node')
         child_scope = scope.create_child()
+        type_ = ErrorType()
         for decl in node.assignments:
-            self.visit(decl, child_scope)
+            type_ = self.visit(decl, child_scope)
+            if type_ == ErrorType():
+                return ErrorType()
+
 
         body_return_type = ErrorType()
         for i in node.body:
@@ -498,7 +500,7 @@ class TypeChecker:
         ret_type = [self.visit(expr, scope.create_child()) for expr in node.obj]
         if len(set(ret_type)) != 1:
             self.errors.append(err.VECTOR_DIFF_TYPES)
-            return ErrorType
+            return ErrorType()
         return IterableType(ret_type[0])
 
 
@@ -507,7 +509,7 @@ class TypeChecker:
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
         pass
-        #posiblemente creat list type
+
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
