@@ -354,14 +354,32 @@ class IterableType(Type):
         self.orig_parent = ObjectType()
         self.elem_type = elem_type
 
-
-
-
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, IterableType)
 
     def __hash__(self):
         return super().__hash__
+
+
+class SelfType(Type):
+    parent = ObjectType()
+    name = 'Self'
+    def __init__(self):
+        Type.__init__(self, 'Self')
+        self.parent = ObjectType()
+        self.orig_parent = ObjectType()
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, SelfType)
+
+    def __hash__(self):
+        return super().__hash__
+
+    def __str__(self):
+        return 'Self'
+
+    def __repr__(self):
+        return str(self)
 
 class Context:
     def __init__(self):

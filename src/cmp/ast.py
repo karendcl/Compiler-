@@ -40,6 +40,7 @@ class FuncDeclarationNode(DeclarationNode):
                 self.params = []
                 break
         self.body = body
+        self.parent_type = None
 
 class MethodDeclaration(DeclarationNode):
 
@@ -66,6 +67,7 @@ class AttrDeclarationNode(DeclarationNode):
         self.idx = idx
         self.value = value
         self.type_expected = type_expected
+        self.parent = None
 
 
 class ProtocolDeclarationNode(DeclarationNode):
@@ -94,7 +96,11 @@ class TypeDeclarationNode(DeclarationNode):
         self.token = token
         self.idx = token.lex
         self.functions = [x for x in body if isinstance(x,FuncDeclarationNode)] if body is not None else []
+        for i in self.functions:
+            i.parent_type = self.idx
         self.attributes = [x for x in body if isinstance(x,AttrDeclarationNode)] if body is not None else []
+        for i in self.attributes:
+            i.parent_type = self.idx
         self.inherits = inherits
         self.params = params
 
@@ -146,7 +152,6 @@ class AttrCallNode(CallNode):
     ):
         self.idx = idx.lex
         self.attr_called = attr_called
-
 
 
 class BlockNode(ExpressionNode):

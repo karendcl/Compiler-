@@ -11,6 +11,7 @@ INVALID_BINARY_OPERATION = 'OperationError: Operation "%s" is not defined betwee
 INVALID_UNARY_OPERATION = 'OperationError: Operation "%s" is not defined for "%s".'
 
 SELF_IS_READONLY = 'IdentifierError: Variable "self" is read-only.'
+SELF_OUTSIDE_CLASS = 'IdentifierError: Cannot call self from outside a class'
 SELF_INVALID_ATTRIBUTE_ID = 'IdentifierError: Cannot set "self" as attribute of a class.'
 SELF_INVALID_PARAM_ID = 'IdentifierError: Cannot set "self" as parameter of a method.'
 LOCAL_ALREADY_DEFINED = 'IdentifierError: Variable "%s" is already defined.'
@@ -31,3 +32,5 @@ CASE_OF_ERROR = 'CaseOfError: No branch matches wit de dynamic type of the case 
 
 MISSING_RETURN_TYPE = 'TypeError: Missing return type for method declaration "%s".'
 VECTOR_DIFF_TYPES = 'TypeError: Iterable objects must only have ONE type'
+ATTRIBUTES_PRIVATE = 'AttributeError: Attribute "%s" is private.'
+

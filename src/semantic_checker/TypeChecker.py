@@ -550,35 +550,44 @@ class TypeChecker:
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
-        #check that if the attribute being called is 'self', then I am in a function in a type
-        if node.idx == 'self':
-            #check that it's being called from a function in a type declaration
-            if self.current_type is None:
-                self.errors.append(err.SELF_OUTSIDE_TYPE)
-                return ErrorType()
+        #the only attribute I can call is self.something from inside a type
+        print('Visiting Attr Call Node')
+        if node.idx != 'self':
+            self.errors.append(err.ATTRIBUTES_PRIVATE % node.idx)
+            return ErrorType()
 
+        #check if the attribute
+        if self.current_type is None:
+            self.errors.append(err.SELF_OUTSIDE_CLASS)
+            return ErrorType()
 
-        #check that the attribute is defined
-        #return type of attribute
-        pass
+        #check if the attribute is defined
+        try:
+            attr = self.current_type.get_attribute(node.idx)
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        return attr.type
+
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
         print('Visiting Func Call Node')
-        #check amount of params
-        #check that param types correlate
-        #check that return type is actual expected type
-        params_of_call = node.params
-        function_called = node.obj_called
 
-        #check if function is defined
-        try:
-            if function_called in G.nonTerminals:
-                function = scope.find_function(str(function_called))
-            else:
-                pass
-        except:
-            pass
+        #case self.func()
+
+
+        if isinstance(node.obj_called, FuncCallNode):
+            #make the call on the object
+            obj_type = self.visit(node.obj_called, scope)
+            if obj_type == ErrorType():
+                return ErrorType()
+        else:
+
+
+
+
 
         #FuncCallNode can be a.b() / b() / base.func() / self.func()
 
