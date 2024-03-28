@@ -131,6 +131,9 @@ method_declarations %= def_method + semi_colon + method_declarations, lambda h, 
 #-----------Type Declaration Stuff ---------------------
 type_dec %= typex + idx + type_args + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[5], None, s[3])
 type_dec %= typex + idx + inherits + idx + curly_o + type_body + curly_c, lambda h, s: TypeDeclarationNode(s[2], s[6], s[4], None)
+#empty body
+type_dec %= typex + idx + inherits + idx + curly_o + curly_c, lambda h, s: TypeDeclarationNode(s[2], [], s[4], None)
+type_dec %= typex + idx + type_args + curly_o + curly_c, lambda h, s: TypeDeclarationNode(s[2], [], None, s[3])
 
 type_args %= opar + param_list + cpar, lambda h, s: s[2]
 type_args %= G.Epsilon, lambda h, s: []
@@ -192,10 +195,10 @@ elif_block %= elsex + exp_block, lambda h, s: ElseBlockNode(s[2])
 elif_block %= elifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], [s[5]], s[6])
 elif_block %= elifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])
 
-while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp , lambda h, s: LoopNode(s[3], [s[5]])
-while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp_block, lambda h, s: LoopNode(s[3], [s[5]])
-while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp , lambda h, s: LoopNode(s[3], s[5])
-while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp_block, lambda h, s: LoopNode(s[3], s[5])
+while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp , lambda h, s: LoopNode(s[3], [s[5]], [s[7]])
+while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp_block, lambda h, s: LoopNode(s[3], [s[5]], s[7])
+while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp , lambda h, s: LoopNode(s[3], s[5], [s[7]])
+while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp_block, lambda h, s: LoopNode(s[3], s[5], s[7])
 
 for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])
 for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp_block, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])

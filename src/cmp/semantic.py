@@ -56,6 +56,7 @@ class Type:
         self.methods = []
         self.parent = None
         self.children = []
+        self.orig_parent = None
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -63,11 +64,13 @@ class Type:
         self.parent = parent
 
         new_methods = parent.methods
-        # if intersection is not null
-        for method in self.methods:
-            if method in new_methods:
+
+        print(self.methods)
+
+        for method in new_methods:
+            if method in self.methods:
                 raise SemanticError(
-                    f'Method {method.name} already defined in {self.name} or one of the inherited classes.')
+                    f'Method {method.name} already defined in {self.name}.')
 
         self.methods.extend(new_methods)
 
@@ -131,8 +134,14 @@ class Type:
             plain[method.name] = (method, self)
         return plain.values() if clean else plain
 
+    def implements(self, protocol):
+        return all(method in self.methods for method in protocol.methods)
+
+
     def conforms_to(self, other):
-        return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
+        return (other.bypass() or self == other or
+                (self.parent is not None and self.parent.conforms_to(other))
+                or self.implements(other))
 
     def bypass(self):
         return False
@@ -153,13 +162,17 @@ class Type:
     def __repr__(self):
         return str(self)
 
+    @property
+    def __hash__(self):
+        return hash(self.name)
+
 class Protocol(Type):
     def __init__(self, name:str):
         self.name = name
         self.methods = []
         self.parents = []
         self.children: List[Protocol] = []
-
+        self.orig_parent = []
 
 
     def set_parent(self, parent):
@@ -219,9 +232,25 @@ class Protocol(Type):
 
     def __repr__(self):
         return str(self)
+class ObjectType(Type):
+    # set property parent
+    parent = None
+    def __init__(self):
+        Type.__init__(self, 'object')
+        self.parent = None
+        self.orig_parent = None
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, ObjectType)
+
+    def __hash__(self):
+        return super().__hash__
+
 class ErrorType(Type):
+    parent = None
     def __init__(self):
         Type.__init__(self, '<error>')
+        self.orig_parent = None
 
     def conforms_to(self, other):
         return True
@@ -233,8 +262,10 @@ class ErrorType(Type):
         return isinstance(other, Type)
 
 class VoidType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, '<void>')
+        self.orig_parent = ObjectType()
 
     def conforms_to(self, other):
         raise Exception('Invalid type: void type.')
@@ -245,26 +276,59 @@ class VoidType(Type):
     def __eq__(self, other):
         return isinstance(other, VoidType)
 
+    def __hash__(self):
+        return super().__hash__
+
 class IntType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'int')
+        self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
 
+    def __hash__(self):
+        return super().__hash__
 class BoolType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'bool')
+        self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, BoolType)
 
+    def __hash__(self):
+        return super().__hash__
 class StringType(Type):
+    parent = ObjectType()
     def __init__(self):
         Type.__init__(self, 'string')
+        self.parent = ObjectType()
+        self.orig_parent = ObjectType()
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, StringType)
+
+    def __hash__(self):
+        return super().__hash__
+
+class NoneType(Type):
+    parent = ObjectType()
+    def __init__(self):
+        #Not specified
+        Type.__init__(self, 'None')
+        self.parent = None
+        self.orig_parent = None
+
+    def __hash__(self):
+        return super().__hash__
+
+    def __eq__(self, other):
+        return other.name == self.name and isinstance(other, NoneType)
 
 class Context:
     def __init__(self):
@@ -356,3 +420,21 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+def common_ancestor_list(list_):
+    if not list_:
+        return ErrorType
+    if len(list_) == 1:
+        return list_[0]
+    return common_ancestor(list_[0], common_ancestor_list(list_[1:]))
+def common_ancestor(t1: Type, t2: Type):
+    if t1 == t2:
+        return t1
+    if t1 == ObjectType or t2 == ObjectType:
+        return ObjectType
+    if t1 == t2.parent:
+        return t2.parent
+    if t2 == t1.parent:
+        return t1.parent
+
+    return common_ancestor(t1.parent, t2.parent)

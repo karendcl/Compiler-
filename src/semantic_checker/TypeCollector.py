@@ -1,6 +1,6 @@
 from typing import Union
 from src.cmp.semantic import SemanticError, Type, Protocol
-from src.cmp.semantic import Context, IntType, VoidType, BoolType, StringType
+from src.cmp.semantic import Context, IntType, VoidType, BoolType, StringType, ObjectType, NoneType
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
 
@@ -21,8 +21,8 @@ class TypeCollector(object):
         self.context.types['bool'] = BoolType()
         self.context.types['void'] = VoidType()
         self.context.types['string'] = StringType()
-        self.context.types['Object'] = Type('Object')
-        self.context.types['None'] = Type('None')
+        self.context.types['Object'] = ObjectType()
+        self.context.types['None'] = NoneType()
         for statement in node.statements:
             if not isinstance(statement, FuncDeclarationNode):
                 self.visit(statement)

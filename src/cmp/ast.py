@@ -25,7 +25,7 @@ class ExpressionNode(Node):
 
 
 class FuncDeclarationNode(DeclarationNode):
-    #DONE
+    
     def __init__(
             self,
             token,
@@ -38,7 +38,7 @@ class FuncDeclarationNode(DeclarationNode):
         self.body = body
 
 class MethodDeclaration(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             idx,
@@ -51,7 +51,7 @@ class MethodDeclaration(DeclarationNode):
 
 
 class AttrDeclarationNode(DeclarationNode):
-    #DONE
+    
     def __init__(
             self,
             idx,
@@ -65,7 +65,7 @@ class AttrDeclarationNode(DeclarationNode):
 
 
 class ProtocolDeclarationNode(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             token,
@@ -79,7 +79,7 @@ class ProtocolDeclarationNode(DeclarationNode):
 
 
 class TypeDeclarationNode(DeclarationNode):
-    # DONE
+
     def __init__(
             self,
             token,
@@ -124,7 +124,7 @@ class CallNode(ExpressionNode):
     pass
 
 class FuncCallNode(CallNode):
-    #DONE
+    
     def __init__(
             self,
             obj_called,
@@ -134,7 +134,7 @@ class FuncCallNode(CallNode):
         self.params = params
 
 class AttrCallNode(CallNode):
-    #DONE
+    
     def __init__(
             self,
             idx,
@@ -147,25 +147,30 @@ class AttrCallNode(CallNode):
 
 
 class BlockNode(ExpressionNode):
+    #check done
     def __init__(self, expr_list: List[ExpressionNode]):
         self.expr_list = expr_list
 
 class LoopNode(ExpressionNode):
+    #check done
     def __init__(
             self,
             cond,
             body,
+            else_body
     ):
         self.condition = cond
         self.body = body
+        self.else_body = else_body
 
 
 class ConditionalNode(ExpressionNode):
+    #check done
     def __init__(
             self,
             cond,
-            then_body,
-            else_body,
+            then_body: [ExpressionNode],
+            else_body: ExpressionNode,
     ):
         self.condition = cond
         self.then_body = then_body
@@ -210,16 +215,19 @@ class ArithmeticNode(BinaryNode):
 
 
 class ConstantNumNode(AtomicNode):
+    #Check done
     def __init__(self,token):
         super().__init__(token)
         self.idx = token.lex
 
 
 class ConstantStringNode(AtomicNode):
+    # Check done
     pass
 
 
 class ConstantBoolNode(AtomicNode):
+    # Check done
     pass
 
 
@@ -231,13 +239,14 @@ class VariableNode(AtomicNode):
 
 
 class InstantiateNode(ExpressionNode):
-    #DONE
+
     def __init__(
             self,
             idx,
             params
     ):
         self.idx = idx
+        self.iden = idx.lex
         self.params = params
 
 
@@ -296,55 +305,68 @@ class IndexationNode(ExpressionNode):
 
 # --------UNARY NODES---------------------
 class NotNode(UnaryNode):
+    #check done
     pass
 
 
 class NegNode(UnaryNode):
+    #check done
     pass
 
 
 class SqrtNode(UnaryNode):
+    #check done
     pass
 
 
 class CosNode(UnaryNode):
+    #check done
     pass
 
 
 class SinNode(UnaryNode):
+    #check done
     pass
 
 
 class ExponEulerNode(UnaryNode):
+    #check done
     pass
 
 
 # --------ARITHMETIC NODES----------------
 class ModNode(ArithmeticNode):
+    #check done
     pass
 
 
 class LogNode(ArithmeticNode):
+    #check done
     pass
 
 
 class PlusNode(ArithmeticNode):
+    #check done
     pass
 
 
 class MinusNode(ArithmeticNode):
+    #check done
     pass
 
 
 class StarNode(ArithmeticNode):
+    #check done
     pass
 
 
 class DivNode(ArithmeticNode):
+    #check done
     pass
 
 
 class PowNode(ArithmeticNode):
+    #Check done
     pass
 
 
@@ -355,22 +377,27 @@ class ComparisonNode(BinaryNode):
 
 
 class LeqNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class LessNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class EqualNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class AndNode(ComparisonNode):
+    #blind test done
     pass
 
 
 class OrNode(ComparisonNode):
+    #blind test done
     pass
 
 
@@ -378,5 +405,6 @@ class IsNode(ComparisonNode):
     pass
 
 class StringExpression(BinaryNode):
+    #Check done
     pass
 
