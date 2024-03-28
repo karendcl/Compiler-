@@ -32,16 +32,17 @@ class TypeChecker:
 
         print(f'About to visit the expression')
         for i in node.expression:
-            print(i)
-            self.visit(i, scope.create_child())
-        print(node.expression)
+            ans = self.visit(i, scope.create_child())
+
+        print(f'Exprssion returned: {ans}')
+
         return scope
 
     @visitor.when(ast.PrintNode)
     def visit(self, node: PrintNode, scope: Scope):
         print(f'visiting Print')
-        self.visit(node.expr, scope)
-        return ObjectType
+        ans = self.visit(node.expr, scope)
+        return ObjectType if ans != ErrorType else ErrorType
 
     @visitor.when(ConstantNumNode)
     def visit(self, node: ConstantNumNode, scope: Scope):
@@ -190,6 +191,7 @@ class TypeChecker:
             body_return_type = self.visit(i, child_scope)
             if body_return_type == ErrorType:
                 return ErrorType
+
 
         else_return_type = ErrorType()
         child_scope = scope.create_child()
@@ -463,6 +465,7 @@ class TypeChecker:
     def visit(self, node: ForNode, scope: Scope):
         # check that it's an Iterable Object
         print('Visiting For Node')
+        #iterable is either range, a List Comprehension or a ListNode
         obj_type = self.visit(node.iterable, scope)
         if not isinstance(obj_type, IterableType):
             self.errors.append(err.INCOMPATIBLE_TYPES % (obj_type.name, 'Iterable'))
@@ -473,36 +476,33 @@ class TypeChecker:
         child_scope.define_variable(node.varidx.lex, obj_type.elem_type)
 
         # visit the body of the loop
-        ret = ErrorType()
+        body_ret = ErrorType()
         if node.body != []:
             for i in node.body:
-                ret = self.visit(i, child_scope)
-                if ret == ErrorType():
+                body_ret = self.visit(i, child_scope)
+                if body_ret == ErrorType():
                     return ErrorType()
 
-            return ret
-
+        else_ret = ErrorType()
         # visit the else body
         if node.elsex != []:
             for i in node.elsex:
-                ret = self.visit(i, child_scope)
-                if ret == ErrorType():
+                else_ret = self.visit(i, child_scope)
+                if else_ret == ErrorType():
                     return ErrorType()
 
-            return ret
+        return common_ancestor(body_ret, else_ret)
 
-        return ret
+    @visitor.when(ListNode)
+    def visit(self, node: ListNode, scope:Scope):
+        ret_type = [self.visit(expr, scope.create_child()) for expr in node.obj]
+        if len(set(ret_type)) != 1:
+            self.errors.append(err.VECTOR_DIFF_TYPES)
+            return ErrorType
+        return IterableType(ret_type[0])
+
 
     #------------------------------------NOT DONE
-
-
-
-
-
-
-
-
-
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
@@ -544,6 +544,8 @@ class TypeChecker:
         #FuncCallNode can be a.b() / b() / base.func() / self.func()
 
         #check if
+
+
 
 
 

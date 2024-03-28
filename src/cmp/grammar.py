@@ -200,15 +200,15 @@ while_block %= whilex + opar + boolean_exp + cpar + exp + elsex + exp_block, lam
 while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp , lambda h, s: LoopNode(s[3], s[5], [s[7]])
 while_block %= whilex + opar + boolean_exp + cpar + exp_block + elsex + exp_block, lambda h, s: LoopNode(s[3], s[5], s[7])
 
-for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp, lambda h, s: ForNode(s[5],[s[7]],s[3], [s[9]])
 for_exp %= forx + opar + idx + inx + exp + cpar + exp + elsex + exp_block, lambda h, s: ForNode(s[5],[s[7]],s[3], s[9])
-for_exp %= forx + opar + idx + inx + exp + cpar + exp_block + elsex + exp, lambda h, s: ForNode(s[5],s[7],s[3],s[9])
+for_exp %= forx + opar + idx + inx + exp + cpar + exp_block + elsex + exp, lambda h, s: ForNode(s[5],s[7],s[3],[s[9]])
 for_exp %= forx + opar + idx + inx + exp + cpar + exp_block + elsex + exp_block, lambda h, s: ForNode(s[5],s[7],s[3],s[9])
 
 iterable %= vector, lambda h, s: s[1]
 iterable %= rangex + opar + exp + comma + exp + cpar, lambda h, s: RangeNode(s[3], s[5])
 
-vector %= square_o + list_ + square_c, lambda h, s: s[2]
+vector %= square_o + list_ + square_c, lambda h, s: ListNode(s[2])
 vector %= square_o + exp + given + idx + inx + iterable + square_c, lambda h, s: List_Comprehension(s[4], [s[2]],s[6])
 
 list_ %= exp, lambda h, s: [s[1]]

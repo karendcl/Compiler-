@@ -52,7 +52,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
 
 testcase7 = 'let a = range(1,10) in a[1];'
 
-testcase8 = 'let a = range(1,10) in for ( x in a) print(x) else print(a);'
+testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
 
 
 

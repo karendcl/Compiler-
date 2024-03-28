@@ -30,3 +30,4 @@ VOID_EXPRESSION = 'VoidReferenceError: Object reference not set to an instance o
 CASE_OF_ERROR = 'CaseOfError: No branch matches wit de dynamic type of the case expression.'
 
 MISSING_RETURN_TYPE = 'TypeError: Missing return type for method declaration "%s".'
+VECTOR_DIFF_TYPES = 'TypeError: Iterable objects must only have ONE type'

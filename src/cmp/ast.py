@@ -291,12 +291,14 @@ class List_Comprehension():
 class RangeNode(BinaryNode):
     pass
 
-
+class ListNode():
+    def __init__(self, list):
+        self.obj = list
 class ForNode(ExpressionNode):
     def __init__(self,
                  iterable,
                  body,
-                 varidx,
+                 varidx: Token,
                  elsex
                  ):
 
