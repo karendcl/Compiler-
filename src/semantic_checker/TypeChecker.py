@@ -433,19 +433,75 @@ class TypeChecker:
         print('Visiting Range Node')
         # check that both inputs are int
         res = self._check_int_binary_operation(node, scope, 'range', IntType)
-        return IterableType if res == IntType else ErrorType()
-
-    #------------------------------------NOT DONE
+        return IterableType(res) if res == IntType else ErrorType()
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
-        pass
+        print('Visiting Indexation Node')
+        # check that obj is Iterable
+        try:
+            # checking if I am indexing on a defined variable
+            obj_type = scope.find_variable(node.obj.lex).type
+        except:
+            # visit the object I am indexing on
+            obj_type = self.visit(node.obj, scope)
+
+        if not isinstance(obj_type, IterableType):
+            self.errors.append(err.INCOMPATIBLE_TYPES % (obj_type.name, 'Iterable'))
+            return ErrorType()
+
+        # check that index is a Number
+        index_type = self.visit(node.index, scope)
+        if index_type != IntType():
+            self.errors.append(err.INCOMPATIBLE_TYPES % (index_type.name, 'Int'))
+            return ErrorType()
+
+        # return the type of the elements in the iterable
+        return obj_type.elem_type
 
     @visitor.when(ForNode)
     def visit(self, node: ForNode, scope: Scope):
-        #check q es una lista
+        # check that it's an Iterable Object
+        print('Visiting For Node')
+        obj_type = self.visit(node.iterable, scope)
+        if not isinstance(obj_type, IterableType):
+            self.errors.append(err.INCOMPATIBLE_TYPES % (obj_type.name, 'Iterable'))
+            return ErrorType()
 
-        pass
+        # define in a child scope the variable that will be used in the loop as the type of the iterable
+        child_scope = scope.create_child()
+        child_scope.define_variable(node.varidx.lex, obj_type.elem_type)
+
+        # visit the body of the loop
+        ret = ErrorType()
+        if node.body != []:
+            for i in node.body:
+                ret = self.visit(i, child_scope)
+                if ret == ErrorType():
+                    return ErrorType()
+
+            return ret
+
+        # visit the else body
+        if node.elsex != []:
+            for i in node.elsex:
+                ret = self.visit(i, child_scope)
+                if ret == ErrorType():
+                    return ErrorType()
+
+            return ret
+
+        return ret
+
+    #------------------------------------NOT DONE
+
+
+
+
+
+
+
+
 
 
     @visitor.when(List_Comprehension)
