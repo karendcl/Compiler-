@@ -235,6 +235,7 @@ class Protocol(Type):
 class ObjectType(Type):
     # set property parent
     parent = None
+    name = 'object'
     def __init__(self):
         Type.__init__(self, 'object')
         self.parent = None
@@ -248,6 +249,7 @@ class ObjectType(Type):
 
 class ErrorType(Type):
     parent = None
+    name = '<error>'
     def __init__(self):
         Type.__init__(self, '<error>')
         self.orig_parent = None
@@ -263,6 +265,7 @@ class ErrorType(Type):
 
 class VoidType(Type):
     parent = ObjectType()
+    name = 'void'
     def __init__(self):
         Type.__init__(self, '<void>')
         self.orig_parent = ObjectType()
@@ -281,6 +284,7 @@ class VoidType(Type):
 
 class IntType(Type):
     parent = ObjectType()
+    name = 'int'
     def __init__(self):
         Type.__init__(self, 'int')
         self.parent = ObjectType()
@@ -293,6 +297,7 @@ class IntType(Type):
         return super().__hash__
 class BoolType(Type):
     parent = ObjectType()
+    name = 'bool'
     def __init__(self):
         Type.__init__(self, 'bool')
         self.parent = ObjectType()
@@ -305,6 +310,7 @@ class BoolType(Type):
         return super().__hash__
 class StringType(Type):
     parent = ObjectType()
+    name = 'string'
     def __init__(self):
         Type.__init__(self, 'string')
         self.parent = ObjectType()
@@ -318,6 +324,7 @@ class StringType(Type):
 
 class NoneType(Type):
     parent = ObjectType()
+    name = 'None'
     def __init__(self):
         #Not specified
         Type.__init__(self, 'None')
@@ -388,6 +395,9 @@ class VariableInfo:
         self.name = name
         self.type = vtype
 
+    def __str__(self):
+        return f'{self.name} : {self.type.name}'
+
 class Scope:
     def __init__(self, parent=None):
         self.locals = []
@@ -401,6 +411,7 @@ class Scope:
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
+        child.locals = self.locals
         return child
 
     def define_variable(self, vname, vtype):
@@ -420,6 +431,10 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+    def __str__(self):
+        return f'Locals: {','.join(str(x) for x in self.locals)}'
+
 
 def common_ancestor_list(list_):
     if not list_:

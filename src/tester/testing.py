@@ -24,7 +24,9 @@ pars = parser.LR1Parser(G, verbose=False)
 number = 0
 
 #testing simple arithmetic expressions
-testcase0 = 'while (4 == 5) print(1) else print(2);'
+testcase0 = ('{let x = 1 in'
+             ' let y = x:=2 in '
+             'x+y;}')
 # testcase1 = 'log(4.5,4);'
 #
 # #testing function declaration

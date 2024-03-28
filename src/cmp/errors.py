@@ -13,8 +13,8 @@ INVALID_UNARY_OPERATION = 'OperationError: Operation "%s" is not defined for "%s
 SELF_IS_READONLY = 'IdentifierError: Variable "self" is read-only.'
 SELF_INVALID_ATTRIBUTE_ID = 'IdentifierError: Cannot set "self" as attribute of a class.'
 SELF_INVALID_PARAM_ID = 'IdentifierError: Cannot set "self" as parameter of a method.'
-LOCAL_ALREADY_DEFINED = 'IdentifierError: Variable "%s" is already defined in method "%s".'
-VARIABLE_NOT_DEFINED = 'IdentifierError: Variable "%s" is not defined in "%s".'
+LOCAL_ALREADY_DEFINED = 'IdentifierError: Variable "%s" is already defined.'
+VARIABLE_NOT_DEFINED = 'IdentifierError: Variable "%s" is not defined.'
 
 INFERENCE_ERROR_ATTRIBUTE = 'InferenceError: Cannot infer type for attribute "%s".'
 INFERENCE_ERROR_PARAMETER = 'InferenceError: Cannot infer type for parameter "%s".'

@@ -206,6 +206,7 @@ class BinaryNode(ExpressionNode):
 
 
 class PrintNode(ExpressionNode):
+    #Check done
     def __init__(self, expr: ExpressionNode):
         self.expr = expr
 
@@ -266,6 +267,7 @@ class ConformsNode(ExpressionNode):
 
 
 class RandNode(AtomicNode):
+    #Check done
     pass
 
 class List_Comprehension():
