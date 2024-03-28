@@ -27,7 +27,8 @@ class TypeChecker:
             scope = Scope()
 
         for elem in node.statements:
-            self.current_type = self.visit(elem, scope.create_child())
+            if isinstance(elem, FuncDeclarationNode):
+                self.visit(elem, scope.create_child())
 
 
         print(f'About to visit the expression')
@@ -334,6 +335,12 @@ class TypeChecker:
     @visitor.when(MethodDeclaration)
     def visit(self, node: MethodDeclaration, scope: Scope):
         pass
+
+    @visitor.when(AttrDeclarationNode)
+    def visit(self, node: AttrDeclarationNode, scope: Scope):
+        pass
+
+
     #------------------------------------NOT DONE
 
     @visitor.when(IsNode)
@@ -358,7 +365,39 @@ class TypeChecker:
 
     @visitor.when(InstantiateNode)
     def visit(self, node: InstantiateNode, scope: Scope):
-        pass
+        print('Visiting Instantiate Node')
+        try:
+            new_type_ = self.context.get_type(node.iden)
+            #check that it's the same amount of params
+            if len(node.params) != len(new_type_.params):
+                self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(new_type_.params), len(node.params)))
+                return ErrorType()
+
+            #check that the types of the params are the same as the ones in the declaration
+            if len(node.params) == 0:
+                return new_type_
+
+            for i, param in enumerate(node.params):
+                paramid, param_type = param
+                if param_type is None:
+                    pass
+                else:
+                    idx, expr = param
+                    param_type = self.visit(idx, scope)
+                    exp_id, exp_type = new_type_.params[i]
+                    if exp_type is None:
+                        pass
+                    else:
+                        anc = common_ancestor(param_type, exp_type)
+                        if anc != new_type_.params[i]:
+                            self.errors.append(err.INCOMPATIBLE_TYPES % (param_type.name, new_type_.params[i].name))
+                            return ErrorType()
+
+        except SemanticError as e:
+            self.errors.append(e.text)
+            return ErrorType()
+
+        return new_type_
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
@@ -368,12 +407,14 @@ class TypeChecker:
     def visit(self, node: FuncCallNode, scope: Scope):
         pass
 
-    @visitor.when(AttrDeclarationNode)
-    def visit(self, node: AttrDeclarationNode, scope: Scope):
-        pass
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):
+        #declare the method in the context
+        pass
+
+
+
 
 
 
@@ -531,17 +572,8 @@ class TypeChecker:
     # def visit(self, node:IsNode, scope:Scope):
     #     #see if variable is defined
     #     pass
-    #
-    #
-    #
-    #
-    # @visitor.when(VariableNode)
-    # def visit(self, node: VariableNode, scope: Scope):
-    #     variable = scope.find_variable(node.idx.lex)
-    #     if variable is None:
-    #         self.errors.append(err.VARIABLE_NOT_DEFINED % (node.idx.lex, self.current_method.name))
-    #         return ErrorType()
-    #     return variable.type
+
+
     #
     # @visitor.when(InstantiateNode)
     # def visit(self, node: InstantiateNode, scope: Scope):

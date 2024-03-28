@@ -35,6 +35,10 @@ class FuncDeclarationNode(DeclarationNode):
         self.token = token
         self.idx = token.lex
         self.params = params
+        for i,k in params:
+            if isinstance(i,VoidNode):
+                self.params = []
+                break
         self.body = body
 
 class MethodDeclaration(DeclarationNode):
@@ -249,6 +253,10 @@ class InstantiateNode(ExpressionNode):
         self.idx = idx
         self.iden = idx.lex
         self.params = params
+        for i,k in params:
+            if isinstance(i,VoidNode):
+                self.params = []
+                break
 
 
 class VoidNode(UnaryNode):

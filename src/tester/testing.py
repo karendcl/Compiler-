@@ -61,6 +61,8 @@ testcase3 = 'print((((1+2)^3)*4)/5);'
 # #testing nested expressions
 testcase4 = 'let a = 42 in print(if (a == 2) "1" else "2");'
 #
+testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+             'let a = new A(4,5) in print(a);')
 #
 # testcase9 = 'print(sin(pi));'
 #
