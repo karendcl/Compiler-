@@ -50,6 +50,8 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'let a = new B() in '
               'if (a is A) print(1) else print(2);')
 
+testcase7 = 'let a = range(1,10) in a;'
+
 
 
 # testcase1 = 'log(4.5,4);'

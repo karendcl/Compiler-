@@ -1,6 +1,6 @@
 from typing import Union
 from src.cmp.semantic import SemanticError, Type, Protocol
-from src.cmp.semantic import Context, IntType, VoidType, BoolType, StringType, ObjectType, NoneType, VectorType
+from src.cmp.semantic import Context, IntType, VoidType, BoolType, StringType, ObjectType, NoneType, IterableType
 import src.cmp.visitor as visitor
 from src.cmp.ast import *
 
@@ -23,7 +23,7 @@ class TypeCollector(object):
         self.context.types['string'] = StringType()
         self.context.types['Object'] = ObjectType()
         self.context.types['None'] = NoneType()
-        self.context.types['Vector'] = VectorType()
+        self.context.types['Iterable'] = IterableType()
         for statement in node.statements:
             if not isinstance(statement, FuncDeclarationNode):
                 self.visit(statement)

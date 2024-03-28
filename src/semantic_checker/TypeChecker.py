@@ -428,6 +428,12 @@ class TypeChecker:
         except SemanticError as error:
             self.errors.append(error.text)
 
+    @visitor.when(RangeNode)
+    def visit(self, node: RangeNode, scope: Scope):
+        print('Visiting Range Node')
+        # check that both inputs are int
+        res = self._check_int_binary_operation(node, scope, 'range', IntType)
+        return IterableType if res == IntType else ErrorType()
 
     #------------------------------------NOT DONE
 
@@ -441,12 +447,6 @@ class TypeChecker:
 
         pass
 
-    @visitor.when(RangeNode)
-    def visit(self, node: RangeNode, scope: Scope):
-        #posiblemente crear list type
-        #check q ambos son numeros
-        #return List Type
-        pass
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):

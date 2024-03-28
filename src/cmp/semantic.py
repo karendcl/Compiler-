@@ -338,11 +338,11 @@ class NoneType(Type):
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, NoneType)
 
-class VectorType(Type):
+class IterableType(Type):
     parent = ObjectType()
-    name = 'Vector'
+    name = 'Iterable'
     def __init__(self):
-        Type.__init__(self, 'Vector')
+        Type.__init__(self, 'Iterable')
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
 
