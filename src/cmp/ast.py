@@ -147,10 +147,12 @@ class AttrCallNode(CallNode):
 
 
 class BlockNode(ExpressionNode):
+    #check done
     def __init__(self, expr_list: List[ExpressionNode]):
         self.expr_list = expr_list
 
 class LoopNode(ExpressionNode):
+    #check done
     def __init__(
             self,
             cond,
@@ -163,7 +165,7 @@ class LoopNode(ExpressionNode):
 
 
 class ConditionalNode(ExpressionNode):
-    #blind check done
+    #check done
     def __init__(
             self,
             cond,
@@ -303,26 +305,32 @@ class IndexationNode(ExpressionNode):
 
 # --------UNARY NODES---------------------
 class NotNode(UnaryNode):
+    #check done
     pass
 
 
 class NegNode(UnaryNode):
+    #check done
     pass
 
 
 class SqrtNode(UnaryNode):
+    #check done
     pass
 
 
 class CosNode(UnaryNode):
+    #check done
     pass
 
 
 class SinNode(UnaryNode):
+    #check done
     pass
 
 
 class ExponEulerNode(UnaryNode):
+    #check done
     pass
 
 

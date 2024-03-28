@@ -131,7 +131,6 @@ class TypeChecker:
         self.visit(node.left, scope)
         self.visit(node.right, scope)
         return BoolType()
-        # return self.context.get_type('bool')
 
     @visitor.when(AndNode)
     def visit(self, node: AndNode, scope: Scope):
@@ -158,6 +157,7 @@ class TypeChecker:
         condition = self.visit(node.condition, scope)
         if not isinstance(condition, BoolType):
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
+            return ErrorType()
 
         print('Visiting Then Body')
         then_return_type = ErrorType
@@ -179,6 +179,7 @@ class TypeChecker:
         condition = self.visit(node.condition, scope)
         if condition != BoolType():
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
+            return ErrorType()
 
         body_return_type = ErrorType()
         child_scope = scope.create_child()
@@ -196,7 +197,34 @@ class TypeChecker:
 
         return common_ancestor(body_return_type, else_return_type)
 
+    @visitor.when(ExponEulerNode)
+    def visit(self, node: ExponEulerNode, scope: Scope):
+        print('Visiting ExponEuler Node')
+        return self._check_unary_operation(node, scope, 'e^', IntType)
+
+    @visitor.when(SinNode)
+    def visit(self, node: SinNode, scope: Scope):
+        print('Visiting Sin Node')
+        return self._check_unary_operation(node, scope, 'sin', IntType)
+
+    @visitor.when(CosNode)
+    def visit(self, node: CosNode, scope: Scope):
+        print('Visiting Cos Node')
+        return self._check_unary_operation(node, scope, 'cos', IntType)
+
+    @visitor.when(SqrtNode)
+    def visit(self, node: SqrtNode, scope: Scope):
+        print('Visiting Sqrt Node')
+        return self._check_unary_operation(node, scope, 'sqrt', IntType)
+
+
+
     #------------------------------------NOT DONE
+
+    @visitor.when(IsNode)
+    def visit(self, node: IsNode, scope: Scope):
+        pass
+
 
 
 
