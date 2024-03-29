@@ -27,10 +27,10 @@ class TypeChecker:
             scope = Scope()
 
         for elem in node.statements:
-
             self.visit(elem, scope)
 
         print(f'About to visit the expression')
+        self.current_type = None
 
         for i in node.expression:
             ans = self.visit(i, scope.create_child())
@@ -41,17 +41,17 @@ class TypeChecker:
     def visit(self, node: PrintNode, scope: Scope):
         print(f'visiting Print')
         ans = self.visit(node.expr, scope)
-        return ObjectType if ans != ErrorType else ErrorType
+        return ObjectType() if not isinstance(ans,ErrorType) else ErrorType()
 
     @visitor.when(ConstantNumNode)
     def visit(self, node: ConstantNumNode, scope: Scope):
         print('Visiting Constant Num')
-        return IntType
+        return IntType()
 
     @visitor.when(ConstantStringNode)
     def visit(self, node: ConstantStringNode, scope: Scope):
         print('Visiting Constant String')
-        return StringType
+        return StringType()
 
     @visitor.when(ConstantBoolNode)
     def visit(self, node: ConstantBoolNode, scope: Scope):
@@ -60,17 +60,17 @@ class TypeChecker:
     @visitor.when(StringExpression)
     def visit(self, node: StringExpression, scope: Scope):
         print(f'Visiting string expression')
-        expected = [IntType, StringType]
+        expected = [IntType(), StringType()]
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
         if left_type in expected:
             if right_type in expected:
-                return StringType
+                return StringType()
             else:
                 self.errors.append(err.INCOMPATIBLE_TYPES(right_type, StringType))
         else:
             self.errors.append(err.INCOMPATIBLE_TYPES(left_type, StringType))
-        return ErrorType
+        return ErrorType()
 
     @visitor.when(ModNode)
     def visit(self, node: ArithmeticNode, scope: Scope):
@@ -150,6 +150,8 @@ class TypeChecker:
         return_type = ErrorType()
         for expr in node.expr_list:
             return_type = self.visit(expr, scope.create_child())
+            if isinstance(return_type, ErrorType):
+                return ErrorType()
         return return_type
 
     @visitor.when(ConditionalNode)
@@ -166,10 +168,12 @@ class TypeChecker:
         for i in node.then_body:
             then_return_type = self.visit(i, scope)
             if isinstance(then_return_type, ErrorType):
-                return ErrorType
+                return ErrorType()
 
         print('Visiting Else Body')
         else_type: Type = self.visit(node.else_body, scope)
+
+        print('Finishing Else Body')
         if isinstance(else_type, ErrorType):
             return ErrorType
 
@@ -340,7 +344,6 @@ class TypeChecker:
         print('Visiting Instantiate Node')
         try:
             new_type_ = self.context.get_type(node.iden)
-
 
             #check that it's the same amount of params
             if new_type_.params:
@@ -576,13 +579,6 @@ class TypeChecker:
         try:
             idx = node.obj_called
 
-            #checking if it's self
-            if idx.lex == 'self':
-                if self.current_type is None:
-                    self.errors.append(err.SELF_OUTSIDE_CLASS)
-                    return ErrorType()
-                return self.current_type
-
             #checking if it's base
             if idx.lex == 'base':
                 if self.current_type is None:
@@ -592,23 +588,38 @@ class TypeChecker:
                     self.errors.append(err.BASE_WITHOUT_INHERITANCE)
                     return ErrorType()
                 self.current_type = self.current_type.parent
-                return self.current_type.parent
+
+                #visit the current method in the parent class
+                method = self.current_type.get_method(self.current_method)
+                return self.visit(method.body, scope)
+
+            #checking if it's self
+            if idx.lex == 'self':
+                if self.current_type is None:
+                    self.errors.append(err.SELF_OUTSIDE_CLASS)
+                    return ErrorType()
+                #it's a function call to a method in the current class
+                return self.visit(node.params, scope)
+
 
             #checking if it's a method or a type defined
             if self.current_type is None:
-                func = scope.find_function(idx)
-                type_ = None
+            # this means that it's calling a function or a type
                 try:
-                    a = self.context.get_type(idx)
-                    type_ = a
+                    a = self.context.get_type(idx.lex)
+
+                    #if it's here it's because it'a a type call
+                    self.current_type = a
+                    return self.visit(node.params, scope)
                 except:
-                    pass
+                    #it means it is a function call
+                    func = scope.find_function(idx.lex)
 
-                if func is None and type_ is None:
-                    self.errors.append(err.FUNCTION_NOT_DEFINED % idx)
-                    return ErrorType()
+                    #check params
+                    if func is None:
+                        self.errors.append(err.FUNCTION_NOT_DEFINED % idx)
+                        return ErrorType()
 
-                if type_ is None:
                     ok = self.check_parameters(node.params, func.param_types)
                     if not ok:
                         return ErrorType()
@@ -616,7 +627,7 @@ class TypeChecker:
                     return self.visit(func.body, scope)
             else:
                 #check if it's a method of the current type
-                method = self.current_type.get_method(idx)
+                method = self.current_type.get_method(idx.lex)
                 if method is None:
                     self.errors.append(err.METHOD_NOT_FOUND % (idx, self.current_type.name))
                     return ErrorType()
@@ -626,6 +637,8 @@ class TypeChecker:
                     return ErrorType()
 
                 return self.visit(method.body, scope)
+
+            return ErrorType()
         except:
             #this means that the object called is a function call,
             #it can only be base().a() or b().a()

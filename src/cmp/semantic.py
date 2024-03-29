@@ -1,6 +1,7 @@
 import itertools as itt
 from collections import OrderedDict
 from typing import List, Tuple
+import src.cmp.errors as err
 
 
 class SemanticError(Exception):
@@ -101,6 +102,10 @@ class Type:
         try:
             self.get_attribute(name)
         except SemanticError:
+            if name == 'self':
+                raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+            if name == 'base':
+                raise SemanticError(err.BASE_INVALID_ID)
             attribute = Attribute(name, typex, value)
             self.attributes.append(attribute)
             return attribute
@@ -121,6 +126,11 @@ class Type:
     def define_method(self, name:str, param_names:list, param_types:list, body):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
+
+        if name == 'self':
+            raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+        if name == 'base':
+            raise SemanticError(err.BASE_INVALID_ID)
 
         method = Function(name, param_names, param_types, body)
         self.methods.append(method)
@@ -219,6 +229,10 @@ class Protocol(Type):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
+        if name == 'self':
+            raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+        if name == 'base':
+            raise SemanticError(err.BASE_INVALID_ID)
         method = Method(name, param_names, param_types, return_type)
         self.methods.append(method)
         for child in self.children:
@@ -491,7 +505,7 @@ class Scope:
         try:
             return next(x for x in locals if x.name == name and isinstance(x, FunctionInfo))
         except StopIteration:
-            return self.parent.find_function(name, self.index) if self.parent is None else None
+            return self.parent.find_function(name, self.index) if self.parent is not None else None
 
 
     def find_variable(self, vname, index=None):
@@ -499,14 +513,13 @@ class Scope:
         try:
             return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
-
 
 
     def __str__(self):

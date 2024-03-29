@@ -12,7 +12,7 @@ INVALID_UNARY_OPERATION = 'OperationError: Operation "%s" is not defined for "%s
 
 SELF_IS_READONLY = 'IdentifierError: Variable "self" is read-only.'
 SELF_OUTSIDE_CLASS = 'IdentifierError: Cannot call self from outside a class'
-SELF_INVALID_ATTRIBUTE_ID = 'IdentifierError: Cannot set "self" as attribute of a class.'
+SELF_INVALID_ATTRIBUTE_ID = 'IdentifierError: Cannot set "self" as attribute/method of a class.'
 SELF_INVALID_PARAM_ID = 'IdentifierError: Cannot set "self" as parameter of a method.'
 LOCAL_ALREADY_DEFINED = 'IdentifierError: Variable "%s" is already defined.'
 VARIABLE_NOT_DEFINED = 'IdentifierError: Variable "%s" is not defined.'
@@ -40,3 +40,4 @@ METHOD_NOT_FOUND = 'MethodError: Method "%s" is not defined in type "%s".'
 
 BASE_OUTSIDE_CLASS = 'BaseError: Cannot call base from outside a class'
 BASE_WITHOUT_INHERITANCE = 'BaseError: Cannot call base without inheritance'
+BASE_INVALID_ID = 'BaseError: Cannot set "base" as name of an attribute/method.'

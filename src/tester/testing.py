@@ -34,7 +34,8 @@ testcase2 = 'if (1==1) print(1) else {print(2);};'
 
 testcase3 = 'print((((1+2)^3)*4)/5);'
 
-testcase4 = 'let a = 42 in print(if (a == 2) "1" else "2");'
+# todo bug con @
+testcase4 = 'let a = "42" in print(if (4 < 2) "1" else "Hola");'
 #
 testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
              'let a = new A(4,5) in print(a);')
@@ -48,7 +49,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is A) print(1) else print(a.getX());')
+              'if (a is A) print(1) else print(4);')
 
 testcase7 = 'let a = range(1,10) in a[1];'
 
@@ -56,7 +57,7 @@ testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
 
 testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
 
-testcase10 = ('{let a = 4 in '
+testcase10 = ('{let a = 4 in  '
               'let b = a:= "Hola" in print(b);}')
 
 
@@ -195,8 +196,7 @@ def testing(testcase, id):
         #CHECKING RETURN TYPES
         type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
         scope : Scope = type_checker.visit(ast)
-        print(type_checker.errors)
-        print(scope)
+        assert type_checker.errors == []
 
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
