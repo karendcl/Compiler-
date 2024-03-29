@@ -27,8 +27,8 @@ class TypeChecker:
             scope = Scope()
 
         for elem in node.statements:
-            if isinstance(elem, FuncDeclarationNode):
-                self.visit(elem, scope)
+
+            self.visit(elem, scope)
 
         print(f'About to visit the expression')
 
@@ -557,7 +557,7 @@ class TypeChecker:
             self.errors.append(err.ATTRIBUTES_PRIVATE % node.idx)
             return ErrorType()
 
-        #check if the attribute
+        #check if in a class
         if self.current_type is None:
             self.errors.append(err.SELF_OUTSIDE_CLASS)
             return ErrorType()
@@ -652,51 +652,35 @@ class TypeChecker:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def check_parameters(self, params_given, params_expected):
-        if len(params_given) != len(params_expected):
-            self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(params_expected), len(params_given)))
-            return False
-        for arg, param in zip(params_given, params_expected):
-            if param is None:
-                continue
-            if not arg.conforms_to(param):
-                self.errors.append(err.INCOMPATIBLE_TYPES % (arg.name, param.name))
-                return False
-        return True
-
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
         #FuncCallNode can be a.b() / b() / base.func() / self.func()
 
         #check if
 
+    @visitor.when(TypeDeclarationNode)
+    def visit(self, node: TypeDeclarationNode, scope: Scope):
+        print('Visiting Type Declaration Node')
+        type = self.context.get_type(node.idx)
+        self.current_type = type
 
+        #set the type of all its attributes
+        for i in type.attributes:
+            if i.value is None:
+                continue
+
+            value_t = self.visit(i.value, scope)
+
+            if i.type is None or isinstance(i.type, NoneType):
+                i.type = value_t
+            else:
+                ancestor = common_ancestor(value_t, i.type)
+                #if the value conforms to the specified value
+                if ancestor != i.type:
+                    self.errors.append(err.INCOMPATIBLE_TYPES %(value_t, i.type))
+                    return ErrorType()
+
+            return
+
+        #todo not checking the type methods
 
 
 
@@ -863,7 +847,17 @@ class TypeChecker:
     #         return ErrorType()
 
 
-
+    def check_parameters(self, params_given, params_expected):
+        if len(params_given) != len(params_expected):
+            self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(params_expected), len(params_given)))
+            return False
+        for arg, param in zip(params_given, params_expected):
+            if param is None:
+                continue
+            if not arg.conforms_to(param):
+                self.errors.append(err.INCOMPATIBLE_TYPES % (arg.name, param.name))
+                return False
+        return True
 
 
 

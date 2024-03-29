@@ -9,12 +9,13 @@ class SemanticError(Exception):
         return self.args[0]
 
 class Attribute:
-    def __init__(self, name, typex):
+    def __init__(self, name, typex, value):
         self.name = name
         self.type = typex
+        self.value = value
 
     def __str__(self):
-        return f'[attrib] {self.name} : {self.type.name};'
+        return f'[attrib] {self.name} : {self.type.name} = {self.value};'
 
     def __repr__(self):
         return str(self)
@@ -99,7 +100,7 @@ class Type:
         try:
             self.get_attribute(name)
         except SemanticError:
-            attribute = Attribute(name, typex)
+            attribute = Attribute(name, typex, value)
             self.attributes.append(attribute)
             return attribute
         else:
@@ -340,6 +341,9 @@ class NoneType(Type):
 
     def __hash__(self):
         return super().__hash__
+
+    def conforms_to(self, other):
+        return True
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, NoneType)
