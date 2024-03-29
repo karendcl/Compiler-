@@ -56,8 +56,8 @@ testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
 
 testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
 
-testcase10 = ('{let a = 4 in print(a); '
-              'let b = a:= 4 in print(b);}')
+testcase10 = ('{let a = 4 in '
+              'let b = a:= "Hola" in print(b);}')
 
 
 # testcase1 = 'log(4.5,4);'

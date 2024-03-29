@@ -149,7 +149,7 @@ class TypeBuilder2(object):
                     param_names.pop(i)
                     param_types.pop(i)
 
-            self.current_type.define_method(node.idx, param_names, param_types )
+            self.current_type.define_method(node.idx, param_names, param_types, node.body )
         except SemanticError as error:
             self.errors.append(error.text)
 

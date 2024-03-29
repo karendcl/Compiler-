@@ -232,7 +232,6 @@ class TypeChecker:
         for decl in node.assignments:
             type_ = self.visit(decl, scope)
             if isinstance(type_, ErrorType):
-                print('Error in Let Node')
                 return ErrorType()
 
         body_return_type = ErrorType()
@@ -251,7 +250,6 @@ class TypeChecker:
         var = scope.find_variable(node.idx)
         print(f'Variable: {var}')
         if var is None:
-            print('Variable not found')
             self.errors.append(err.VARIABLE_NOT_DEFINED % (node.idx))
             return ErrorType()
         return var.type
@@ -543,26 +541,20 @@ class TypeChecker:
 
         return IterableType(ret_type)
 
-
-    #------------------------------------NOT DONE
-
-
-
-
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
-        #the only attribute I can call is self.something from inside a type
+        # the only attribute I can call is self.something from inside a type
         print('Visiting Attr Call Node')
         if node.idx != 'self':
             self.errors.append(err.ATTRIBUTES_PRIVATE % node.idx)
             return ErrorType()
 
-        #check if in a class
+        # check if in a class
         if self.current_type is None:
             self.errors.append(err.SELF_OUTSIDE_CLASS)
             return ErrorType()
 
-        #check if the attribute is defined
+        # check if the attribute is defined
         try:
             attr = self.current_type.get_attribute(node.idx)
         except SemanticError as e:
@@ -571,6 +563,8 @@ class TypeChecker:
 
         return attr.type
 
+
+    #------------------------------------NOT DONE
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
@@ -679,6 +673,7 @@ class TypeChecker:
                     return ErrorType()
 
             return
+
 
         #todo not checking the type methods
 
@@ -866,7 +861,7 @@ class TypeChecker:
         right_type = self.visit(node.right, scope)
 
         if left_type == right_type == BoolType:
-            return return_type
+            return return_type()
         self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
         return ErrorType()
 
@@ -876,7 +871,7 @@ class TypeChecker:
         right_type = self.visit(node.right, scope)
 
         if left_type == right_type == IntType:
-            return return_type
+            return return_type()
         self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
         return ErrorType()
 
@@ -884,7 +879,7 @@ class TypeChecker:
     def _check_unary_operation(self, node: UnaryNode, scope: Scope, operation: str, expected_type):
         typex = self.visit(node.expr, scope)
         if typex == expected_type:
-            return typex
+            return expected_type()
         self.errors.append(err.INVALID_UNARY_OPERATION % (operation, typex.name))
         return ErrorType()
 

@@ -40,10 +40,11 @@ class Method:
             other.param_types == self.param_types
 
 class Function:
-    def __init__(self, name, param_names, params_types):
+    def __init__(self, name, param_names, params_types, body):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
+        self.expr = body
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -117,11 +118,11 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
-    def define_method(self, name:str, param_names:list, param_types:list):
+    def define_method(self, name:str, param_names:list, param_types:list, body):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
-        method = Function(name, param_names, param_types)
+        method = Function(name, param_names, param_types, body)
         self.methods.append(method)
         for child in self.children:
             child.methods.append(method)
