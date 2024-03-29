@@ -564,6 +564,7 @@ class TypeChecker:
             self.errors.append(e.text)
             return ErrorType()
 
+        print(f'returning {attr.type}')
         return attr.type
 
 
@@ -583,16 +584,27 @@ class TypeChecker:
             #checking if it's base
             if idx.lex == 'base':
                 if self.current_type is None:
+                    print('Base outside class')
                     self.errors.append(err.BASE_OUTSIDE_CLASS)
                     return ErrorType()
                 if self.current_type.parent is None:
+                    print('Base without inheritance')
                     self.errors.append(err.BASE_WITHOUT_INHERITANCE)
                     return ErrorType()
-                self.current_type = self.current_type.parent
+
+                print(f'Visiting base {self.current_type.parent.name}')
+                print(f'Cuurent method: {self.current_method}')
+
+                base_type = self.current_type.parent
 
                 #visit the current method in the parent class
-                method = self.current_type.get_method(self.current_method)
-                return self.visit(method.body, scope)
+                try:
+                    method = base_type.get_method(self.current_method.name)
+                except SemanticError as e:
+                    self.errors.append(e.text)
+                    return ErrorType()
+                print(f'Visiting method {method.expr} in type {base_type.name}')
+                return self.visit(method.expr, scope)
 
             #checking if it's self
             if idx.lex == 'self':
@@ -607,7 +619,6 @@ class TypeChecker:
             if self.current_type is None:
             # this means that it's calling a function or a type
                 try:
-
                     print(f'Looking for type {idx.lex}')
                     a = scope.find_variable(idx.lex).type
                     print(f'Found type {a}')
@@ -637,6 +648,8 @@ class TypeChecker:
                     self.errors.append(err.METHOD_NOT_FOUND % (idx.lex, self.current_type.name))
                     return ErrorType()
 
+
+
                 #select the params that are not void
                 params = [type for val, type in node.params if not isinstance(val, VoidNode)]
 
@@ -644,10 +657,10 @@ class TypeChecker:
                 if ok is False:
                     return ErrorType()
 
+                self.current_method = method
                 print(f'Visiting method {method.expr} in type {self.current_type.name}')
                 return self.visit(method.expr, scope)
 
-            return ErrorType()
         except:
             #this means that the object called is a function call,
             #it can only be b().a()

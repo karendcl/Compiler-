@@ -18,7 +18,6 @@ def Regexs():
         (sin, "sin"),
         (expon, "expon"),
         (log, "log"),
-        (base, "base"),
         (rand, "rand"),
         (typex, "type"),
         (new, "new"),

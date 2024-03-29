@@ -80,12 +80,7 @@ class TypeBuilder2(object):
         except SemanticError as se:
             self.errors.append(se.text)
 
-        if node.inherits is not None:
-            try:
-                parent_type = self.ctx.get_type(node.inherits.lex)
-                self.current_type.set_parent(parent_type)
-            except SemanticError as se:
-                self.errors.append(se.text)
+
 
         if node.params is not None:
             print(node.params)
@@ -102,6 +97,13 @@ class TypeBuilder2(object):
         print(node.attributes)
         for member in node.attributes + node.functions:
             self.visit(member)
+
+        if node.inherits is not None:
+            try:
+                parent_type = self.ctx.get_type(node.inherits.lex)
+                self.current_type.set_parent(parent_type)
+            except SemanticError as se:
+                self.errors.append(se.text)
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node: ProtocolDeclarationNode):

@@ -76,8 +76,10 @@ class Type:
 
         for method in new_methods:
             if method in self.methods:
-                raise SemanticError(
-                    f'Method {method.name} already defined in {self.name}.')
+                #check if the args are different
+                if len(method.param_names) != len(self.methods[self.methods.index(method)].param_names):
+                    raise SemanticError(
+                        f'Method {method.name} already defined in {self.name}.')
 
         self.methods.extend(new_methods)
 
@@ -125,7 +127,10 @@ class Type:
 
     def define_method(self, name:str, param_names:list, param_types:list, body):
         if name in (method.name for method in self.methods):
-            raise SemanticError(f'Method "{name}" already defined in {self.name}')
+            defined_method = self.get_method(name)
+            if defined_method.param_types != param_types:
+                raise SemanticError(f'Method "{name}" already defined in {self.name} with different parameters.')
+            return defined_method
 
         if name == 'self':
             raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
