@@ -559,7 +559,7 @@ class TypeChecker:
 
         # check if the attribute is defined
         try:
-            attr = self.current_type.get_attribute(node.idx)
+            attr = self.current_type.get_attribute(node.attr_called.lex)
         except SemanticError as e:
             self.errors.append(e.text)
             return ErrorType()
@@ -578,6 +578,7 @@ class TypeChecker:
         #type.() or self.() or base() or method()
         try:
             idx = node.obj_called
+            print(f'IDX: {idx.lex}')
 
             #checking if it's base
             if idx.lex == 'base':
@@ -599,26 +600,30 @@ class TypeChecker:
                     self.errors.append(err.SELF_OUTSIDE_CLASS)
                     return ErrorType()
                 #it's a function call to a method in the current class
-                return self.visit(node.params, scope)
+                return self.visit(node.params[0], scope)
 
 
             #checking if it's a method or a type defined
             if self.current_type is None:
             # this means that it's calling a function or a type
                 try:
-                    a = self.context.get_type(idx.lex)
+
+                    print(f'Looking for type {idx.lex}')
+                    a = scope.find_variable(idx.lex).type
+                    print(f'Found type {a}')
 
                     #if it's here it's because it'a a type call
                     self.current_type = a
-                    return self.visit(node.params, scope)
+                    return self.visit(node.params[0], scope)
                 except:
                     #it means it is a function call
                     func = scope.find_function(idx.lex)
 
                     #check params
                     if func is None:
-                        self.errors.append(err.FUNCTION_NOT_DEFINED % idx)
+                        self.errors.append(err.FUNCTION_NOT_DEFINED % idx.lex)
                         return ErrorType()
+
 
                     ok = self.check_parameters(node.params, func.param_types)
                     if not ok:
@@ -629,30 +634,29 @@ class TypeChecker:
                 #check if it's a method of the current type
                 method = self.current_type.get_method(idx.lex)
                 if method is None:
-                    self.errors.append(err.METHOD_NOT_FOUND % (idx, self.current_type.name))
-                    return ErrorType()
-                #check if the number of params is the same
-                ok = self.check_parameters(node.params, method.param_types)
-                if not ok:
+                    self.errors.append(err.METHOD_NOT_FOUND % (idx.lex, self.current_type.name))
                     return ErrorType()
 
-                return self.visit(method.body, scope)
+                #select the params that are not void
+                params = [type for val, type in node.params if not isinstance(val, VoidNode)]
+
+                ok = self.check_parameters(params, method.param_types)
+                if ok is False:
+                    return ErrorType()
+
+                print(f'Visiting method {method.expr} in type {self.current_type.name}')
+                return self.visit(method.expr, scope)
 
             return ErrorType()
         except:
             #this means that the object called is a function call,
-            #it can only be base().a() or b().a()
+            #it can only be b().a()
             #so I need to visit the object called first
             obj_type = self.visit(node.obj_called, scope)
             if isinstance(obj_type, ErrorType):
                 return ErrorType()
 
-            #check if the object called is a type
-            if isinstance(obj_type, Type):
-                #this means that it was a base call and the current type is set to the base type
-                #so I visit the function in the args
-                ret = self.visit(node.params, scope)
-                return ret
+            return self.visit(node.params, scope)
 
             #this means that the object called is a function call
             #so it can be a nested func call, the original func call must return a type
@@ -859,6 +863,7 @@ class TypeChecker:
         if len(params_given) != len(params_expected):
             self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(params_expected), len(params_given)))
             return False
+        print(params_expected)
         for arg, param in zip(params_given, params_expected):
             if param is None:
                 continue

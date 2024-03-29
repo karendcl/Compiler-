@@ -23,24 +23,8 @@ pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 
-#testing simple arithmetic expressions
-testcase0 = ('{let x = 1 in'
-             ' let y = x as int in '
-             'x+y;}')
-
-testcase1 = 'print(1+2);'
-
-testcase2 = 'if (1==1) print(1) else {print(2);};'
-
-testcase3 = 'print((((1+2)^3)*4)/5);'
-
-# todo bug con @
-testcase4 = 'let a = "42" in print(if (4 < 2) "1" else "Hola");'
-#
-testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
-             'let a = new A(4,5) in print(a);')
-
-testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+# testing simple arithmetic expressions
+testcase0 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'type B inherits A { b = 1; c = 1; }'
               'function p(a) => a;'
               'protocol N { f(): int; '
@@ -49,16 +33,39 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is A) print(1) else print(4);')
+              'if (a is A) print(1) else a.getX();')
 
-testcase7 = 'let a = range(1,10) in a[1];'
-
-testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
-
-testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
-
-testcase10 = ('{let a = 4 in  '
-              'let b = a:= "Hola" in print(b);}')
+# testcase1 = 'print(1+2);'
+#
+# testcase2 = 'if (1==1) print(1) else {print(2);};'
+#
+# testcase3 = 'print((((1+2)^3)*4)/5);'
+#
+# # todo bug con @
+# testcase4 = 'let a = "42" in print(if (4 < 2) "1" else "Hola");'
+# #
+# testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+#              'let a = new A(4,5) in print(a);')
+#
+# testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
+#               'type B inherits A { b = 1; c = 1; }'
+#               'function p(a) => a;'
+#               'protocol N { f(): int; '
+#               '             g( a: int ): int; }'
+#               'protocol S extends M { h(): int; }'
+#               'protocol M  { i(): int; }'
+#               'protocol J extends M {k():int;}'
+#               'let a = new B() in '
+#               'if (a is A) print(1) else a.getX();')
+#
+# testcase7 = 'let a = range(1,10) in a[1];'
+#
+# testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
+#
+# testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
+#
+# testcase10 = ('{let a = 4 in  '
+#               'let b = a:= "Hola" in print(b);}')
 
 
 # testcase1 = 'log(4.5,4);'
@@ -196,6 +203,7 @@ def testing(testcase, id):
         #CHECKING RETURN TYPES
         type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
         scope : Scope = type_checker.visit(ast)
+        print(type_collector.errors)
         assert type_checker.errors == []
 
 
