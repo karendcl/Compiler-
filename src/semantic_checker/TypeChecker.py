@@ -165,12 +165,12 @@ class TypeChecker:
         then_return_type = ErrorType
         for i in node.then_body:
             then_return_type = self.visit(i, scope)
-            if then_return_type == ErrorType:
+            if isinstance(then_return_type, ErrorType):
                 return ErrorType
 
         print('Visiting Else Body')
         else_type: Type = self.visit(node.else_body, scope)
-        if else_type == ErrorType:
+        if isinstance(else_type, ErrorType):
             return ErrorType
 
         return common_ancestor(then_return_type, else_type)
@@ -187,16 +187,16 @@ class TypeChecker:
         child_scope = scope.create_child()
         for i in node.body:
             body_return_type = self.visit(i, child_scope)
-            if body_return_type == ErrorType:
-                return ErrorType
+            if isinstance(body_return_type, ErrorType):
+                return ErrorType()
 
 
         else_return_type = ErrorType()
         child_scope = scope.create_child()
         for i in node.else_body:
             else_return_type = self.visit(i, child_scope)
-            if else_return_type == ErrorType:
-                return ErrorType
+            if isinstance(else_return_type, ErrorType):
+                return ErrorType()
 
         return common_ancestor(body_return_type, else_return_type)
 
@@ -231,15 +231,16 @@ class TypeChecker:
         type_ = ErrorType()
         for decl in node.assignments:
             type_ = self.visit(decl, scope)
-            if type_ == ErrorType():
+            if isinstance(type_, ErrorType):
+                print('Error in Let Node')
                 return ErrorType()
 
-
         body_return_type = ErrorType()
+
         for i in node.body:
             print(f'Visiting Body Node with scope: {scope}')
             body_return_type = self.visit(i, scope)
-            if body_return_type == ErrorType():
+            if isinstance(body_return_type, ErrorType):
                 return ErrorType()
         return body_return_type
 
@@ -348,6 +349,8 @@ class TypeChecker:
         print('Visiting Instantiate Node')
         try:
             new_type_ = self.context.get_type(node.iden)
+
+
             #check that it's the same amount of params
             if new_type_.params:
                 if len(node.params) != len(new_type_.params):
@@ -361,23 +364,28 @@ class TypeChecker:
             for i, param in enumerate(node.params):
                 paramid, param_type = param
                 if param_type is None:
-                    pass
-                else:
-                    idx, expr = param
-                    param_type = self.visit(idx, scope)
+                    #variable is a variable or expr
+                    try:
+                        param_type = self.visit(paramid, scope)
+                    except:
+                        param_type = scope.find_variable(paramid).type
+                        if param_type is None:
+                            self.errors.append(err.VARIABLE_NOT_DEFINED % paramid)
+                            return ErrorType()
+
                     exp_id, exp_type = new_type_.params[i]
-                    if exp_type is None:
-                        pass
+                    if isinstance(exp_type, NoneType):
+                        continue
                     else:
                         anc = common_ancestor(param_type, exp_type)
                         if anc != new_type_.params[i]:
-                            self.errors.append(err.INCOMPATIBLE_TYPES % (param_type.name, new_type_.params[i].name))
+                            self.errors.append(err.INCOMPATIBLE_TYPES % (param_type.name, exp_type.name))
                             return ErrorType()
 
         except SemanticError as e:
             self.errors.append(e.text)
             return ErrorType()
-
+        print(new_type_)
         return new_type_
 
     @visitor.when(IsNode)
@@ -437,7 +445,7 @@ class TypeChecker:
         print('Visiting Range Node')
         # check that both inputs are int
         res = self._check_int_binary_operation(node, scope, 'range', IntType)
-        return IterableType(res) if res == IntType else ErrorType()
+        return IterableType(res) if isinstance(res, IntType) else ErrorType()
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
@@ -489,7 +497,7 @@ class TypeChecker:
         if node.body != []:
             for i in node.body:
                 body_ret = self.visit(i, child_scope)
-                if body_ret == ErrorType():
+                if isinstance(body_ret, ErrorType):
                     return ErrorType()
 
         else_ret = ErrorType()
@@ -497,7 +505,7 @@ class TypeChecker:
         if node.elsex != []:
             for i in node.elsex:
                 else_ret = self.visit(i, child_scope)
-                if else_ret == ErrorType():
+                if isinstance(else_ret, ErrorType):
                     return ErrorType()
 
         return common_ancestor(body_ret, else_ret)
@@ -536,7 +544,7 @@ class TypeChecker:
 
         for i in node.exp_for_idx:
             ret_type = self.visit(i, child_scope)
-            if ret_type == ErrorType:
+            if isinstance(ret_type, ErrorType):
                 print('List Comprehension failed')
                 return ErrorType()
 
@@ -575,15 +583,117 @@ class TypeChecker:
     def visit(self, node: FuncCallNode, scope: Scope):
         print('Visiting Func Call Node')
 
-        #case self.func()
+        #objcalled is either an idx(type) or a base().something or self.a() or a.b() a function call
+        #if objcalled is a idx then:
+        #type.() or self.() or base() or method()
+        try:
+            idx = node.obj_called
 
+            #checking if it's self
+            if idx.lex == 'self':
+                if self.current_type is None:
+                    self.errors.append(err.SELF_OUTSIDE_CLASS)
+                    return ErrorType()
+                return self.current_type
 
-        if isinstance(node.obj_called, FuncCallNode):
-            #make the call on the object
+            #checking if it's base
+            if idx.lex == 'base':
+                if self.current_type is None:
+                    self.errors.append(err.BASE_OUTSIDE_CLASS)
+                    return ErrorType()
+                if self.current_type.parent is None:
+                    self.errors.append(err.BASE_WITHOUT_INHERITANCE)
+                    return ErrorType()
+                self.current_type = self.current_type.parent
+                return self.current_type.parent
+
+            #checking if it's a method or a type defined
+            if self.current_type is None:
+                func = scope.find_function(idx)
+                type_ = None
+                try:
+                    a = self.context.get_type(idx)
+                    type_ = a
+                except:
+                    pass
+
+                if func is None and type_ is None:
+                    self.errors.append(err.FUNCTION_NOT_DEFINED % idx)
+                    return ErrorType()
+
+                if type_ is None:
+                    ok = self.check_parameters(node.params, func.param_types)
+                    if not ok:
+                        return ErrorType()
+
+                    return self.visit(func.body, scope)
+            else:
+                #check if it's a method of the current type
+                method = self.current_type.get_method(idx)
+                if method is None:
+                    self.errors.append(err.METHOD_NOT_FOUND % (idx, self.current_type.name))
+                    return ErrorType()
+                #check if the number of params is the same
+                ok = self.check_parameters(node.params, method.param_types)
+                if not ok:
+                    return ErrorType()
+
+                return self.visit(method.body, scope)
+        except:
+            #this means that the object called is a function call,
+            #it can only be base().a() or b().a()
+            #so I need to visit the object called first
             obj_type = self.visit(node.obj_called, scope)
-            if obj_type == ErrorType():
+            if isinstance(obj_type, ErrorType):
                 return ErrorType()
-        else:
+
+            #check if the object called is a type
+            if isinstance(obj_type, Type):
+                #this means that it was a base call and the current type is set to the base type
+                #so I visit the function in the args
+                ret = self.visit(node.params, scope)
+                return ret
+
+            #this means that the object called is a function call
+            #so it can be a nested func call, the original func call must return a type
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def check_parameters(self, params_given, params_expected):
+        if len(params_given) != len(params_expected):
+            self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(params_expected), len(params_given)))
+            return False
+        for arg, param in zip(params_given, params_expected):
+            if param is None:
+                continue
+            if not arg.conforms_to(param):
+                self.errors.append(err.INCOMPATIBLE_TYPES % (arg.name, param.name))
+                return False
+        return True
+
+
+
+
+
+
+
+
+            
+
+
 
 
 
@@ -748,14 +858,6 @@ class TypeChecker:
     #
     #     return method.return_type if method.return_type.name != 'SELF_TYPE' else ancestor_type
     #
-    #
-    #
-    #
-    #
-    # @visitor.when(IsNode)
-    # def visit(self, node:IsNode, scope:Scope):
-    #     #see if variable is defined
-    #     pass
 
 
     #

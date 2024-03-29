@@ -457,6 +457,7 @@ class FunctionInfo:
 class Scope:
     def __init__(self, parent=None):
         self.locals = []
+        self.functions = []
         self.parent = parent
         self.children = []
         self.index = 0 if parent is None else len(parent)
@@ -467,6 +468,7 @@ class Scope:
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
+        child.functions = self.functions
         return child
 
     def define_variable(self, vname, vtype):
@@ -476,11 +478,11 @@ class Scope:
 
     def define_function(self,name,param_names, param_types, expression):
         info = FunctionInfo(name, param_names,param_types, expression)
-        self.locals.append(info)
+        self.functions.append(info)
         return info
 
     def find_function(self, name, index = None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
+        locals = self.functions
         try:
             return next(x for x in locals if x.name == name and isinstance(x, FunctionInfo))
         except StopIteration:

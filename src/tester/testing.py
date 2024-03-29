@@ -48,7 +48,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is A) print(1) else print(2);')
+              'if (a is A) print(1) else print(a.getX());')
 
 testcase7 = 'let a = range(1,10) in a[1];'
 

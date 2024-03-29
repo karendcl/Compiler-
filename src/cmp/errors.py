@@ -33,4 +33,10 @@ CASE_OF_ERROR = 'CaseOfError: No branch matches wit de dynamic type of the case 
 MISSING_RETURN_TYPE = 'TypeError: Missing return type for method declaration "%s".'
 VECTOR_DIFF_TYPES = 'TypeError: Iterable objects must only have ONE type'
 ATTRIBUTES_PRIVATE = 'AttributeError: Attribute "%s" is private.'
+FUNCTION_NOT_DEFINED = 'FunctionError: Function "%s" is not defined.'
+FUNCTION_ALREADY_DEFINED = 'FunctionError: Function "%s" is already defined.'
+METHOD_NOT_FOUND = 'MethodError: Method "%s" is not defined in type "%s".'
 
+
+BASE_OUTSIDE_CLASS = 'BaseError: Cannot call base from outside a class'
+BASE_WITHOUT_INHERITANCE = 'BaseError: Cannot call base without inheritance'
