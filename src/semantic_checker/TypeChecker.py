@@ -288,14 +288,7 @@ class TypeChecker:
         if isinstance(expr_type, ErrorType):
             return ErrorType()
 
-        # ancestor type between old value and new value
-        ancestor = common_ancestor(var.type, expr_type)
-        if ancestor != var.type:
-            self.errors.append(err.INCOMPATIBLE_TYPES % (expr_type, var.type))
-            return ErrorType()
-
-        # update new expr_type
-        var.vtype = expr_type
+        var.type = expr_type
         return expr_type
 
     @visitor.when(ConformsNode)
