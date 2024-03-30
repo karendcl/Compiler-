@@ -186,6 +186,7 @@ assign_list %= assign_var + comma + assign_list, lambda h, s: [s[1]] + s[3]
 assign_var %= idx + equal + exp, lambda h, s: AssignNode(s[1], s[3])
 
 mutate_var %= idx + mut + exp, lambda h, s: DestructiveAssignment(s[1], s[3])
+mutate_var %= indexation + mut + exp, lambda h, s: DestructiveAssignment(s[1], s[3])
 
 conditional %= ifx + opar + boolean_exp + cpar + exp + elif_block, lambda h, s: ConditionalNode(s[3], [s[5]], s[6])
 conditional %= ifx + opar + boolean_exp + cpar + exp_block + elif_block, lambda h, s: ConditionalNode(s[3], s[5], s[6])

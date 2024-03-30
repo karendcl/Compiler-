@@ -108,11 +108,11 @@ class TypeDeclarationNode(DeclarationNode):
 class AssignNode(ExpressionNode):
     def __init__(
             self,
-            token: Token,
+            token,
             expr: ExpressionNode
     ):
         self.token = token
-        self.idx = token.lex
+        self.idx = token.lex if not isinstance(token, IndexationNode) else token
         self.expr = expr
 
 class DestructiveAssignment(AssignNode):
