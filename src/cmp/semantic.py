@@ -501,6 +501,20 @@ class Scope:
                 self.locals.append(VariableInfo(name, type))
                 return
 
+    def change_value_list(self, list, index, newval):
+        list = self.find_variable(list)
+        new_list = [x if i != index else newval for i, x in enumerate(list.type) ]
+        print(new_list)
+
+        for x in self.locals:
+            if x.name == list.name:
+
+                self.locals.pop(self.locals.index(x))
+
+                self.locals.append(VariableInfo(list.name, new_list))
+                return
+
+
 
     def create_child(self):
         child = Scope(self)

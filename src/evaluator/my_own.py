@@ -53,7 +53,12 @@ class Evaluator:
 
     @visitor.when(ConstantStringNode)
     def visit(self, node: ConstantStringNode, scope: Scope):
-        return node.value.lex
+        try:
+            a = str(node.value.lex)[1:-1]
+            a = a.replace(str('\\"'), '"')
+            return a
+        except:
+            return str(node.value)
 
     @visitor.when(ConstantBoolNode)
     def visit(self, node: ConstantBoolNode, scope: Scope):
@@ -64,7 +69,7 @@ class Evaluator:
     def visit(self, node: StringExpression, scope: Scope):
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
-        return left + right
+        return str(left) + str(right)
 
     @visitor.when(ModNode)
     def visit(self, node: ArithmeticNode, scope: Scope):
@@ -172,22 +177,21 @@ class Evaluator:
     @visitor.when(LoopNode)
     def visit(self, node: LoopNode, scope: Scope):
 
-        condition = self.visit(node.condition, scope)
-
+        return_ = None
         # todo verify if child scope is necessary
-        if condition is True:
-            body_return_type = None
-            child_scope = scope.create_child()
-            for i in node.body:
-                body_return_type = self.visit(i, child_scope)
-            return body_return_type
-
         child_scope = scope.create_child()
-        else_return_type = None
-        for i in node.else_body:
-            else_return_type = self.visit(i, child_scope)
+        visited_while = False
+        while self.visit(node.condition, child_scope) is True:
+            for i in node.body:
+                visited_while = True
+                return_ = self.visit(i, child_scope)
 
-        return else_return_type
+        if visited_while:
+            return return_
+        else:
+            for i in node.else_body:
+                return_ = self.visit(i, child_scope)
+            return return_
 
     @visitor.when(ExponEulerNode)
     def visit(self, node: ExponEulerNode, scope: Scope):
@@ -243,20 +247,25 @@ class Evaluator:
     @visitor.when(DestructiveAssignment)
     def visit(self, node: DestructiveAssignment, scope: Scope):
 
+        expr_type = self.visit(node.expr, scope)
+        print(f'new value: {expr_type}')
+
         if isinstance(node.idx, ast.IndexationNode):
-            var = self.visit(node.idx, scope)
+            print(node.idx.obj.lex)
+            iterable = scope.find_variable(node.idx.obj.lex)
+            # print(iterable)
+            index = int(self.visit(node.idx.index, scope))
+            # print(f'Iterable: {iterable}, index: {index}')
+            scope.change_value_list(node.idx.obj.lex, index, expr_type)
+            # iterable[int(self.visit(node.idx.index, scope))] = expr_type
         else:
             var = scope.find_variable(node.idx)
-
-        expr_type = self.visit(node.expr, scope)
-
-        var.type = expr_type
+            scope.change_type(node.idx, expr_type)
 
         return expr_type
 
     @visitor.when(ConformsNode)
     def visit(self, node: ConformsNode, scope: Scope):
-
 
         if node.type_to in G.nonTerminals:
                 type_as = self.context.get_type(str(node.type_to))
@@ -361,29 +370,41 @@ class Evaluator:
     def visit(self, node: ForNode, scope: Scope):
         # check that it's an Iterable Object
         #iterable is either range, a List Comprehension or a ListNode
-        obj_type = self.visit(node.iterable, scope)
+        iterable = self.visit(node.iterable, scope)
 
         # define in a child scope the variable that will be used in the loop as the type of the iterable
         child_scope = scope.create_child()
 
         #check if variable is not already defined
         var = scope.find_variable(node.varidx.lex)
-
-        child_scope.define_variable(node.varidx.lex, obj_type.elem_type)
-
         # visit the body of the loop
-        body_ret = None
-        if node.body != []:
-            for i in node.body:
-                body_ret = self.visit(i, child_scope)
-            return body_ret
 
-        else_ret =  None
-        # visit the else body
-        if node.elsex != []:
-            for i in node.elsex:
-                else_ret = self.visit(i, child_scope)
-        return else_ret
+        res = None
+
+        for k in iterable:
+            child_scope = scope.create_child()
+            child_scope.define_variable(node.varidx.lex, k)
+            for i in node.body:
+                res = self.visit(i, child_scope)
+        else:
+            res = self.visit(node.elsex, scope)
+
+        return res
+
+
+        # body_ret = None
+        # if node.body != []:
+        #     for i in node.body:
+        #
+        #         body_ret = self.visit(i, child_scope)
+        #     return body_ret
+        #
+        # else_ret =  None
+        # # visit the else body
+        # if node.elsex != []:
+        #     for i in node.elsex:
+        #         else_ret = self.visit(i, child_scope)
+        # return else_ret
 
 
     @visitor.when(ListNode)

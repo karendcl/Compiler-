@@ -36,7 +36,7 @@ testcase2 = 'if (1==1) print(1) else {print(2);};'
 testcase3 = 'print((((1+2)^3)*4)/5);'
 
 # todo bug con @
-testcase4 = 'let a = "42" in print(if (4 < 2) "1" else 5@"Hola"@4);'
+testcase4 = 'let a = "42" in print(if (4 < 2) "1" else 5@@"Hola"@4);'
 #
 testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
              'let a = new A(4,5) in print(a);')
@@ -52,14 +52,18 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'let a = new B() in '
               'if (a is A) print(1) else a.getX();')
 
-testcase7 = 'let a = range(1,10) in a[1];'
+testcase7 = 'let a = range(1,10) in print(a[1]);'
 
 testcase8 = 'let a = [1,2,3,4] in for (x in a) print(x) else print(a);'
 
 testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
 
-testcase10 = ('{let a = 4 in  '
-              'let b = a := "Hola" in print(b);}')
+testcase10 = ('let a = 4 in '
+              '{'
+              'let b = a := "Hola" in print(a);'
+              'a := 7;'
+              'print(a);'
+              '}')
 
 testcase11 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'type B inherits A { b = "hola"; c = 1; getX() => base(); }'
@@ -72,8 +76,10 @@ testcase11 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'let a = new B() in '
               'if (a is B) print(1) else if (4>3) p(4) else print(a);')
 
-testcase12 = ('let a=[1,2,3,4] in '
-              'a[1] := "5";')
+testcase12 = ('{let a=[1,2,3,4] in '
+              '{ a[1] := 5;'
+              'print(a);};'
+              'print(4);};')
 
 # testcase1 = 'log(4.5,4);'
 #
@@ -100,7 +106,7 @@ testcase13 = ('function f(x,y) {sin(x+y);'
               ' 4;')
 testcase14 = 'let msg = "Hello" in print(msg);'
 testcase15 = ' let number = 42, test = "The meaning of life is" in print(test@@number);'
-testcase16 = 'let number = 42 in (let text = "The meaning of life is" in ( print(test@number)));'
+testcase16 = 'let number = 42 in (let text = "The meaning of life is" in ( print(text@number)));'
 testcase17 = 'let a = 6, b = a*7 in print(b);'
 testcase18 = 'let a=7, b=10,c=20 in {print(a);print(b);print(c);};'
 testcase19 = 'let a = (let b =6 in b*7) in print(a);'
@@ -112,7 +118,7 @@ testcase24 = 'let a = 42 in if (a == 2) print(1) else print(2);'
 testcase25 = 'let a = 2 in if (a ==2) {print(1);} else print(2);'
 
 #testing while
-testcase26 = 'let a = 10 in while (a > 0) {print(a); a := a - 1;} else {print(b);}'
+testcase26 = 'let a = 10 in while (a > 0) {print(a); a := a - 1;} else {print(a);}'
 
 #testing for
 testcase27 = 'for (x in range(1,10)) print(x) else print(a);'
@@ -122,9 +128,9 @@ testcase28 = 'protocol Hashable { hash(): int; } 4;'
 testcase29 = 'protocol Equatable extends Hashable { equals(other:Object): Boolean; } 4;'
 
 #testing iterables declaration
-testcase30 = 'let numbers = [1,2,3,4,5,6,7,8] in for (x in numbers) print(x) else print(a);'
+testcase30 = 'let numbers = [1,2,3,4,5,6,7,8] in for (x in numbers) print(x) else print(numbers);'
 testcase31 = 'let numbers = [x^2 || x in range(1,10)] in print(x);'
-testcase32 = 'print("The \\"message is " @ 1);'
+testcase32 = 'print("The \\"message\\" is " @ 1);'
 
 #testing type declaration
 testcase33 = ('type Point {  x = 0; y = 0; getX()=> self.x; getY()=> self.y;}'
@@ -151,18 +157,18 @@ testcase41 = ('function fib(n) => if ( n==0 | a is b & a>1)  1 else ( fib ( n-1 
 
 testcase42 = '4*-8;'
 
-testcase43 = '(let a = 4 in a) @ "hola";'
+testcase43 = 'print((let a = 4 in a) @ "hola");'
 
 testcase44 = 'let a = b as c in a;'
 
 testcase45 = 'let a = if ("a" is string) 4 else 5 in a;'
 
-testcase46 = ('type a { b() => new a();}'
-              'let c = new a() in c.b().b();')
+testcase46 = ('type a { b() => new a(); d() => print(4);}'
+              'let c = new a() in c.b().b().d();')
 
 testcase47 = 'print(4+5+6 as int);'
 
-testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==0) "Magic" elif (mod % 3 == 1) "Woke" else "Dumb");'
+testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==1) "Magic" elif (mod % 3 == 0) "Woke" else "Dumb");'
 
 testcase49 = ('type A {}'
               '4;')
@@ -234,7 +240,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-
+        print(testcase)
         testcase = lexer(testcase)
         testing(testcase, i)
 

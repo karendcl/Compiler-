@@ -133,8 +133,10 @@ class TypeChecker:
     @visitor.when(EqualNode)
     def visit(self, node: EqualNode, scope: Scope):
         print('Visiting Equal Node')
-        self.visit(node.left, scope)
-        self.visit(node.right, scope)
+        left = self.visit(node.left, scope)
+        right = self.visit(node.right, scope)
+        if isinstance(left, ErrorType) or isinstance(right, ErrorType):
+            return ErrorType()
         return BoolType()
 
     @visitor.when(AndNode)
