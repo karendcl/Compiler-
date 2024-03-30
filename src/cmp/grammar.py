@@ -1,4 +1,4 @@
-
+import math
 from src.cmp.pycompiler import Grammar
 from src.cmp.ast import *
 
@@ -243,8 +243,8 @@ atom %= sin + opar + exp + cpar, lambda h, s: SinNode(s[3])
 atom %= expon + opar + exp + cpar, lambda h, s: ExponEulerNode(s[3])
 atom %= log + opar + exp + comma + exp + cpar, lambda h, s: LogNode(s[3], s[5])
 atom %= rand + opar + cpar, lambda h, s: RandNode(s[2])
-atom %= PI, lambda h, s: ConstantNumNode(s[1])
-atom %= E, lambda h, s: ConstantNumNode(s[1])
+atom %= PI, lambda h, s: ConstantNumNode(Token(str(math.pi), PI))
+atom %= E, lambda h, s: ConstantNumNode(Token(str(math.e), E))
 atom %= func_call, lambda h, s: s[1]
 
 #boolean expressions as described in hulk

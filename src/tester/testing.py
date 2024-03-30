@@ -8,27 +8,28 @@ from src.lexer import Usage_Example
 import json
 from src.cmp.ast import *
 from src.cmp.format_visitor import *
-from src.evaluator.evaluator_visitor import *
+from src.evaluator.my_own import *
 from src.semantic_checker import TypeCollector
 from src.semantic_checker import TypeBuilder
 from src.semantic_checker import TypeChecker
 from src.cmp.semantic import Context, Scope
 from src.semantic_checker.toold.graph import check_for_circular_dependencies
 
+
 #building lexer
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=True)
+pars = parser.LR1Parser(G, verbose=False)
 
 number = 0
 
 #testing simple arithmetic expressions
 testcase0 = ('{let x = 1 in'
-             ' let y = x as int in '
-             'x+y;}')
+             ' let y = x in '
+             'print(x+y);}')
 
-testcase1 = 'print(1+2);'
+testcase1 = 'let x = 4 in print(x);'
 
 testcase2 = 'if (1==1) print(1) else {print(2);};'
 
@@ -143,7 +144,7 @@ testcase37 = 'print(3^5%2^5);'
 
 testcase39 = 'print(sin(3^4));'
 testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i else 4;'
-             'fact(4);')
+             'print(fact(4));')
 
 testcase41 = ('function fib(n) => if ( n==0 | a is b & a>1)  1 else ( fib ( n-1 ) + fib ( n-2 ) );'
               'fib(3);')
@@ -169,7 +170,7 @@ testcase49 = ('type A {}'
 
 
 formatter = FormatVisitor()
-evaluator = EvaluatorVisitor()
+evaluator = Evaluator()
 
 def testing(testcase, id):
     global number
@@ -212,9 +213,11 @@ def testing(testcase, id):
         #CHECKING RETURN TYPES
         type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
         scope : Scope = type_checker.visit(ast)
-        print(type_collector.errors)
+        print(type_checker.errors)
 
-
+        if type_checker.errors == []:
+            eval = Evaluator(type_checker.context)
+            eval.visit(ast)
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
@@ -231,7 +234,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    if i==4:
+
         testcase = lexer(testcase)
         testing(testcase, i)
 

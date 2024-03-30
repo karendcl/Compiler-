@@ -36,7 +36,7 @@ class EvaluatorVisitor(object):
     #----------------"""DONE"""------------------
 
     @visitor.when(ProgramNode)
-    def visit(self, node: ProgramNode, context:Context):
+    def visit(self, node: ProgramNode, context:Context = None):
         
         context = Context()
         
@@ -211,7 +211,6 @@ class EvaluatorVisitor(object):
         expr = self.visit(node.expr, context)
 
         print(expr)
-        return str(expr)
 
     @visitor.when(ConstantNumNode)
     def visit(self, node: ConstantNumNode, context: Context):

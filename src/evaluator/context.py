@@ -1,5 +1,5 @@
 class Context:
-    def __init__(self, Parent):
+    def __init__(self, Parent = None):
         self.parent = Parent
         self.types = {}
         self.functions = {}
