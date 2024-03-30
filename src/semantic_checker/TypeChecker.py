@@ -280,7 +280,12 @@ class TypeChecker:
     def visit(self, node: DestructiveAssignment, scope: Scope):
         print('Visiting Desctructive Node')
         # check if variable is defined in the scope
-        var = scope.find_variable(node.idx)
+        if isinstance(node.idx, ast.IndexationNode):
+            var = self.visit(node.idx, scope)
+        else:
+            var = scope.find_variable(node.idx)
+
+
         if var is None:
             self.errors.append(err.VARIABLE_NOT_DEFINED % node.idx)
             return ErrorType()
