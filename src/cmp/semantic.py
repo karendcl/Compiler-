@@ -489,10 +489,20 @@ class Scope:
     def __len__(self):
         return len(self.locals)
 
+    def change_type(self, name, type):
+        for x in self.locals:
+            if x.name == name:
+                self.locals.pop(self.locals.index(x))
+                self.locals.append(VariableInfo(name, type))
+                return
+
+
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
         child.functions = self.functions
+        #make parent locals available to child, but by value not by reference
+        child.locals = self.locals.copy()
         return child
 
     def define_variable(self, vname, vtype):
@@ -514,11 +524,12 @@ class Scope:
 
 
     def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
-        try:
-            return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
-        except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is not None else None
+        return next((x for x in self.locals if x.name == vname and isinstance(x,VariableInfo)), None)
+        # locals = self.locals if index is None else itt.islice(self.locals, index)
+        # try:
+        #     return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
+        # except StopIteration:
+        #     return self.parent.find_variable(vname, self.index) if self.parent is not None else None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
@@ -526,9 +537,11 @@ class Scope:
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
 
-
     def __str__(self):
         return f'Locals: {','.join(str(x) for x in self.locals)}'
+
+    def __repr__(self):
+        return str(self)
 
 def common_ancestor(t1: Type, t2: Type):
     if t1 == t2:

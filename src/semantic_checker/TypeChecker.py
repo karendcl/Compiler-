@@ -630,25 +630,60 @@ class TypeChecker:
                     #it means it is a function call
                     func = scope.find_function(idx.lex)
 
+                    print(f'Found function {func.name}')
+
                     #check params
                     if func is None:
+                        print('Function not defined')
                         self.errors.append(err.FUNCTION_NOT_DEFINED % idx.lex)
                         return ErrorType()
 
+                    print(f'Function: {func.body}')
 
-                    ok = self.check_parameters(node.params, func.param_types)
-                    if not ok:
+                    params = []
+
+                    for var, type in node.params:
+                        if isinstance(var, VoidNode):
+                            continue
+                        try:
+                            params.append(self.visit(var, scope))
+                        except:
+                            params.append(scope.find_variable(var).type)
+
+
+                    print(f'Params given: {params}\nParams expected: {func.param_types}')
+                    ok = self.check_parameters(params, func.param_types)
+                    print('parameters checked')
+                    if ok is False:
+                        print('Parameters do not match')
                         return ErrorType()
+                    print('parameters match')
 
-                    return self.visit(func.body, scope)
+                    #create child scope
+                    child_scope = scope.create_child()
+
+                    #define the parameters in the local scope with the names of the expected
+                    for i,name in enumerate(func.param_names):
+                        #see if it's defined
+                        var = child_scope.find_variable(name.idx)
+                        if var is None:
+                            child_scope.define_variable(name, params[i])
+                        else:
+                            print(scope.find_variable(name.idx).type)
+                            child_scope.change_type(name.idx, params[i])
+
+                            print(scope.find_variable(name.idx).type)
+                            print(child_scope.find_variable(name.idx).type)
+
+                    print(f'Visiting function {func.name}')
+
+                    return self.visit(func.body, child_scope)
             else:
                 #check if it's a method of the current type
                 method = self.current_type.get_method(idx.lex)
                 if method is None:
                     self.errors.append(err.METHOD_NOT_FOUND % (idx.lex, self.current_type.name))
                     return ErrorType()
-
-
 
                 #select the params that are not void
                 params = [type for val, type in node.params if not isinstance(val, VoidNode)]

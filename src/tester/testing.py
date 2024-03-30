@@ -60,7 +60,16 @@ testcase9 = 'let a = [x^2 || x in range(1,4)] in print(a);'
 testcase10 = ('{let a = 4 in  '
               'let b = a:= "Hola" in print(b);}')
 
-
+testcase11 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
+              'type B inherits A { b = "hola"; c = 1; getX() => base(); }'
+              'function p(a) => a;'
+              'protocol N { f(): int; '
+              '             g( a: int ): int; }'
+              'protocol S extends M { h(): int; }'
+              'protocol M  { i(): int; }'
+              'protocol J extends M {k():int;}'
+              'let a = new B() in '
+              'if (a is A) print(1) else p(4);')
 # testcase1 = 'log(4.5,4);'
 #
 # #testing function declaration
