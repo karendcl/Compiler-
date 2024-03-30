@@ -46,6 +46,8 @@ class Function:
         self.param_names = param_names
         self.param_types = params_types
         self.expr = body
+        self.return_type = ObjectType()
+        self.checked = False
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -64,6 +66,8 @@ class Type:
         self.children = []
         self.orig_parent = None
         self.params = []
+
+
 
     def set_parent(self, parent):
         if self.parent is not None:
@@ -477,6 +481,8 @@ class FunctionInfo:
         self.param_names = param_names
         self.param_types = param_types
         self.body = expression_body
+        self.return_type = ObjectType()
+        self.checked = False
 
 
     def __str__(self):

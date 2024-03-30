@@ -619,7 +619,14 @@ class TypeChecker:
                     self.errors.append(e.text)
                     return ErrorType()
                 print(f'Visiting method {method.expr} in type {base_type.name}')
-                return self.visit(method.expr, scope)
+                if isinstance(method.return_type, ObjectType) and not method.checked:
+                    a = self.visit(method.expr, scope)
+                    method.return_type = a
+                    method.checked = True
+                    return a
+                else:
+                    return method.return_type
+
 
             #checking if it's self
             if idx.lex == 'self':
@@ -675,6 +682,12 @@ class TypeChecker:
                     if ok is False:
                         return ErrorType()
 
+                    if isinstance(func.return_type, ObjectType) and not func.checked:
+                        pass
+                    else:
+                        return func.return_type
+
+                    func.checked = True
                     #create child scope
                     child_scope = scope.create_child()
 
@@ -690,7 +703,10 @@ class TypeChecker:
 
                     print(f'Visiting function {func.name} with scope {child_scope}')
 
-                    return self.visit(func.body, child_scope)
+                    a = self.visit(func.body, child_scope)
+                    func.return_type = a
+                    func.checked = True
+                    return a
             else:
                 #check if it's a method of the current type
                 try:
@@ -706,6 +722,11 @@ class TypeChecker:
                 ok = self.check_parameters(params, method.param_types)
                 if ok is False:
                     return ErrorType()
+
+                if isinstance(method.return_type, ObjectType):
+                    method.checked = True
+                else:
+                    return method.return_type
 
                 self.current_method = method
                 print(f'Visiting method {method.expr} in type {self.current_type.name}')
@@ -939,7 +960,7 @@ class TypeChecker:
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
 
-        if left_type == right_type == BoolType:
+        if isinstance(left_type, BoolType) and isinstance(left_type, BoolType):
             return return_type()
         self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
         return ErrorType()
@@ -949,7 +970,10 @@ class TypeChecker:
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
 
-        if left_type == right_type == IntType:
+        if isinstance(left_type, IntType) and isinstance(right_type, IntType):
+            return return_type()
+
+        if isinstance(left_type, ObjectType) and isinstance(right_type, ObjectType):
             return return_type()
         self.errors.append(err.INVALID_BINARY_OPERATION % (operation, left_type.name, right_type.name))
         return ErrorType()
@@ -957,7 +981,7 @@ class TypeChecker:
 
     def _check_unary_operation(self, node: UnaryNode, scope: Scope, operation: str, expected_type):
         typex = self.visit(node.expr, scope)
-        if typex == expected_type:
+        if isinstance(typex, expected_type):
             return expected_type()
         self.errors.append(err.INVALID_UNARY_OPERATION % (operation, typex.name))
         return ErrorType()

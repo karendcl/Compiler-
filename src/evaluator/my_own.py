@@ -10,7 +10,9 @@ from src.cmp.grammar import G
 from math import *
 from random import *
 
+
 booleans = {'true': True, 'false': False}
+types = {'string': str, 'bool': bool, 'Iterable': list}
 class Evaluator:
     def __init__(self, context: Context = None, errors: List[str] = []):
         self.context: Context = context
@@ -314,13 +316,14 @@ class Evaluator:
             type_expr = self.visit(node.left, scope)
 
             if isinstance(type_as, Type):
-                anc = common_ancestor(type_as, type_expr)
-                if anc == type_as:
-                    True
+                if type_as.name in types.keys():
+                    return isinstance(type_expr, types[type_as.name])
+                else:
+                    return common_ancestor(type_as, type_expr) == type_as
             else:
                 if isinstance(type_as, Protocol):
-                    if type_as.type_implements_me(type_expr):
-                        return True
+                    return type_as.type_implements_me(type_expr)
+
             return False
 
 
@@ -438,10 +441,9 @@ class Evaluator:
 
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
-
         # check if the attribute is defined
         attr = self.current_type.get_attribute(node.attr_called.lex)
-        return attr.value
+        return self.visit(attr.value, scope)
 
 
     #------------------------------------NOT DONE
@@ -460,34 +462,17 @@ class Evaluator:
 
             #checking if it's base
             if idx.lex == 'base':
-                if self.current_type is None:
-                    print('Base outside class')
-                    self.errors.append(err.BASE_OUTSIDE_CLASS)
-                    return ErrorType()
-                if self.current_type.parent is None:
-                    print('Base without inheritance')
-                    self.errors.append(err.BASE_WITHOUT_INHERITANCE)
-                    return ErrorType()
-
                 print(f'Visiting base {self.current_type.parent.name}')
                 print(f'Cuurent method: {self.current_method}')
 
                 base_type = self.current_type.parent
-
                 #visit the current method in the parent class
-                try:
-                    method = base_type.get_method(self.current_method.name)
-                except SemanticError as e:
-                    self.errors.append(e.text)
-                    return ErrorType()
+                method = base_type.get_method(self.current_method.name)
                 print(f'Visiting method {method.expr} in type {base_type.name}')
                 return self.visit(method.expr, scope)
 
             #checking if it's self
             if idx.lex == 'self':
-                if self.current_type is None:
-                    self.errors.append(err.SELF_OUTSIDE_CLASS)
-                    return ErrorType()
                 #it's a function call to a method in the current class
                 return self.visit(node.params[0], scope)
 
@@ -511,13 +496,6 @@ class Evaluator:
                     func = scope.find_function(idx.lex)
 
                     print(f'Found function {func.name}')
-
-                    #check params
-                    if func is None:
-                        print('Function not defined')
-                        self.errors.append(err.FUNCTION_NOT_DEFINED % idx.lex)
-                        return ErrorType()
-
                     print(f'Function: {func.body}')
 
                     params = []
@@ -557,6 +535,7 @@ class Evaluator:
                 #check if it's a method of the current type
                 try:
                     method = self.current_type.get_method(idx.lex)
+                    print('method found')
                 except SemanticError as e:
                     self.errors.append(e.text)
                     return ErrorType()
@@ -564,10 +543,6 @@ class Evaluator:
 
                 #select the params that are not void
                 params = [type for val, type in node.params if not isinstance(val, VoidNode)]
-
-                ok = self.check_parameters(params, method.param_types)
-                if ok is False:
-                    return ErrorType()
 
                 self.current_method = method
                 print(f'Visiting method {method.expr} in type {self.current_type.name}')

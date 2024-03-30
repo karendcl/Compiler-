@@ -31,7 +31,7 @@ testcase0 = ('{let x = 1 in'
 
 testcase1 = 'let x = 4 in print(x);'
 
-testcase2 = 'if (1==1) print(1) else {print(2);};'
+testcase2 = 'if (true & false | true) print(1) else {print(2);};'
 
 testcase3 = 'print((((1+2)^3)*4)/5);'
 
@@ -133,7 +133,7 @@ testcase31 = 'let numbers = [x^2 || x in range(1,10)] in print(x);'
 testcase32 = 'print("The \\"message\\" is " @ 1);'
 
 #testing type declaration
-testcase33 = ('type Point {  x = 0; y = 0; getX()=> self.x; getY()=> self.y;}'
+testcase33 = ('type Point {  x = 0; y = 0; getX()=> self.x; getY()=> self.getX();}'
               'let pt = new Point() in print("x: " @ pt.getX() @ " y: " @ pt.getY());')
 
 #testing instance and function calls
@@ -152,7 +152,7 @@ testcase39 = 'print(sin(3^4));'
 testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i else 4;'
              'print(fact(4));')
 
-testcase41 = ('function fib(n) => if ( n==0 | a is b & a>1)  1 else ( fib ( n-1 ) + fib ( n-2 ) );'
+testcase41 = ('function fib(n) => if ( n==0 )  1 else ( fib ( n-1 ) + fib ( n-2 ) );'
               'fib(3);')
 
 testcase42 = '4*-8;'
