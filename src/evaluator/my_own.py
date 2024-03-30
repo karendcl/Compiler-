@@ -141,7 +141,7 @@ class Evaluator:
     def visit(self, node: EqualNode, scope: Scope):
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
-        return left == right
+        return int(left) == int(right)
 
     @visitor.when(AndNode)
     def visit(self, node: AndNode, scope: Scope):

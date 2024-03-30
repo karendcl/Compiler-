@@ -153,7 +153,7 @@ testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i e
              'print(fact(4));')
 
 testcase41 = ('function fib(n) => if ( n==0 ) 1 else ( fib ( n-1 ) + fib ( n-2 ) );'
-              'fib(1);')
+              'fib(0);')
 
 testcase42 = '4*-8;'
 
@@ -240,7 +240,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    if i ==41:
+    if i ==40:
         print(testcase)
         testcase = lexer(testcase)
         testing(testcase, i)
