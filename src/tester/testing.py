@@ -19,7 +19,7 @@ from src.semantic_checker.toold.graph import check_for_circular_dependencies
 lexer = Usage_Example.lexer
 
 #building parser
-pars = parser.LR1Parser(G, verbose=False)
+pars = parser.LR1Parser(G, verbose=True)
 
 number = 0
 
@@ -35,7 +35,7 @@ testcase2 = 'if (1==1) print(1) else {print(2);};'
 testcase3 = 'print((((1+2)^3)*4)/5);'
 
 # todo bug con @
-testcase4 = 'let a = "42" in print(if (4 < 2) "1" else "Hola");'
+testcase4 = 'let a = "42" in print(if (4 < 2) "1" else 5@"Hola"@4);'
 #
 testcase5 = ('type A (a,b) { b = 0; a = 0; c = 0; d: int; getX() => self.a; }'
              'let a = new A(4,5) in print(a);')
@@ -126,7 +126,7 @@ testcase31 = 'let numbers = [x^2 || x in range(1,10)] in print(x);'
 testcase32 = 'print("The \\"message is " @ 1);'
 
 #testing type declaration
-testcase33 = ('type Point { x = 0; y=0; getX()=> self.x ; }'
+testcase33 = ('type Point {  x = 0; y = 0; getX()=> self.x; getY()=> self.y;}'
               'let pt = new Point() in print("x: " @ pt.getX() @ " y: " @ pt.getY());')
 
 #testing instance and function calls
@@ -176,6 +176,7 @@ def testing(testcase, id):
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
+        print(ast)
         print(formatter.visit(ast))
 
         #COLLECTING TYPES
@@ -230,9 +231,9 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    testcase = lexer(testcase)
-
-    testing(testcase, i)
+    if i==4:
+        testcase = lexer(testcase)
+        testing(testcase, i)
 
 
 print(f'{number} tests failed')

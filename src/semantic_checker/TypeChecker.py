@@ -750,7 +750,7 @@ class TypeChecker:
                     self.errors.append(err.INCOMPATIBLE_TYPES %(value_t, i.type))
                     return ErrorType()
 
-            return
+        return
 
 
 

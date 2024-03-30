@@ -204,6 +204,7 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
 
     assert len(stack) == 1, f'stack:{stack} '
     assert isinstance(next(tokens).token_type, EOF) , 'next token is not eof'
+    print(f'stack: {stack}')
     return stack[0]
 
 

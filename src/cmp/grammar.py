@@ -139,7 +139,7 @@ type_args %= opar + param_list + cpar, lambda h, s: s[2]
 type_args %= G.Epsilon, lambda h, s: []
 
 type_body %= functions_in_type, lambda h, s: [s[1]]
-type_body %= functions_in_type + type_body, lambda h, s: [s[1]] + s[3]
+type_body %= functions_in_type + type_body, lambda h, s: [s[1]] + s[2]
 type_body %= attribute + semi_colon, lambda h, s: [s[1]]
 type_body %= attribute + semi_colon + type_body, lambda h, s: [s[1]] + s[3]
 
