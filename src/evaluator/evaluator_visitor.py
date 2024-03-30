@@ -33,26 +33,6 @@ class EvaluatorVisitor(object):
         statements = '\n'.join(self.visit(child, tabs + 1) for child in node.methods)
         return f'{ans}\n{statements}'
 
-    @visitor.when(LetNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__LetNode:'
-        ass = '\n'.join(self.visit(arg, tabs + 1) for arg in node.assignments)
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
-        return f'{ans}\n{ass}\n{args}'
-
-    @visitor.when(InstantiateNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__InstantiateNode: {node.idx.lex}'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
-        return f'{ans}\n{args}'
-
-    @visitor.when(ConformsNode)
-    def visit(self, node, tabs=0):
-        ass = self.visit(node.exp, tabs + 1)
-        ans = '\t' * tabs + f'\\__Conforms: \n{ass}\n {'\t' * (tabs+1)} \\__to  {node.type_to.lex}'
-        return f'{ans}'
-
-    
     #----------------"""DONE"""------------------
 
     @visitor.when(ProgramNode)
@@ -169,6 +149,34 @@ class EvaluatorVisitor(object):
             cond = self.visit(node.condition, context)
 
         return return_value
+    
+    @visitor.when(LetNode)
+    def visit(self, node: LetNode, context: Context):
+        LetContext = Context(context)
+        for assignment in node.assignments:
+            self.visit(assignment, LetContext)
+
+        return self.visit(node.body, LetContext)
+    
+    @visitor.when(InstantiateNode)
+    def visit(self, node: InstantiateNode, context: Context):
+        type_ = context.def_type(node.idx)
+        return type_(node.params)
+    
+    @visitor.when(ListNode)
+    def visit(self, node: ListNode, context: Context):
+        return_list = []
+
+        for exp in node.obj:
+            current = self.visit(exp, context)
+            return_list.append(current)
+
+        return return_list
+        
+    @visitor.when(ConformsNode)
+    def visit(self, node: ConformsNode, context: Context):
+        exp = self.visit(node.exp, context)
+        return exp
     
     @visitor.when(ForNode)
     def visit(self, node: ForNode, context: Context):
