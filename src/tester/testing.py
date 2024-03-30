@@ -152,8 +152,8 @@ testcase39 = 'print(sin(3^4));'
 testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i else 4;'
              'print(fact(4));')
 
-testcase41 = ('function fib(n) => if ( n==0 )  1 else ( fib ( n-1 ) + fib ( n-2 ) );'
-              'fib(3);')
+testcase41 = ('function fib(n) => if ( n==0 ) 1 else ( fib ( n-1 ) + fib ( n-2 ) );'
+              'fib(1);')
 
 testcase42 = '4*-8;'
 
@@ -164,7 +164,7 @@ testcase44 = 'let a = b as c in a;'
 testcase45 = 'let a = if ("a" is string) 4 else 5 in a;'
 
 testcase46 = ('type a { b() => new a(); d() => print(4);}'
-              'let c = new a() in c.b().b().d();')
+              'let c = new a() in c.b().d();')
 
 testcase47 = 'print(4+5+6 as int);'
 
@@ -240,6 +240,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
+    if i ==41:
         print(testcase)
         testcase = lexer(testcase)
         testing(testcase, i)

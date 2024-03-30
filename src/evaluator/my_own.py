@@ -12,7 +12,7 @@ from random import *
 
 
 booleans = {'true': True, 'false': False}
-types = {'string': str, 'bool': bool, 'Iterable': list}
+types = {'string': str, 'bool': bool, 'Iterable': list, 'int': int}
 class Evaluator:
     def __init__(self, context: Context = None, errors: List[str] = []):
         self.context: Context = context
@@ -274,11 +274,34 @@ class Evaluator:
         else:
                 type_as = self.context.get_type(node.type_to.lex)
 
+        expr = self.visit(node.exp, scope)
 
+        print(f'type as: {type_as.name}. expr: {expr}')
 
-        type_expr = self.visit(node.exp, scope)
+        if isinstance(type_as, Type):
+            if type_as.name in types.keys():
+                return types[type_as.name](expr)
+            else:
+                return common_ancestor(type_as, expr)
 
-        return type_expr
+    # type_as = None
+    # if node.right in G.nonTerminals:
+    #     type_as = self.context.get_type_or_protocol(str(node.right))
+    # else:
+    #     type_as = self.context.get_type_or_protocol(node.right.lex)
+    #
+    # type_expr = self.visit(node.left, scope)
+    #
+    # if isinstance(type_as, Type):
+    #     if type_as.name in types.keys():
+    #         return isinstance(type_expr, types[type_as.name])
+    #     else:
+    #         return common_ancestor(type_as, type_expr) == type_as
+    # else:
+    #     if isinstance(type_as, Protocol):
+    #         return type_as.type_implements_me(type_expr)
+    #
+    # return False
 
 
     @visitor.when(VoidNode)
@@ -452,39 +475,61 @@ class Evaluator:
     def visit(self, node: FuncCallNode, scope: Scope):
         print('Visiting Func Call Node')
 
-        #objcalled is either an idx(type) or a base().something or self.a() or a.b() a function call
-        #if objcalled is a idx then:
-        #type.() or self.() or base() or method()
+        # objcalled is either an idx(type) or a base().something or self.a() or a.b() a function call
+        # if objcalled is a idx then:
+        # type.() or self.() or base() or method()
         try:
             idx = node.obj_called
             print(f'IDX: {idx.lex}')
             print(self.current_type)
 
-            #checking if it's base
+            # checking if it's base
             if idx.lex == 'base':
+                if self.current_type is None:
+                    print('Base outside class')
+                    self.errors.append(err.BASE_OUTSIDE_CLASS)
+                    return ErrorType()
+                if self.current_type.parent is None:
+                    print('Base without inheritance')
+                    self.errors.append(err.BASE_WITHOUT_INHERITANCE)
+                    return ErrorType()
+
                 print(f'Visiting base {self.current_type.parent.name}')
                 print(f'Cuurent method: {self.current_method}')
 
                 base_type = self.current_type.parent
-                #visit the current method in the parent class
-                method = base_type.get_method(self.current_method.name)
-                print(f'Visiting method {method.expr} in type {base_type.name}')
-                return self.visit(method.expr, scope)
 
-            #checking if it's self
+                # visit the current method in the parent class
+                try:
+                    method = base_type.get_method(self.current_method.name)
+                except SemanticError as e:
+                    self.errors.append(e.text)
+                    return ErrorType()
+                print(f'Visiting method {method.expr} in type {base_type.name}')
+                if isinstance(method.return_type, ObjectType):
+                    a = self.visit(method.expr, scope)
+                    method.return_type = a
+                    method.checked = True
+                    return a
+                else:
+                    return method.return_type
+
+            # checking if it's self
             if idx.lex == 'self':
-                #it's a function call to a method in the current class
+                if self.current_type is None:
+                    self.errors.append(err.SELF_OUTSIDE_CLASS)
+                    return ErrorType()
+                # it's a function call to a method in the current class
                 return self.visit(node.params[0], scope)
 
-
-            #checking if it's a method or a type defined
+            # checking if it's a method or a type defined
             if self.current_type is None:
-            # this means that it's calling a function or a type
+                # this means that it's calling a function or a type
                 try:
                     print(f'Looking for type {idx.lex}')
                     a = scope.find_variable(idx.lex).type
 
-                    #if it's here it's because it'a a type call
+                    # if it's here it's because it'a a type call
                     old_type = self.current_type
                     self.current_type = a
                     ans = self.visit(node.params[0], scope)
@@ -492,10 +537,11 @@ class Evaluator:
                     return ans
 
                 except:
-                    #it means it is a function call
+                    # it means it is a function call
                     func = scope.find_function(idx.lex)
 
                     print(f'Found function {func.name}')
+
                     print(f'Function: {func.body}')
 
                     params = []
@@ -508,50 +554,54 @@ class Evaluator:
                         except:
                             params.append(scope.find_variable(var).type)
 
+                    print(f'Params given: {params}\nParams expected: {func.param_names}')
 
-                    print(f'Params given: {params}\nParams expected: {func.param_types}')
-                    ok = self.check_parameters(params, func.param_types)
-                    print('parameters checked')
-                    if ok is False:
-                        return ErrorType()
 
-                    #create child scope
+                    # create child scope
                     child_scope = scope.create_child()
 
-                    #define the parameters in the local scope with the names of the expected, and the types of the given
-                    for i,name in enumerate(func.param_names):
-                        #see if it's defined
+                    # define the parameters in the local scope with the names of the expected, and the types of the given
+                    for i, name in enumerate(func.param_names):
+                        # see if it's defined
                         var = child_scope.find_variable(name.idx)
                         if var is None:
                             child_scope.define_variable(name.idx, params[i])
+                            print('Variable defined')
                         else:
                             child_scope.change_type(name.idx, params[i])
 
+                    print(f'Visiting function {func.name} with scope')
 
-                    print(f'Visiting function {func.name} with scope {child_scope}')
-
-                    return self.visit(func.body, child_scope)
+                    a = self.visit(func.body, child_scope)
+                    func.return_type = a
+                    func.checked = True
+                    return a
             else:
-                #check if it's a method of the current type
+                # check if it's a method of the current type
                 try:
                     method = self.current_type.get_method(idx.lex)
-                    print('method found')
                 except SemanticError as e:
                     self.errors.append(e.text)
                     return ErrorType()
 
-
-                #select the params that are not void
+                # select the params that are not void
                 params = [type for val, type in node.params if not isinstance(val, VoidNode)]
+
+
+
+                if isinstance(method.return_type, ObjectType):
+                    method.checked = True
+                else:
+                    return method.return_type
 
                 self.current_method = method
                 print(f'Visiting method {method.expr} in type {self.current_type.name}')
                 return self.visit(method.expr, scope)
 
         except:
-            #this means that the object called is a function call,
-            #it can only be b().a()
-            #so I need to visit the object called first
+            # this means that the object called is a function call,
+            # it can only be b().a()
+            # so I need to visit the object called first
             obj_type = self.visit(node.obj_called, scope)
             if isinstance(obj_type, ErrorType):
                 return ErrorType()
