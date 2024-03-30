@@ -109,7 +109,7 @@ string_exp %= term + concatenable, lambda h, s: StringExpression(s[1],s[2])
 string_exp %= term, lambda h,s: s[1]
 
 string_exp %= strx + concatenable, lambda h, s: StringExpression(ConstantStringNode(s[1]), s[2])
-string_exp %= strx, lambda h,s: ConstantStringNode(s[1].lex)
+string_exp %= strx, lambda h,s: ConstantStringNode(s[1])
 
 
 concatenable %= concat + string_exp, lambda h, s: StringExpression(ConstantStringNode(""), s[2])

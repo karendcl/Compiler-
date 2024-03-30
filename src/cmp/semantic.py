@@ -1,6 +1,7 @@
 import itertools as itt
 from collections import OrderedDict
 from typing import List, Tuple
+import src.cmp.errors as err
 
 
 class SemanticError(Exception):
@@ -9,12 +10,13 @@ class SemanticError(Exception):
         return self.args[0]
 
 class Attribute:
-    def __init__(self, name, typex):
+    def __init__(self, name, typex, value):
         self.name = name
         self.type = typex
+        self.value = value
 
     def __str__(self):
-        return f'[attrib] {self.name} : {self.type.name};'
+        return f'[attrib] {self.name} : {self.type.name} = {self.value};'
 
     def __repr__(self):
         return str(self)
@@ -39,10 +41,11 @@ class Method:
             other.param_types == self.param_types
 
 class Function:
-    def __init__(self, name, param_names, params_types):
+    def __init__(self, name, param_names, params_types, body):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
+        self.expr = body
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -73,8 +76,10 @@ class Type:
 
         for method in new_methods:
             if method in self.methods:
-                raise SemanticError(
-                    f'Method {method.name} already defined in {self.name}.')
+                #check if the args are different
+                if len(method.param_names) != len(self.methods[self.methods.index(method)].param_names):
+                    raise SemanticError(
+                        f'Method {method.name} already defined in {self.name}.')
 
         self.methods.extend(new_methods)
 
@@ -99,7 +104,11 @@ class Type:
         try:
             self.get_attribute(name)
         except SemanticError:
-            attribute = Attribute(name, typex)
+            if name == 'self':
+                raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+            if name == 'base':
+                raise SemanticError(err.BASE_INVALID_ID)
+            attribute = Attribute(name, typex, value)
             self.attributes.append(attribute)
             return attribute
         else:
@@ -116,11 +125,19 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
-    def define_method(self, name:str, param_names:list, param_types:list):
+    def define_method(self, name:str, param_names:list, param_types:list, body):
         if name in (method.name for method in self.methods):
-            raise SemanticError(f'Method "{name}" already defined in {self.name}')
+            defined_method = self.get_method(name)
+            if defined_method.param_types != param_types:
+                raise SemanticError(f'Method "{name}" already defined in {self.name} with different parameters.')
+            return defined_method
 
-        method = Function(name, param_names, param_types)
+        if name == 'self':
+            raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+        if name == 'base':
+            raise SemanticError(err.BASE_INVALID_ID)
+
+        method = Function(name, param_names, param_types, body)
         self.methods.append(method)
         for child in self.children:
             child.methods.append(method)
@@ -217,11 +234,20 @@ class Protocol(Type):
         if name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{name}" already defined in {self.name}')
 
+        if name == 'self':
+            raise SemanticError(err.SELF_INVALID_ATTRIBUTE_ID)
+        if name == 'base':
+            raise SemanticError(err.BASE_INVALID_ID)
         method = Method(name, param_names, param_types, return_type)
         self.methods.append(method)
         for child in self.children:
             child.methods.append(method)
         return method
+
+    def type_implements_me(self,type):
+        for method in self.methods:
+            if method not in type.methods:
+                return False
 
     def __str__(self):
         output = f'protocol {self.name}'
@@ -340,6 +366,9 @@ class NoneType(Type):
 
     def __hash__(self):
         return super().__hash__
+
+    def conforms_to(self, other):
+        return True
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, NoneType)
@@ -465,10 +494,20 @@ class Scope:
     def __len__(self):
         return len(self.locals)
 
+    def change_type(self, name, type):
+        for x in self.locals:
+            if x.name == name:
+                self.locals.pop(self.locals.index(x))
+                self.locals.append(VariableInfo(name, type))
+                return
+
+
     def create_child(self):
         child = Scope(self)
         self.children.append(child)
         child.functions = self.functions
+        #make parent locals available to child, but by value not by reference
+        child.locals = self.locals.copy()
         return child
 
     def define_variable(self, vname, vtype):
@@ -486,15 +525,16 @@ class Scope:
         try:
             return next(x for x in locals if x.name == name and isinstance(x, FunctionInfo))
         except StopIteration:
-            return self.parent.find_function(name, self.index) if self.parent is None else None
+            return self.parent.find_function(name, self.index) if self.parent is not None else None
 
 
     def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
-        try:
-            return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
-        except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+        return next((x for x in self.locals if x.name == vname and isinstance(x,VariableInfo)), None)
+        # locals = self.locals if index is None else itt.islice(self.locals, index)
+        # try:
+        #     return next(x for x in locals if x.name == vname and isinstance(x,VariableInfo))
+        # except StopIteration:
+        #     return self.parent.find_variable(vname, self.index) if self.parent is not None else None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
@@ -504,6 +544,9 @@ class Scope:
 
     def __str__(self):
         return f'Locals: {','.join(str(x) for x in self.locals)}'
+
+    def __repr__(self):
+        return str(self)
 
 def common_ancestor(t1: Type, t2: Type):
     if t1 == t2:
