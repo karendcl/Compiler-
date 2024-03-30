@@ -50,7 +50,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is A) print(1) else a.getX();')
+              'if (a is int) print(1) else a.getX();')
 
 testcase7 = 'let a = range(1,10) in print(a[1]);'
 
@@ -101,9 +101,9 @@ testcase12 = ('{let a=[1,2,3,4] in '
 # #testing concatenation
 # testcase11 = 'print(1@"Yes");'
 testcase38 = 'print(1@"Yes"@"No");'
-testcase13 = ('function f(x,y) {sin(x+y);'
+testcase13 = ('function f(x,y) {print(sin(x+y));'
               '                 print(5);}'
-              ' 4;')
+              ' print(f(4,2));')
 testcase14 = 'let msg = "Hello" in print(msg);'
 testcase15 = ' let number = 42, test = "The meaning of life is" in print(test@@number);'
 testcase16 = 'let number = 42 in (let text = "The meaning of life is" in ( print(text@number)));'
@@ -240,7 +240,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    if i ==40:
+    if i ==13:
         print(testcase)
         testcase = lexer(testcase)
         testing(testcase, i)

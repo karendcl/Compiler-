@@ -572,10 +572,15 @@ class Evaluator:
 
                     print(f'Visiting function {func.name} with scope')
 
-                    a = self.visit(func.body, child_scope)
-                    func.return_type = a
-                    func.checked = True
-                    return a
+                    print(func.body)
+                    try:
+                        ret = None
+                        for i in func.body:
+                            ret = self.visit(i, child_scope)
+                        return ret
+                    except:
+                       return self.visit(func.body, child_scope)
+
             else:
                 # check if it's a method of the current type
                 try:
