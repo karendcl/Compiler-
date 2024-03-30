@@ -33,35 +33,6 @@ class EvaluatorVisitor(object):
         statements = '\n'.join(self.visit(child, tabs + 1) for child in node.methods)
         return f'{ans}\n{statements}'
 
-    @visitor.when(AssignNode)
-    def visit(self,node,tabs=0):
-        # ans = '\t' * tabs + f'\\__Assign: {node.idx}'
-        statements = self.visit(node.expr, tabs + 1)
-
-    @visitor.when(DestructiveAssignment)
-    def visit(self, node, tabs=0):
-        # ans = '\t' * tabs + f'\\__DesAssign: {node.idx} = {node.expr}'
-        statements = '\n'.join(self.visit(child, tabs + 1) for child in node.expr)
-
-    @visitor.when(FuncCallNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__FuncCallNode:'
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
-        return f'{ans}\n{args}'
-
-    @visitor.when(AttrCallNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__AttrCallNode: {node.idx}.{node.attr_called}'
-        # args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.params)
-        return f'{ans}'
-
-    @visitor.when(LoopNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__LoopNode:'
-        cond = self.visit(node.condition, tabs+1)
-        args = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
-        return f'{ans}\n{cond}\n{args}'
-
     @visitor.when(LetNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__LetNode:'
@@ -80,14 +51,6 @@ class EvaluatorVisitor(object):
         ass = self.visit(node.exp, tabs + 1)
         ans = '\t' * tabs + f'\\__Conforms: \n{ass}\n {'\t' * (tabs+1)} \\__to  {node.type_to.lex}'
         return f'{ans}'
-
-    @visitor.when(ForNode)
-    def visit(self, node, tabs=0):
-        ans = '\t' * tabs + f'\\__ForNode: '
-        iterable = self.visit(node.iterable, tabs+1)
-        body = '\n'.join(self.visit(arg, tabs + 1) for arg in node.body)
-        elsex = self.visit(node.elsex, tabs+1)
-        return f'{ans}\n{'\t' * (tabs+1)}{node.varidx.lex}\n{iterable}\n{body}\n{elsex}'
 
     
     #----------------"""DONE"""------------------
@@ -135,8 +98,11 @@ class EvaluatorVisitor(object):
                     current = self.visit(f,TypeContext)
                     TypeContext.def_function(f.idx, current)
             
-            def call(self, name, parameters):
+            def callfunc(self, name, parameters):
                 return TypeContext.get_function(name,False)(parameters)
+            
+            def callattr(self, name):
+                return TypeContext.get_variable(name)
         
         return NewType
         
@@ -158,6 +124,68 @@ class EvaluatorVisitor(object):
         value = self.visit(node.value, context)
 
         return value
+    
+    @visitor.when(AssignNode)
+    def visit(self, node: AssignNode, context:Context):
+        exp = self.visit(node.expr, context)
+        context.def_variable(node.idx, exp)
+
+        return exp
+
+    @visitor.when(DestructiveAssignment)
+    def visit(self, node: DestructiveAssignment, context: Context):
+        exp = self.visit(node.expr, context)
+        context.edit_var_value(node.idx, exp)
+
+        return exp
+        
+    @visitor.when(FuncCallNode)
+    def visit(self, node: FuncCallNode, context: Context):
+        params = []
+
+        for par in node.params:
+            params.append(self.visit(par, context))
+
+        func = context.get_function(node.obj_called)
+        return func(params)
+
+    @visitor.when(AttrCallNode)
+    def visit(self, node: AttrCallNode, context: Context):
+        type_ = context.get_type(node.idx)
+        attr = type_.callattr(node.attr_called)
+
+        return attr
+
+    @visitor.when(LoopNode)
+    def visit(self, node: LoopNode, context: Context):
+        cond = self.visit(node.condition, context)
+
+        if not cond:
+            else_ = self.visit(node.else_body, context)
+            return else_
+        
+        while(cond):
+            return_value = self.visit(node.body, context)
+            cond = self.visit(node.condition, context)
+
+        return return_value
+    
+    @visitor.when(ForNode)
+    def visit(self, node: ForNode, context: Context):
+        iter_ = self.visit(node.iterable, context) 
+        
+        if len(iter_) == 0:
+            else_ = self.visit(node.elsex, context)
+            return else_
+    
+        ForContext=Context(context)
+        ForContext.def_variable(node.varidx.lex, None)
+
+        for x in iter_:
+            ForContext.edit_variable(node.varidx.lex, x)
+            return_value = self.visit(node.body, ForContext)
+
+        return return_value
 
     @visitor.when(ConditionalNode)
     def visit(self, node: ConditionalNode, context: Context):
@@ -175,7 +203,7 @@ class EvaluatorVisitor(object):
         expr = self.visit(node.expr, context)
 
         print(expr)
-        return
+        return str(expr)
 
     @visitor.when(ConstantNumNode)
     def visit(self, node: ConstantNumNode, context: Context):
