@@ -529,6 +529,8 @@ class Scope:
 
 
     def find_variable(self, vname, index=None):
+        if self.locals == []:
+            return None
         return next((x for x in self.locals if x.name == vname and isinstance(x,VariableInfo)), None)
         # locals = self.locals if index is None else itt.islice(self.locals, index)
         # try:

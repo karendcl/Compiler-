@@ -63,6 +63,9 @@ class TypeChecker:
         expected = [IntType(), StringType()]
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
+        if isinstance(left_type, ErrorType) or isinstance(right_type, ErrorType):
+            return ErrorType()
+
         if left_type in expected:
             if right_type in expected:
                 return StringType()
@@ -285,7 +288,6 @@ class TypeChecker:
         else:
             var = scope.find_variable(node.idx)
 
-
         if var is None:
             self.errors.append(err.VARIABLE_NOT_DEFINED % node.idx)
             return ErrorType()
@@ -296,6 +298,7 @@ class TypeChecker:
             return ErrorType()
 
         var.type = expr_type
+        print(var.type)
         return expr_type
 
     @visitor.when(ConformsNode)
@@ -589,6 +592,7 @@ class TypeChecker:
         try:
             idx = node.obj_called
             print(f'IDX: {idx.lex}')
+            print(self.current_type)
 
             #checking if it's base
             if idx.lex == 'base':
@@ -630,11 +634,14 @@ class TypeChecker:
                 try:
                     print(f'Looking for type {idx.lex}')
                     a = scope.find_variable(idx.lex).type
-                    print(f'Found type {a}')
 
                     #if it's here it's because it'a a type call
+                    old_type = self.current_type
                     self.current_type = a
-                    return self.visit(node.params[0], scope)
+                    ans = self.visit(node.params[0], scope)
+                    self.current_type = old_type
+                    return ans
+
                 except:
                     #it means it is a function call
                     func = scope.find_function(idx.lex)
@@ -673,23 +680,23 @@ class TypeChecker:
                     for i,name in enumerate(func.param_names):
                         #see if it's defined
                         var = child_scope.find_variable(name.idx)
-                        child_scope.define_variable(name, params[i]) if var is None\
-                            else child_scope.change_type(name.idx, params[i])
-                        # if var is None:
-                        #     child_scope.define_variable(name, params[i])
-                        # else:
-                        #     child_scope.change_type(name.idx, params[i])
+                        if var is None:
+                            child_scope.define_variable(name.idx, params[i])
+                        else:
+                            child_scope.change_type(name.idx, params[i])
 
 
-                    print(f'Visiting function {func.name}')
+                    print(f'Visiting function {func.name} with scope {child_scope}')
 
                     return self.visit(func.body, child_scope)
             else:
                 #check if it's a method of the current type
-                method = self.current_type.get_method(idx.lex)
-                if method is None:
-                    self.errors.append(err.METHOD_NOT_FOUND % (idx.lex, self.current_type.name))
+                try:
+                    method = self.current_type.get_method(idx.lex)
+                except SemanticError as e:
+                    self.errors.append(e.text)
                     return ErrorType()
+
 
                 #select the params that are not void
                 params = [type for val, type in node.params if not isinstance(val, VoidNode)]
