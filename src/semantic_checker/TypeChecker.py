@@ -388,9 +388,9 @@ class TypeChecker:
         # check o q sea ese tipo o q implemente ese protocolo
         try:
             if node.right in G.nonTerminals:
-                type_as = self.context.get_type(str(node.right))
+                type_as = self.context.get_type_or_protocol(str(node.right))
             else:
-                type_as = self.context.get_type(node.right.lex)
+                type_as = self.context.get_type_or_protocol(node.right.lex)
 
         except SemanticError as e:
             self.errors.append(e.text)
@@ -403,16 +403,20 @@ class TypeChecker:
             return ErrorType()
 
         print(type_as, type_expr)
-        anc = common_ancestor(type_as, type_expr)
-        print(anc)
+        if isinstance(type_as, Type):
+            anc = common_ancestor(type_as, type_expr)
 
-        if anc == type_as:
-            return BoolType()
+            if anc == type_as:
+                return BoolType()
         else:
-            print(type_expr)
-            print(type_as)
-            self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
-            return ErrorType()
+            if isinstance(type_as, Protocol):
+                if type_as.type_implements_me(type_expr):
+                    return BoolType()
+                else:
+                    self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
+                    return ErrorType()
+
+
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):
@@ -655,25 +659,22 @@ class TypeChecker:
                     ok = self.check_parameters(params, func.param_types)
                     print('parameters checked')
                     if ok is False:
-                        print('Parameters do not match')
                         return ErrorType()
-                    print('parameters match')
 
                     #create child scope
                     child_scope = scope.create_child()
 
-                    #define the parameters in the local scope with the names of the expected
+                    #define the parameters in the local scope with the names of the expected, and the types of the given
                     for i,name in enumerate(func.param_names):
                         #see if it's defined
                         var = child_scope.find_variable(name.idx)
-                        if var is None:
-                            child_scope.define_variable(name, params[i])
-                        else:
-                            print(scope.find_variable(name.idx).type)
-                            child_scope.change_type(name.idx, params[i])
+                        child_scope.define_variable(name, params[i]) if var is None\
+                            else child_scope.change_type(name.idx, params[i])
+                        # if var is None:
+                        #     child_scope.define_variable(name, params[i])
+                        # else:
+                        #     child_scope.change_type(name.idx, params[i])
 
-                            print(scope.find_variable(name.idx).type)
-                            print(child_scope.find_variable(name.idx).type)
 
                     print(f'Visiting function {func.name}')
 
@@ -739,8 +740,6 @@ class TypeChecker:
 
             return
 
-
-        #todo not checking the type methods
 
 
 

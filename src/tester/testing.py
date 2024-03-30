@@ -69,7 +69,7 @@ testcase11 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is A) print(1) else p(4);')
+              'if (a is B) print(1) else if (4>3) p(4) else print(a);')
 # testcase1 = 'log(4.5,4);'
 #
 # #testing function declaration

@@ -244,6 +244,11 @@ class Protocol(Type):
             child.methods.append(method)
         return method
 
+    def type_implements_me(self,type):
+        for method in self.methods:
+            if method not in type.methods:
+                return False
+
     def __str__(self):
         output = f'protocol {self.name}'
         parent = '' if self.parents == [] else f' : {', '.join(x.name for x in self.parents)}'
