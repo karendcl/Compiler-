@@ -44,7 +44,6 @@ class Evaluator:
 
     @visitor.when(ast.PrintNode)
     def visit(self, node: PrintNode, scope: Scope):
-        print('Visiting Print Node')
         ans = self.visit(node.expr, scope)
         print(ans)
         return
@@ -104,7 +103,6 @@ class Evaluator:
 
     @visitor.when(MinusNode)
     def visit(self, node: MinusNode, scope: Scope):
-        print('Visiting Minus Node')
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
         return left - right
@@ -124,7 +122,7 @@ class Evaluator:
     @visitor.when(NotNode)
     def visit(self, node: NotNode, scope: Scope):
         value = self.visit(node.expr, scope)
-        return not booleans[value]
+        return not value
 
     @visitor.when(LeqNode)
     def visit(self, node: LeqNode, scope: Scope):
@@ -142,7 +140,7 @@ class Evaluator:
     def visit(self, node: EqualNode, scope: Scope):
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
-        return int(left) == int(right)
+        return left == right
 
     @visitor.when(AndNode)
     def visit(self, node: AndNode, scope: Scope):
@@ -224,14 +222,16 @@ class Evaluator:
     def visit(self, node: LetNode, scope: Scope):
         # todo this one
         type_ = None
+        child_scope = scope.create_child()
+
         for decl in node.assignments:
-            type_ = self.visit(decl, scope)
+            type_ = self.visit(decl, child_scope)
 
         body_return_type = None
 
         for i in node.body:
 
-            body_return_type = self.visit(i, scope)
+            body_return_type = self.visit(i, child_scope)
 
         return body_return_type
 

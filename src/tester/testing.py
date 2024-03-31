@@ -26,7 +26,7 @@ number = 0
 
 #testing simple arithmetic expressions
 testcase0 = ('{let x = 1 in'
-             ' let y = x in '
+             ' let y = x := 4 * x in '
              'print(x+y);}')
 
 testcase1 = 'let x = 4 in print(x);'
@@ -74,7 +74,7 @@ testcase11 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is B) print(1) else if (4>3) p(4) else print(a);')
+              'if ( ! (a is B)) print(1) else if (4>3) p(4) else print(a);')
 
 testcase12 = ('{let a=[1,2,3,4] in '
               '{ a[1] := 5;'
@@ -121,7 +121,7 @@ testcase25 = 'let a = 2 in if (a ==2) {print(1);} else print(2);'
 testcase26 = 'let a = 10 in while (a > 0) {print(a); a := a - 1;} else {print(a);}'
 
 #testing for
-testcase27 = 'for (x in range(1,10)) print(x) else print(a);'
+testcase27 = 'for (x in range(1,10)) print(x) else print(4);'
 
 #testing protocol declaration
 testcase28 = 'protocol Hashable { hash(): int; } 4;'
@@ -172,6 +172,8 @@ testcase48 = 'let a =42 in let mod = a%3 in print(if (mod==1) "Magic" elif (mod 
 
 testcase49 = ('type A {}'
               '4;')
+
+testcase50 = 'print(4 as string);'
 
 
 
@@ -240,6 +242,7 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
+
         testcase = lexer(testcase)
         testing(testcase, i)
 

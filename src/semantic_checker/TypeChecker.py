@@ -326,6 +326,8 @@ class TypeChecker:
         if anc == type_as:
             return type_as
         else:
+            if isinstance(type_as, StringType):
+                return StringType()
             self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
             return ErrorType()
 
