@@ -76,7 +76,6 @@ class Type:
 
         new_methods = parent.methods
 
-        print(self.methods)
 
         for method in new_methods:
             if method in self.methods:
@@ -521,7 +520,7 @@ class Scope:
     def change_value_list(self, list, index, newval):
         list = self.find_variable(list)
         new_list = [x if i != index else newval for i, x in enumerate(list.type) ]
-        print(new_list)
+
 
         for x in self.locals:
             if x.name == list.name:
@@ -582,7 +581,7 @@ class Scope:
         return str(self)
 
 def common_ancestor(t1: Type, t2: Type):
-    print(f'finding common ancestor {t1}, {t2}')
+
     if t1 == t2:
         return t1
     if isinstance(t1,ObjectType) or isinstance(t2,ObjectType):

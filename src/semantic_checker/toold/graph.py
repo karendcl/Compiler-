@@ -23,7 +23,7 @@ class Graph:
                         self.edges[e.name].append(t)
             except:
                 try:
-                    print(type_.parent)
+
                     if type_.parent:
                         try:
                             self.edges[type_.parent].append(t)
@@ -48,7 +48,7 @@ def topological_order(types: list, context):
     cycle = False
     try:
         ts = TopologicalSorter(graph.edges)
-        print(tuple(ts.static_order()))
+        tuple(ts.static_order())
     except:
         cycle = True
     return cycle
@@ -57,6 +57,6 @@ def topological_order(types: list, context):
 def check_for_circular_dependencies(context: Context):
     list_ = [i for i in context.types.keys()]
     list_ += [i for i in context.protocols.keys()]
-    print(f'checking {list_}')
+
     return topological_order(list_, context)
 

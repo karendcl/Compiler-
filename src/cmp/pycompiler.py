@@ -437,14 +437,12 @@ class Grammar:
             if self.startSymbol == left:
                 augmented += 1
         if augmented <= 1:
-            print("Grammar does not need to be augmented")
             return True
         else:
             return False
 
     def AugmentedGrammar(self, force=False):
         if not self.IsAugmentedGrammar or force:
-            print("Augmenting Grammar")
 
             G = self.copy()
             # S, self.startSymbol, SS = self.startSymbol, None, self.NonTerminal('S\'', True)

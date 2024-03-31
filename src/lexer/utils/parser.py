@@ -23,8 +23,6 @@ class ShiftReduceParser(object):
         self.goto = goto
         self._build_parsing_table()
 
-        print(f'Building parsing table...\n\n '
-              f'G: {self.G},\n')
 
     def _build_parsing_table(self):
         raise NotImplementedError()

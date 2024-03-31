@@ -29,7 +29,7 @@ class TypeChecker:
         for elem in node.statements:
             self.visit(elem, scope)
 
-        print(f'About to visit the expression')
+
         self.current_type = None
 
         for i in node.expression:
@@ -39,18 +39,17 @@ class TypeChecker:
 
     @visitor.when(ast.PrintNode)
     def visit(self, node: PrintNode, scope: Scope):
-        print(f'visiting Print')
         ans = self.visit(node.expr, scope)
         return ObjectType() if not isinstance(ans,ErrorType) else ErrorType()
 
     @visitor.when(ConstantNumNode)
     def visit(self, node: ConstantNumNode, scope: Scope):
-        print('Visiting Constant Num')
+
         return IntType()
 
     @visitor.when(ConstantStringNode)
     def visit(self, node: ConstantStringNode, scope: Scope):
-        print('Visiting Constant String')
+
         return StringType()
 
     @visitor.when(ConstantBoolNode)
@@ -59,7 +58,7 @@ class TypeChecker:
 
     @visitor.when(StringExpression)
     def visit(self, node: StringExpression, scope: Scope):
-        print(f'Visiting string expression')
+
         expected = [IntType(), StringType()]
         left_type = self.visit(node.left, scope)
         right_type = self.visit(node.right, scope)
@@ -77,62 +76,62 @@ class TypeChecker:
 
     @visitor.when(ModNode)
     def visit(self, node: ArithmeticNode, scope: Scope):
-        print(f'Visiting {node.__class__.__name__} Node')
+
         return self._check_int_binary_operation(node, scope, '%', IntType)
 
     @visitor.when(LogNode)
     def visit(self, node: ArithmeticNode, scope: Scope):
-        print(f'Visiting {node.__class__.__name__} Node')
+
         return self._check_int_binary_operation(node, scope, 'log', IntType)
 
     @visitor.when(StarNode)
     def visit(self, node: StarNode, scope: Scope):
-        print('Visiting Star Node')
+
         return self._check_int_binary_operation(node, scope, '*', IntType)
 
     @visitor.when(NegNode)
     def visit(self, node: NegNode, scope: Scope):
-        print('Visiting Neg Node')
+
         return self._check_unary_operation(node, scope, '-', IntType)
 
     @visitor.when(PlusNode)
     def visit(self, node: PlusNode, scope: Scope):
-        print('Visiting Plus Node')
+
         return self._check_int_binary_operation(node, scope, '+', IntType)
 
     @visitor.when(MinusNode)
     def visit(self, node: MinusNode, scope: Scope):
-        print('Visiting Minus Node')
+
         return self._check_int_binary_operation(node, scope, '-', IntType)
 
     @visitor.when(PowNode)
     def visit(self, node: MinusNode, scope: Scope):
-        print('Visiting Pow Node')
+
         return self._check_int_binary_operation(node, scope, '^', IntType)
 
     @visitor.when(DivNode)
     def visit(self, node: DivNode, scope: Scope):
-        print('Visiting Div Node')
+
         return self._check_int_binary_operation(node, scope, '/', IntType)
 
     @visitor.when(NotNode)
     def visit(self, node: NotNode, scope: Scope):
-        print('Visiting Not Node')
+
         return self._check_unary_operation(node, scope, 'not', BoolType)
 
     @visitor.when(LeqNode)
     def visit(self, node: LeqNode, scope: Scope):
-        print('Visiting Leq Node')
+
         return self._check_int_binary_operation(node, scope, '<=', BoolType)
 
     @visitor.when(LessNode)
     def visit(self, node: LessNode, scope: Scope):
-        print('Visiting Less Node')
+
         return self._check_int_binary_operation(node, scope, '<', BoolType)
 
     @visitor.when(EqualNode)
     def visit(self, node: EqualNode, scope: Scope):
-        print('Visiting Equal Node')
+
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
         if isinstance(left, ErrorType) or isinstance(right, ErrorType):
@@ -141,17 +140,17 @@ class TypeChecker:
 
     @visitor.when(AndNode)
     def visit(self, node: AndNode, scope: Scope):
-        print('Visiting And Node')
+
         return self._check_bool_binary_operation(node, scope, 'and', BoolType)
 
     @visitor.when(OrNode)
     def visit(self, node: OrNode, scope: Scope):
-        print('Visiting Or Node')
+
         return self._check_bool_binary_operation(node, scope, 'or', BoolType)
 
     @visitor.when(BlockNode)
     def visit(self, node: BlockNode, scope: Scope):
-        print('Visiting Block Node')
+
         return_type = ErrorType()
         for expr in node.expr_list:
             return_type = self.visit(expr, scope.create_child())
@@ -161,24 +160,24 @@ class TypeChecker:
 
     @visitor.when(ConditionalNode)
     def visit(self, node: ConditionalNode, scope: Scope):
-        print('Visiting Conditional Node')
+
 
         condition = self.visit(node.condition, scope)
         if not isinstance(condition, BoolType):
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
             return ErrorType()
 
-        print('Visiting Then Body')
+
         then_return_type = ErrorType
         for i in node.then_body:
             then_return_type = self.visit(i, scope)
             if isinstance(then_return_type, ErrorType):
                 return ErrorType()
 
-        print('Visiting Else Body')
+
         else_type: Type = self.visit(node.else_body, scope)
 
-        print('Finishing Else Body')
+
         if isinstance(else_type, ErrorType):
             return ErrorType
 
@@ -186,7 +185,7 @@ class TypeChecker:
 
     @visitor.when(LoopNode)
     def visit(self, node: LoopNode, scope: Scope):
-        print('Visiting Loop Node')
+
         condition = self.visit(node.condition, scope)
         if condition != BoolType():
             self.errors.append(err.INCOMPATIBLE_TYPES % (condition.name, 'bool'))
@@ -211,22 +210,22 @@ class TypeChecker:
 
     @visitor.when(ExponEulerNode)
     def visit(self, node: ExponEulerNode, scope: Scope):
-        print('Visiting ExponEuler Node')
+
         return self._check_unary_operation(node, scope, 'e^', IntType)
 
     @visitor.when(SinNode)
     def visit(self, node: SinNode, scope: Scope):
-        print('Visiting Sin Node')
+
         return self._check_unary_operation(node, scope, 'sin', IntType)
 
     @visitor.when(CosNode)
     def visit(self, node: CosNode, scope: Scope):
-        print('Visiting Cos Node')
+
         return self._check_unary_operation(node, scope, 'cos', IntType)
 
     @visitor.when(SqrtNode)
     def visit(self, node: SqrtNode, scope: Scope):
-        print('Visiting Sqrt Node')
+
         return self._check_unary_operation(node, scope, 'sqrt', IntType)
 
     @visitor.when(RandNode)
@@ -235,7 +234,7 @@ class TypeChecker:
 
     @visitor.when(LetNode)
     def visit(self, node: LetNode, scope: Scope):
-        print('Visiting Let Node')
+
 
         type_ = ErrorType()
         for decl in node.assignments:
@@ -246,7 +245,7 @@ class TypeChecker:
         body_return_type = ErrorType()
 
         for i in node.body:
-            print(f'Visiting Body Node with scope: {scope}')
+
             body_return_type = self.visit(i, scope)
             if isinstance(body_return_type, ErrorType):
                 return ErrorType()
@@ -254,10 +253,10 @@ class TypeChecker:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
-        print('Visiting Variable Node')
+
         # find variable in scope
         var = scope.find_variable(node.idx)
-        print(f'Variable: {var}')
+
         if var is None:
             self.errors.append(err.VARIABLE_NOT_DEFINED % (node.idx))
             return ErrorType()
@@ -265,7 +264,7 @@ class TypeChecker:
 
     @visitor.when(AssignNode)
     def visit(self, node: AssignNode, scope: Scope):
-        print('Visiting Assign Node')
+
         # check if variable is defined in the scope
         var = scope.find_variable(node.idx)
         if var is not None:
@@ -283,7 +282,7 @@ class TypeChecker:
 
     @visitor.when(DestructiveAssignment)
     def visit(self, node: DestructiveAssignment, scope: Scope):
-        print('Visiting Desctructive Node')
+
         # check if variable is defined in the scope
         if isinstance(node.idx, ast.IndexationNode):
             var = self.visit(node.idx, scope)
@@ -300,12 +299,12 @@ class TypeChecker:
             return ErrorType()
 
         var.type = expr_type
-        print(var.type)
+
         return expr_type
 
     @visitor.when(ConformsNode)
     def visit(self, node: ConformsNode, scope: Scope):
-        print('Visiting Conforms Node')
+
         try:
             if node.type_to in G.nonTerminals:
                 type_as = self.context.get_type(str(node.type_to))
@@ -353,7 +352,7 @@ class TypeChecker:
 
     @visitor.when(InstantiateNode)
     def visit(self, node: InstantiateNode, scope: Scope):
-        print('Visiting Instantiate Node')
+
         try:
             new_type_ = self.context.get_type(node.iden)
 
@@ -391,12 +390,12 @@ class TypeChecker:
         except SemanticError as e:
             self.errors.append(e.text)
             return ErrorType()
-        print(new_type_)
+
         return new_type_
 
     @visitor.when(IsNode)
     def visit(self, node: IsNode, scope: Scope):
-        print('Visiting Is Node')
+
         # check o q sea ese tipo o q implemente ese protocolo
         try:
             if node.right in G.nonTerminals:
@@ -415,14 +414,13 @@ class TypeChecker:
             self.errors.append(e.text)
             return ErrorType()
 
-        print(type_as, type_expr)
+
 
         if isinstance(type_as, Type):
             anc = common_ancestor(type_as, type_expr)
 
-            print(f'ancestor: {anc}, type_as: {type_as}')
             if anc.name == type_as.name:
-                print('returning bool')
+
                 return BoolType()
         else:
             if isinstance(type_as, Protocol):
@@ -437,7 +435,7 @@ class TypeChecker:
 
     @visitor.when(FuncDeclarationNode)
     def visit(self, node: FuncDeclarationNode, scope: Scope):
-        print('Visiting Func Declaration Node')
+
         # declare the function in the context, with params
         # functions dont have a return type
         try:
@@ -457,14 +455,14 @@ class TypeChecker:
 
     @visitor.when(RangeNode)
     def visit(self, node: RangeNode, scope: Scope):
-        print('Visiting Range Node')
+
         # check that both inputs are int
         res = self._check_int_binary_operation(node, scope, 'range', IntType)
         return IterableType(res) if isinstance(res, IntType) else ErrorType()
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
-        print('Visiting Indexation Node')
+
         # check that obj is Iterable
         try:
             # checking if I am indexing on a defined variable
@@ -489,7 +487,7 @@ class TypeChecker:
     @visitor.when(ForNode)
     def visit(self, node: ForNode, scope: Scope):
         # check that it's an Iterable Object
-        print('Visiting For Node')
+
         #iterable is either range, a List Comprehension or a ListNode
         obj_type = self.visit(node.iterable, scope)
         if not isinstance(obj_type, IterableType):
@@ -535,7 +533,7 @@ class TypeChecker:
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
-        print('Visiting List Comprehension')
+
         # for idx in iterable : do exp
         # return iterable of exp.type
         iterable_type = self.visit(node.expr, scope)
@@ -560,7 +558,7 @@ class TypeChecker:
         for i in node.exp_for_idx:
             ret_type = self.visit(i, child_scope)
             if isinstance(ret_type, ErrorType):
-                print('List Comprehension failed')
+
                 return ErrorType()
 
         return IterableType(ret_type)
@@ -568,7 +566,7 @@ class TypeChecker:
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
         # the only attribute I can call is self.something from inside a type
-        print('Visiting Attr Call Node')
+
         if node.idx != 'self':
             self.errors.append(err.ATTRIBUTES_PRIVATE % node.idx)
             return ErrorType()
@@ -585,7 +583,7 @@ class TypeChecker:
             self.errors.append(e.text)
             return ErrorType()
 
-        print(f'returning {attr.type}')
+
         return attr.type
 
 
@@ -593,29 +591,27 @@ class TypeChecker:
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
-        print('Visiting Func Call Node')
+
 
         #objcalled is either an idx(type) or a base().something or self.a() or a.b() a function call
         #if objcalled is a idx then:
         #type.() or self.() or base() or method()
         try:
             idx = node.obj_called
-            print(f'IDX: {idx.lex}')
-            print(self.current_type)
+
 
             #checking if it's base
             if idx.lex == 'base':
                 if self.current_type is None:
-                    print('Base outside class')
+
                     self.errors.append(err.BASE_OUTSIDE_CLASS)
                     return ErrorType()
                 if self.current_type.parent is None:
-                    print('Base without inheritance')
+
                     self.errors.append(err.BASE_WITHOUT_INHERITANCE)
                     return ErrorType()
 
-                print(f'Visiting base {self.current_type.parent.name}')
-                print(f'Cuurent method: {self.current_method}')
+
 
                 base_type = self.current_type.parent
 
@@ -625,7 +621,7 @@ class TypeChecker:
                 except SemanticError as e:
                     self.errors.append(e.text)
                     return ErrorType()
-                print(f'Visiting method {method.expr} in type {base_type.name}')
+
                 if isinstance(method.return_type, ObjectType) and not method.checked:
                     a = self.visit(method.expr, scope)
                     method.return_type = a
@@ -648,7 +644,7 @@ class TypeChecker:
             if self.current_type is None:
             # this means that it's calling a function or a type
                 try:
-                    print(f'Looking for type {idx.lex}')
+
                     a = scope.find_variable(idx.lex).type
 
                     #if it's here it's because it'a a type call
@@ -662,15 +658,15 @@ class TypeChecker:
                     #it means it is a function call
                     func = scope.find_function(idx.lex)
 
-                    print(f'Found function {func.name}')
+
 
                     #check params
                     if func is None:
-                        print('Function not defined')
+
                         self.errors.append(err.FUNCTION_NOT_DEFINED % idx.lex)
                         return ErrorType()
 
-                    print(f'Function: {func.body}')
+
 
                     params = []
 
@@ -683,9 +679,9 @@ class TypeChecker:
                             params.append(scope.find_variable(var).type)
 
 
-                    print(f'Params given: {params}\nParams expected: {func.param_types}')
+
                     ok = self.check_parameters(params, func.param_types)
-                    print('parameters checked')
+
                     if ok is False:
                         return ErrorType()
 
@@ -708,7 +704,7 @@ class TypeChecker:
                             child_scope.change_type(name.idx, params[i])
 
 
-                    print(f'Visiting function {func.name} with scope {child_scope}')
+
 
                     a = self.visit(func.body, child_scope)
                     func.return_type = a
@@ -736,7 +732,7 @@ class TypeChecker:
                     return method.return_type
 
                 self.current_method = method
-                print(f'Visiting method {method.expr} in type {self.current_type.name}')
+
                 return self.visit(method.expr, scope)
 
         except:
@@ -760,7 +756,7 @@ class TypeChecker:
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node: TypeDeclarationNode, scope: Scope):
-        print('Visiting Type Declaration Node')
+
         type = self.context.get_type(node.idx)
         self.current_type = type
 
@@ -952,7 +948,7 @@ class TypeChecker:
         if len(params_given) != len(params_expected):
             self.errors.append(err.WRONG_NUMBER_OF_ARGUMENTS % (len(params_expected), len(params_given)))
             return False
-        print(params_expected)
+
         for arg, param in zip(params_given, params_expected):
             if param is None:
                 continue

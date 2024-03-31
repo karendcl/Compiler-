@@ -34,7 +34,7 @@ class Evaluator:
         for elem in node.statements:
             self.visit(elem, scope)
 
-        print(f'About to visit the expression')
+
         self.current_type = None
 
         for i in node.expression:
@@ -179,19 +179,18 @@ class Evaluator:
     def visit(self, node: LoopNode, scope: Scope):
 
         return_ = None
-        # todo verify if child scope is necessary
-        child_scope = scope.create_child()
+
         visited_while = False
-        while self.visit(node.condition, child_scope) is True:
+        while self.visit(node.condition, scope) is True:
             for i in node.body:
                 visited_while = True
-                return_ = self.visit(i, child_scope)
+                return_ = self.visit(i, scope)
 
         if visited_while:
             return return_
         else:
             for i in node.else_body:
-                return_ = self.visit(i, child_scope)
+                return_ = self.visit(i, scope)
             return return_
 
     @visitor.when(ExponEulerNode)
@@ -237,15 +236,14 @@ class Evaluator:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
-        print('Visiting Variable Node')
         var = scope.find_variable(node.idx)
-        print(var.type)
+
         return var.type
 
     @visitor.when(AssignNode)
     def visit(self, node: AssignNode, scope: Scope):
         expr_type = self.visit(node.expr, scope)
-        print(node.idx, expr_type)
+
         scope.define_variable(node.idx, expr_type)
         return expr_type
 
@@ -253,14 +251,14 @@ class Evaluator:
     def visit(self, node: DestructiveAssignment, scope: Scope):
 
         expr_type = self.visit(node.expr, scope)
-        print(f'new value: {expr_type}')
+
 
         if isinstance(node.idx, ast.IndexationNode):
-            print(node.idx.obj.lex)
+
             iterable = scope.find_variable(node.idx.obj.lex)
-            # print(iterable)
+
             index = int(self.visit(node.idx.index, scope))
-            # print(f'Iterable: {iterable}, index: {index}')
+
             scope.change_value_list(node.idx.obj.lex, index, expr_type)
             # iterable[int(self.visit(node.idx.index, scope))] = expr_type
         else:
@@ -279,7 +277,6 @@ class Evaluator:
 
         expr = self.visit(node.exp, scope)
 
-        print(f'type as: {type_as.name}. expr: {expr}')
 
         if isinstance(type_as, Type):
             if type_as.name in types.keys():
@@ -379,7 +376,7 @@ class Evaluator:
 
     @visitor.when(IndexationNode)
     def visit(self, node: IndexationNode, scope: Scope):
-        print('Visiting Indexation Node')
+
         # check that obj is Iterable
         try:
             # checking if I am indexing on a defined variable
@@ -443,7 +440,7 @@ class Evaluator:
 
     @visitor.when(List_Comprehension)
     def visit(self, node: List_Comprehension, scope: Scope):
-        print('Visiting List Comprehension')
+
         # for idx in iterable : do exp
         # return iterable of exp.type
         iterable = self.visit(node.expr, scope)
@@ -468,9 +465,9 @@ class Evaluator:
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
         # check if the attribute is defined
-        print('Visiting Attr Call Node')
+
         attr = self.current_type.get_attribute(node.attr_called.lex)
-        print(f'attr: {attr.name} {attr.type} {attr.value}')
+
         return self.visit(attr.value, scope)
 
 
@@ -478,24 +475,22 @@ class Evaluator:
 
     @visitor.when(FuncCallNode)
     def visit(self, node: FuncCallNode, scope: Scope):
-        print('Visiting Func Call Node')
+
 
         # objcalled is either an idx(type) or a base().something or self.a() or a.b() a function call
         # if objcalled is a idx then:
         # type.() or self.() or base() or method()
         try:
             idx = node.obj_called
-            print(f'IDX: {idx.lex}')
-            print(self.current_type)
+
 
             # checking if it's base
             if idx.lex == 'base':
-                print(f'Visiting base {self.current_type.parent.name}')
-                print(f'Cuurent method: {self.current_method}')
+
                 base_type = self.current_type.parent
                 # visit the current method in the parent class
                 method = base_type.get_method(self.current_method.name)
-                print(f'Visiting method {method.expr} in type {base_type.name}')
+
                 a = self.visit(method.expr, scope)
                 return a
 
@@ -509,7 +504,7 @@ class Evaluator:
             if self.current_type is None:
                 # this means that it's calling a function or a type
                 try:
-                    print(f'Looking for type {idx.lex}')
+
                     a = scope.find_variable(idx.lex).type
 
                     # if it's here it's because it'a a type call
@@ -523,18 +518,16 @@ class Evaluator:
                     # it means it is a function call
                     func = scope.find_function(idx.lex)
 
-                    print(f'Found function {func.name}')
-                    print(f'Function: {func.body}')
+
                     params = []
-                    print(node.params[0])
+
                     #node.params[0] contiene la expresion del parametro
 
                     for var, type in node.params:
                         if isinstance(var, VoidNode):
                             continue
                         params.append(var)
-                    print(params)
-                    print(f'Params given: {params}\nParams expected: {func.param_names}')
+
 
                     # create child scope
                     child_scope = scope.create_child()
@@ -545,13 +538,10 @@ class Evaluator:
                         var = child_scope.find_variable(name.idx)
                         if var is None:
                             child_scope.define_variable(name.idx, self.visit(params[i], child_scope))
-                            print('Variable defined')
+
                         else:
                             child_scope.change_type(name.idx, self.visit(params[i], child_scope))
 
-                    print(f'Visiting function {func.name} with scope')
-
-                    print(func.body)
                     try:
                         ret = None
                         for i in func.body:
@@ -579,7 +569,7 @@ class Evaluator:
                     return method.return_type
 
                 self.current_method = method
-                print(f'Visiting method {method.expr} in type {self.current_type.name}')
+
                 return self.visit(method.expr, scope)
 
         except:
@@ -603,7 +593,7 @@ class Evaluator:
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node: TypeDeclarationNode, scope: Scope):
-        print('Visiting Type Declaration Node')
+
         type = self.context.get_type(node.idx)
         self.current_type = type
 

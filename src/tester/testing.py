@@ -153,15 +153,15 @@ testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i e
              'print(fact(4));')
 
 testcase41 = ('function fib(n) => if ( n<2 ) n else ( fib ( n-1 ) + fib ( n-2 ) );'
-              'print(fib(3));')
+              'print(fib(20));')
 
-testcase42 = '4*-8;'
+testcase42 = 'print(4*-8);'
 
 testcase43 = 'print((let a = 4 in a) @ "hola");'
 
 testcase44 = 'let a = b as c in a;'
 
-testcase45 = 'let a = if ("a" is string) 4 else 5 in a;'
+testcase45 = 'print(let a = if ("a" is string) 4 else 5 in a);'
 
 testcase46 = ('type a { b() => new a(); d() => print(4);}'
               'let c = new a() in c.b();')
@@ -185,13 +185,13 @@ def testing(testcase, id):
     try:
         parse, operations = pars([t.token_type for t in testcase], get_shift_reduce=True)
         ast = parser.evaluate_reverse_parse(parse, operations, testcase)
-        print(ast)
-        print(formatter.visit(ast))
+        # print(ast)
+        # print(formatter.visit(ast))
 
         #COLLECTING TYPES
         type_collector = TypeCollector.TypeCollector(errors=[])
         type_collector.visit(ast)
-        print(type_collector.context)
+        # print(type_collector.context)
 
         #CHECKING CIRCULAR DEPENDENCIES
         type_builder = TypeBuilder.TypeBuilder1(type_collector.context, type_collector.errors)
@@ -208,24 +208,26 @@ def testing(testcase, id):
             tp = type_collector.context.get_type(i)
             tp.parent = tp.orig_parent
             tp.children = []
-            print(tp)
+            # print(tp)
 
-        print(type_collector.context)
+        # print(type_collector.context)
 
         #BUILDING ACTUAL TYPES AND METHODS OF TYPES AND PROTOCOLS
         type_builder = TypeBuilder.TypeBuilder2(type_collector.context, type_collector.errors)
         type_builder.visit(ast)
-        print(type_collector.context)
-        print(type_builder.errors)
+        # print(type_collector.context)
+        # print(type_builder.errors)
 
         #CHECKING RETURN TYPES
         type_checker = TypeChecker.TypeChecker(type_collector.context, type_collector.errors)
         scope : Scope = type_checker.visit(ast)
-        print(type_checker.errors)
+
 
         if type_checker.errors == []:
             eval = Evaluator(type_checker.context)
             eval.visit(ast)
+        else:
+            print(type_checker.errors)
 
         print('\x1b[6;30;42m' + f'Test {id} passed!' + '\x1b[0m')
     except Exception as e:
@@ -242,7 +244,6 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-
         testcase = lexer(testcase)
         testing(testcase, i)
 

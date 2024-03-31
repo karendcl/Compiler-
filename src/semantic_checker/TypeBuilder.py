@@ -74,7 +74,7 @@ class TypeBuilder2(object):
 
     @visitor.when(TypeDeclarationNode)
     def visit(self, node):
-        print(f'Visiting {self.current_type}')
+
         try:
             self.current_type = self.ctx.get_type(node.idx)
         except SemanticError as se:
@@ -83,18 +83,18 @@ class TypeBuilder2(object):
 
 
         if node.params is not None:
-            print(node.params)
+
             params = []
             try:
                 for id, type_ in node.params:
-                    print(id, type_)
+
                     params.append((id, self.ctx.get_type_or_protocol(type_)))
                 self.current_type.set_params(params)
             except SemanticError as se:
                 self.errors.append(se.text)
 
-        print(f'checking attributes for {node.idx}')
-        print(node.attributes)
+
+
         for member in node.attributes + node.functions:
             self.visit(member)
 
@@ -107,7 +107,7 @@ class TypeBuilder2(object):
 
     @visitor.when(ProtocolDeclarationNode)
     def visit(self, node: ProtocolDeclarationNode):
-        print(f'Visiting {self.current_type}')
+
         try:
             self.current_type = self.ctx.get_protocol(node.idx)
         except SemanticError as se:
