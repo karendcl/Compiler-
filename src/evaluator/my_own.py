@@ -104,6 +104,7 @@ class Evaluator:
 
     @visitor.when(MinusNode)
     def visit(self, node: MinusNode, scope: Scope):
+        print('Visiting Minus Node')
         left = self.visit(node.left, scope)
         right = self.visit(node.right, scope)
         return left - right
@@ -236,7 +237,9 @@ class Evaluator:
 
     @visitor.when(VariableNode)
     def visit(self, node: VariableNode, scope: Scope):
+        print('Visiting Variable Node')
         var = scope.find_variable(node.idx)
+        print(var.type)
         return var.type
 
     @visitor.when(AssignNode)
@@ -465,7 +468,9 @@ class Evaluator:
     @visitor.when(AttrCallNode)
     def visit(self, node: AttrCallNode, scope: Scope):
         # check if the attribute is defined
+        print('Visiting Attr Call Node')
         attr = self.current_type.get_attribute(node.attr_called.lex)
+        print(f'attr: {attr.name} {attr.type} {attr.value}')
         return self.visit(attr.value, scope)
 
 
@@ -485,42 +490,20 @@ class Evaluator:
 
             # checking if it's base
             if idx.lex == 'base':
-                if self.current_type is None:
-                    print('Base outside class')
-                    self.errors.append(err.BASE_OUTSIDE_CLASS)
-                    return ErrorType()
-                if self.current_type.parent is None:
-                    print('Base without inheritance')
-                    self.errors.append(err.BASE_WITHOUT_INHERITANCE)
-                    return ErrorType()
-
                 print(f'Visiting base {self.current_type.parent.name}')
                 print(f'Cuurent method: {self.current_method}')
-
                 base_type = self.current_type.parent
-
                 # visit the current method in the parent class
-                try:
-                    method = base_type.get_method(self.current_method.name)
-                except SemanticError as e:
-                    self.errors.append(e.text)
-                    return ErrorType()
+                method = base_type.get_method(self.current_method.name)
                 print(f'Visiting method {method.expr} in type {base_type.name}')
-                if isinstance(method.return_type, ObjectType):
-                    a = self.visit(method.expr, scope)
-                    method.return_type = a
-                    method.checked = True
-                    return a
-                else:
-                    return method.return_type
+                a = self.visit(method.expr, scope)
+                return a
 
             # checking if it's self
             if idx.lex == 'self':
-                if self.current_type is None:
-                    self.errors.append(err.SELF_OUTSIDE_CLASS)
-                    return ErrorType()
                 # it's a function call to a method in the current class
                 return self.visit(node.params[0], scope)
+
 
             # checking if it's a method or a type defined
             if self.current_type is None:
@@ -541,21 +524,17 @@ class Evaluator:
                     func = scope.find_function(idx.lex)
 
                     print(f'Found function {func.name}')
-
                     print(f'Function: {func.body}')
-
                     params = []
+                    print(node.params[0])
+                    #node.params[0] contiene la expresion del parametro
 
                     for var, type in node.params:
                         if isinstance(var, VoidNode):
                             continue
-                        try:
-                            params.append(self.visit(var, scope))
-                        except:
-                            params.append(scope.find_variable(var).type)
-
+                        params.append(var)
+                    print(params)
                     print(f'Params given: {params}\nParams expected: {func.param_names}')
-
 
                     # create child scope
                     child_scope = scope.create_child()
@@ -565,10 +544,10 @@ class Evaluator:
                         # see if it's defined
                         var = child_scope.find_variable(name.idx)
                         if var is None:
-                            child_scope.define_variable(name.idx, params[i])
+                            child_scope.define_variable(name.idx, self.visit(params[i], child_scope))
                             print('Variable defined')
                         else:
-                            child_scope.change_type(name.idx, params[i])
+                            child_scope.change_type(name.idx, self.visit(params[i], child_scope))
 
                     print(f'Visiting function {func.name} with scope')
 

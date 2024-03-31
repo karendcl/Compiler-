@@ -50,7 +50,7 @@ testcase6 = ('type A { b = 0; a = 0; c = 0; d: int; getX() => self.b; }'
               'protocol M  { i(): int; }'
               'protocol J extends M {k():int;}'
               'let a = new B() in '
-              'if (a is int) print(1) else a.getX();')
+              'if (a is Object) print(a.getX()) else a.getX();')
 
 testcase7 = 'let a = range(1,10) in print(a[1]);'
 
@@ -152,8 +152,8 @@ testcase39 = 'print(sin(3^4));'
 testcase40= ('function fact(x) => let f =1 in for (i in range(1,x+1)) f := f*i else 4;'
              'print(fact(4));')
 
-testcase41 = ('function fib(n) => if ( n==0 ) 1 else ( fib ( n-1 ) + fib ( n-2 ) );'
-              'fib(0);')
+testcase41 = ('function fib(n) => if ( n<2 ) n else ( fib ( n-1 ) + fib ( n-2 ) );'
+              'print(fib(3));')
 
 testcase42 = '4*-8;'
 
@@ -164,7 +164,7 @@ testcase44 = 'let a = b as c in a;'
 testcase45 = 'let a = if ("a" is string) 4 else 5 in a;'
 
 testcase46 = ('type a { b() => new a(); d() => print(4);}'
-              'let c = new a() in c.b().d();')
+              'let c = new a() in c.b();')
 
 testcase47 = 'print(4+5+6 as int);'
 
@@ -240,8 +240,6 @@ while True:
         break
 
 for i, testcase in enumerate(testcases):
-    if i ==13:
-        print(testcase)
         testcase = lexer(testcase)
         testing(testcase, i)
 

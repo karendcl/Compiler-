@@ -70,7 +70,7 @@ class Type:
 
 
     def set_parent(self, parent):
-        if self.parent is not None:
+        if self.parent is not None and not isinstance(self.parent, ObjectType):
             raise SemanticError(f'Parent type is already set for {self.name}.')
         self.parent = parent
 
@@ -274,6 +274,7 @@ class ObjectType(Type):
         Type.__init__(self, 'object')
         self.parent = None
         self.orig_parent = None
+        self.name = 'object'
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, ObjectType)
@@ -306,6 +307,8 @@ class VoidType(Type):
     def __init__(self):
         Type.__init__(self, '<void>')
         self.orig_parent = ObjectType()
+        self.parent = ObjectType()
+        self.name = 'void'
 
     def conforms_to(self, other):
         raise Exception('Invalid type: void type.')
@@ -326,6 +329,7 @@ class IntType(Type):
         Type.__init__(self, 'int')
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
+        self.name = 'int'
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
@@ -339,6 +343,7 @@ class BoolType(Type):
         Type.__init__(self, 'bool')
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
+        self.name = 'bool'
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, BoolType)
@@ -352,6 +357,7 @@ class StringType(Type):
         Type.__init__(self, 'string')
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
+        self.name = 'string'
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, StringType)
@@ -367,6 +373,7 @@ class NoneType(Type):
         Type.__init__(self, 'None')
         self.parent = None
         self.orig_parent = None
+        self.name = 'None'
 
     def __hash__(self):
         return super().__hash__
@@ -386,6 +393,7 @@ class IterableType(Type):
         self.parent = ObjectType()
         self.orig_parent = ObjectType()
         self.elem_type = elem_type
+        self.name = 'Iterable'
 
     def __eq__(self, other):
         return other.name == self.name and isinstance(other, IterableType)
@@ -425,6 +433,8 @@ class Context:
         if name in self.protocols:
             raise SemanticError(f'Type with the same name as a protocol ({name}) already in context.')
         typex = self.types[name] = Type(name)
+        typex.set_parent(ObjectType())
+        typex.orig_parent = ObjectType()
         return typex
 
     def get_type(self, name:str):
@@ -439,6 +449,7 @@ class Context:
         if name in self.types:
             raise SemanticError(f'Protocol with the same name as a type ({name}) already in context.')
         protocol = self.protocols[name] = Protocol(name)
+
         return protocol
 
     def get_protocol(self, name:str):
@@ -571,13 +582,19 @@ class Scope:
         return str(self)
 
 def common_ancestor(t1: Type, t2: Type):
+    print(f'finding common ancestor {t1}, {t2}')
     if t1 == t2:
         return t1
     if isinstance(t1,ObjectType) or isinstance(t2,ObjectType):
-        return ObjectType
-    if t1 == t2.parent:
-        return t2.parent
-    if t2 == t1.parent:
-        return t1.parent
+        return ObjectType()
+    try:
+        if t1 == t2.parent:
+            return t2.parent
+    except:
+        try:
+            if t2 == t1.parent:
+                return t1.parent
+        except:
+            return ObjectType()
 
     return common_ancestor(t1.parent, t2.parent)

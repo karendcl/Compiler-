@@ -406,6 +406,7 @@ class TypeChecker:
             self.errors.append(e.text)
             return ErrorType()
 
+
         try:
             type_expr = self.visit(node.left, scope)
         except SemanticError as e:
@@ -413,10 +414,13 @@ class TypeChecker:
             return ErrorType()
 
         print(type_as, type_expr)
+
         if isinstance(type_as, Type):
             anc = common_ancestor(type_as, type_expr)
 
-            if anc == type_as:
+            print(f'ancestor: {anc}, type_as: {type_as}')
+            if anc.name == type_as.name:
+                print('returning bool')
                 return BoolType()
         else:
             if isinstance(type_as, Protocol):
@@ -425,6 +429,7 @@ class TypeChecker:
                 else:
                     self.errors.append(err.INCOMPATIBLE_TYPES % (type_expr.name, type_as.name))
                     return ErrorType()
+        return ErrorType()
 
 
 
